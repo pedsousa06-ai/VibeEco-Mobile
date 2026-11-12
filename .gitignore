@@ -9,3 +9,12 @@
 .cxx
 *.apk
 *.aab
+
+# Android / Gradle build files
+build/
+app/build/
+.gradle/
+.idea/
+local.properties
+*.apk
+*.aab
