@@ -41,28 +41,49 @@ fun LoginScreen(
         subtitle = "Acesse sua conta para continuar sua jornada.",
     ) {
         VibeTextField(
-            "E-mail ou matrícula", user, { user = it; error = null },
+            label = "E-mail ou matrícula",
+            value = user,
+            onValueChange = { user = it; error = null },
             keyboardType = KeyboardType.Email,
         )
         Spacer(Modifier.height(16.dp))
         VibeTextField(
-            "Senha", password, { password = it; error = null },
-            isPassword = true, error = error,
+            label = "Senha",
+            value = password,
+            onValueChange = { password = it; error = null },
+            isPassword = true,
+            error = error,
             imeAction = ImeAction.Done,
             onImeAction = { if (canSubmit) trigger++ },
         )
         Spacer(Modifier.height(8.dp))
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Checkbox(
-                checked = rememberMe, onCheckedChange = { rememberMe = it },
+                checked = rememberMe,
+                onCheckedChange = { rememberMe = it },
                 colors = CheckboxDefaults.colors(checkedColor = VibeColors.Green),
             )
-            Text("Lembrar de mim", fontSize = 14.sp, color = VibeColors.Label, modifier = Modifier.weight(1f))
+            Text(
+                text = "Lembrar de mim",
+                fontSize = 14.sp,
+                color = VibeColors.Label,
+                modifier = Modifier.weight(1f)
+            )
             TextButton(onClick = onForgotPassword) {
-                Text("Esqueci minha senha", color = VibeColors.Success, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                Text(
+                    text = "Esqueci minha senha",
+                    color = VibeColors.Success,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp
+                )
             }
         }
         Spacer(Modifier.height(16.dp))
-        PrimaryButton("Entrar na plataforma", onClick = { trigger++ }, enabled = canSubmit, loading = loading)
+        PrimaryButton(
+            text = "Entrar na plataforma",
+            onClick = { trigger++ },
+            enabled = canSubmit,
+            loading = loading
+        )
     }
 }
