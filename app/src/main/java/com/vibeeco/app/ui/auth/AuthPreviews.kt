@@ -7,7 +7,6 @@ import com.vibeeco.app.data.Progress
 import com.vibeeco.app.data.RankEntry
 import com.vibeeco.app.data.User
 import com.vibeeco.app.ui.challenges.ChallengesScreen
-import com.vibeeco.app.ui.home.HomeScreen
 import com.vibeeco.app.ui.learn.LearnScreen
 import com.vibeeco.app.ui.profile.ProfileScreen
 import com.vibeeco.app.ui.ranking.RankingScreen
@@ -61,17 +60,6 @@ private val sampleProgress = Progress(
     doneIds = setOf("c1"), readArticles = setOf("a1", "a2"),
 )
 private val sampleUser = User("Ana Beatriz Souza", "ana.beatriz@ufmg.br", "2023001234", false)
-
-@Preview(name = "8 Início", device = SPEC)
-@Composable
-private fun HomePreview() = VibeEcoTheme {
-    HomeScreen(
-        userName = sampleUser.name, points = sampleProgress.points, streak = sampleProgress.streak,
-        co2Grams = sampleProgress.co2Grams, doneIds = sampleProgress.doneIds, dailyGoal = 3,
-        featured = Content.challenges.take(3), tip = Content.tips.first(),
-        onToggle = {}, onSeeAll = {}, onOpenProfile = {}, onOpenLearn = {},
-    )
-}
 
 @Preview(name = "9 Desafios", device = SPEC)
 @Composable

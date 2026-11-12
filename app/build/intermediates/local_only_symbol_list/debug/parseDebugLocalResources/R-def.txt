@@ -4,8 +4,8 @@ color vibe_dark
 color vibe_green
 color vibe_green_bright
 drawable bg_vibeeco
-drawable ic_launcher_foreground
-drawable ic_vibeeco_leaf
+drawable logo_leaf
+drawable vibeeco_icon_foreground
 mipmap ic_launcher
 string app_name
 style Theme.VibeEco
