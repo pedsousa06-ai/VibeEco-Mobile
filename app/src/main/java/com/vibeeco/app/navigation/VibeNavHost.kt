@@ -47,7 +47,6 @@ import com.vibeeco.app.ui.profile.ProfileScreen
 import com.vibeeco.app.ui.ranking.RankingScreen
 import com.vibeeco.app.ui.theme.VibeColors
 import kotlinx.coroutines.delay
-import java.time.LocalDate
 
 object Routes {
     const val SPLASH = "splash"
@@ -244,17 +243,15 @@ fun VibeNavHost() {
             }
 
             composable(Routes.HOME) {
-                val day = LocalDate.now().dayOfYear
-                val featured = (0 until 3).map { Content.challenges[(day + it) % Content.challenges.size] }
                 HomeScreen(
-                    userName = vm.user?.name ?: "Eco",
+                    userName = vm.user?.name ?: "Visitante",
                     points = vm.progress.points,
                     streak = vm.progress.streak,
                     co2Grams = vm.progress.co2Grams,
                     doneIds = vm.progress.doneIds,
                     dailyGoal = DAILY_GOAL,
-                    featured = featured,
-                    tip = Content.tips[day % Content.tips.size],
+                    featured = Content.challenges.take(3),
+                    tip = Content.tips.random(),
                     onToggle = onToggleChallenge,
                     onSeeAll = { nav.goToTab(Routes.CHALLENGES) },
                     onOpenProfile = { nav.goToTab(Routes.PROFILE) },
