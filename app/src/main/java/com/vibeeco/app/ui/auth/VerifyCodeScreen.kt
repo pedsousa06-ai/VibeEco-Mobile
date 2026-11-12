@@ -11,7 +11,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vibeeco.app.ui.components.*
-import com.vibeeco.app.ui.theme.VibeColors
+import com.vibeeco.app.ui.theme.Colors
 import kotlinx.coroutines.delay
 
 private const val RESEND_SECONDS = 30
@@ -56,7 +56,7 @@ fun VerifyCodeScreen(
                 Column {
                     Text("Como este é um app de demonstração, o código que seria enviado para $email é:")
                     Spacer(Modifier.height(12.dp))
-                    Text(demoCode, fontSize = 32.sp, fontWeight = FontWeight.Bold, color = VibeColors.Green)
+                    Text(demoCode, fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Colors.Green)
                 }
             },
             confirmButton = { TextButton(onClick = { shownFor = demoCode }) { Text("Entendi") } },
@@ -69,19 +69,19 @@ fun VerifyCodeScreen(
     ) {
         OtpCodeInput(code, { code = it; error = null; if (it.length == 6) verifyTrigger++ }, isError = error != null)
         if (error != null) {
-            Text(error!!, color = VibeColors.Error, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
+            Text(error!!, color = Colors.Error, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
         }
         Spacer(Modifier.height(24.dp))
         PrimaryButton("Verificar código", onClick = { verifyTrigger++ }, enabled = code.length == 6, loading = loading)
         Spacer(Modifier.height(12.dp))
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center) {
-            Text("Não recebeu? ", color = VibeColors.Muted, fontSize = 14.sp)
+            Text("Não recebeu? ", color = Colors.Muted, fontSize = 14.sp)
             if (secondsLeft > 0) {
-                Text("Reenviar em ${secondsLeft}s", color = VibeColors.Muted, fontSize = 14.sp)
+                Text("Reenviar em ${secondsLeft}s", color = Colors.Muted, fontSize = 14.sp)
             } else {
                 TextButton(onClick = { code = ""; resendTrigger++ }, contentPadding = PaddingValues(0.dp)) {
-                    Text("Reenviar código", color = VibeColors.Success, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("Reenviar código", color = Colors.Success, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 }
             }
         }

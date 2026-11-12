@@ -42,7 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vibeeco.app.R
 import com.vibeeco.app.ui.auth.PasswordRules
-import com.vibeeco.app.ui.theme.VibeColors
+import com.vibeeco.app.ui.theme.Colors
 
 /** Fundo de folhas do Figma com um leve degradê para dar leitura ao conteúdo. */
 @Composable
@@ -122,7 +122,7 @@ fun VibeEcoLogo(modifier: Modifier = Modifier, textSize: Int = 34, iconSize: Int
         Text(
             text = buildAnnotatedString {
                 withStyle(SpanStyle(color = Color.White)) { append("Vibe") }
-                withStyle(SpanStyle(color = VibeColors.GreenBright)) { append("Eco") }
+                withStyle(SpanStyle(color = Colors.GreenBright)) { append("Eco") }
             },
             fontSize = textSize.sp,
             fontWeight = FontWeight.Bold,
@@ -154,7 +154,7 @@ fun VibeTextField(
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             isError = error != null,
-            placeholder = { Text(placeholder, color = VibeColors.Muted, fontSize = 14.sp) },
+            placeholder = { Text(placeholder, color = Colors.Muted, fontSize = 14.sp) },
             shape = RoundedCornerShape(12.dp),
             keyboardOptions = KeyboardOptions(
                 keyboardType = if (isPassword) KeyboardType.Password else keyboardType,
@@ -168,18 +168,18 @@ fun VibeTextField(
                                    else VisualTransformation.None,
             trailingIcon = if (isPassword) {
                 { TextButton(onClick = { visible = !visible }) {
-                    Text(if (visible) "Ocultar" else "Mostrar", color = VibeColors.Green, fontSize = 12.sp)
+                    Text(if (visible) "Ocultar" else "Mostrar", color = Colors.Green, fontSize = 12.sp)
                 } }
             } else null,
             colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = VibeColors.Border,
-                focusedBorderColor = VibeColors.Green,
+                unfocusedBorderColor = Colors.Border,
+                focusedBorderColor = Colors.Green,
                 unfocusedContainerColor = Color.White,
                 focusedContainerColor = Color.White,
             ),
         )
         if (error != null) {
-            Text(error, color = VibeColors.Error, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
+            Text(error, color = Colors.Error, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
         }
     }
 }
@@ -192,8 +192,8 @@ fun PrimaryButton(text: String, onClick: () -> Unit, enabled: Boolean = true, lo
         modifier = Modifier.fillMaxWidth().height(50.dp),
         shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = VibeColors.Green,
-            disabledContainerColor = VibeColors.Green.copy(alpha = 0.45f),
+            containerColor = Colors.Green,
+            disabledContainerColor = Colors.Green.copy(alpha = 0.45f),
             disabledContentColor = Color.White,
         ),
     ) {
@@ -205,7 +205,7 @@ fun PrimaryButton(text: String, onClick: () -> Unit, enabled: Boolean = true, lo
 @Composable
 fun BackToLogin(onClick: () -> Unit, text: String = "← Voltar ao login") {
     TextButton(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
-        Text(text, color = VibeColors.Muted, fontSize = 15.sp)
+        Text(text, color = Colors.Muted, fontSize = 15.sp)
     }
 }
 
@@ -219,7 +219,7 @@ fun PasswordStrengthIndicator(rules: PasswordRules, visible: Boolean) {
                     Box(
                         Modifier.weight(1f).height(4.dp)
                             .background(
-                                if (i < rules.score) rules.color else VibeColors.Border.copy(alpha = 0.5f),
+                                if (i < rules.score) rules.color else Colors.Border.copy(alpha = 0.5f),
                                 RoundedCornerShape(2.dp))
                     )
                 }
@@ -233,7 +233,7 @@ fun PasswordStrengthIndicator(rules: PasswordRules, visible: Boolean) {
 @Composable
 fun PasswordRequirements(rules: PasswordRules) {
     Column(Modifier.padding(top = 12.dp)) {
-        Text("Sua senha deve conter:", color = VibeColors.Green, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+        Text("Sua senha deve conter:", color = Colors.Green, fontWeight = FontWeight.Bold, fontSize = 13.sp)
         Spacer(Modifier.height(6.dp))
         RequirementRow("Mínimo de 8 caracteres", rules.minLength)
         RequirementRow("Uma letra maiúscula", rules.hasUpper)
@@ -245,9 +245,9 @@ fun PasswordRequirements(rules: PasswordRules) {
 @Composable
 private fun RequirementRow(text: String, ok: Boolean) {
     Row(Modifier.padding(start = 8.dp, top = 2.dp)) {
-        Text(if (ok) "✓" else "•", color = if (ok) VibeColors.Success else VibeColors.Muted, fontSize = 13.sp)
+        Text(if (ok) "✓" else "•", color = if (ok) Colors.Success else Colors.Muted, fontSize = 13.sp)
         Spacer(Modifier.width(8.dp))
-        Text(text, color = if (ok) VibeColors.Success else VibeColors.Muted, fontSize = 13.sp)
+        Text(text, color = if (ok) Colors.Success else Colors.Muted, fontSize = 13.sp)
     }
 }
 
@@ -266,7 +266,7 @@ fun OtpCodeInput(
         onValueChange = { if (it.length <= length && it.all(Char::isDigit)) onValueChange(it) },
         modifier = Modifier.focusRequester(focus),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-        cursorBrush = SolidColor(VibeColors.Green),
+        cursorBrush = SolidColor(Colors.Green),
         decorationBox = {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 repeat(length) { i ->
@@ -277,15 +277,15 @@ fun OtpCodeInput(
                             .border(
                                 width = if (active) 2.dp else 1.dp,
                                 color = when {
-                                    isError -> VibeColors.Error
-                                    active -> VibeColors.Green
-                                    else -> VibeColors.Border
+                                    isError -> Colors.Error
+                                    active -> Colors.Green
+                                    else -> Colors.Border
                                 },
                                 shape = RoundedCornerShape(12.dp)),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(value.getOrNull(i)?.toString() ?: "",
-                            style = TextStyle(fontSize = 22.sp, fontWeight = FontWeight.Bold, color = VibeColors.Title))
+                            style = TextStyle(fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Colors.Title))
                     }
                 }
             }

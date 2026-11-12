@@ -19,7 +19,7 @@ import com.vibeeco.app.data.Category
 import com.vibeeco.app.data.Challenge
 import com.vibeeco.app.data.formatCo2
 import com.vibeeco.app.ui.components.*
-import com.vibeeco.app.ui.theme.VibeColors
+import com.vibeeco.app.ui.theme.Colors
 
 @Composable
 fun ChallengeCard(
@@ -32,21 +32,21 @@ fun ChallengeCard(
         Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(
                 Modifier.size(46.dp).background(
-                    if (done) VibeColors.GreenSoft else Color(0xFFF1F3F2), RoundedCornerShape(14.dp)),
+                    if (done) Colors.GreenSoft else Color(0xFFF1F3F2), RoundedCornerShape(14.dp)),
                 contentAlignment = Alignment.Center,
             ) { Text(challenge.category.emoji, fontSize = 22.sp) }
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Text(
                     challenge.title, fontWeight = FontWeight.SemiBold, fontSize = 15.sp,
-                    color = if (done) VibeColors.Muted else VibeColors.Title,
+                    color = if (done) Colors.Muted else Colors.Title,
                     textDecoration = if (done) TextDecoration.LineThrough else null,
                 )
-                Text(challenge.description, fontSize = 12.sp, color = VibeColors.Muted,
+                Text(challenge.description, fontSize = 12.sp, color = Colors.Muted,
                     maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Spacer(Modifier.height(4.dp))
                 Text("+${challenge.points} pts · ${formatCo2(challenge.co2Grams)} de CO₂",
-                    fontSize = 12.sp, color = VibeColors.Green, fontWeight = FontWeight.Medium)
+                    fontSize = 12.sp, color = Colors.Green, fontWeight = FontWeight.Medium)
             }
             Spacer(Modifier.width(8.dp))
             CheckCircle(done)

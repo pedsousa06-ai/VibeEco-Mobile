@@ -53,8 +53,8 @@ fun ForgotPasswordScreen(
         } else {
             PrimaryButton("Inserir código recebido", onClick = { onContinueToCode(email.trim()) })
             Spacer(Modifier.height(14.dp))
-            Text("Link enviado com sucesso!", color = VibeColors.Success, fontWeight = FontWeight.Medium, fontSize = 13.sp)
-            Text("Verifique sua caixa de entrada em ${email.trim()}", color = VibeColors.Muted, fontSize = 13.sp)
+            Text("Link enviado com sucesso!", color = Colors.Success, fontWeight = FontWeight.Medium, fontSize = 13.sp)
+            Text("Verifique sua caixa de entrada em ${email.trim()}", color = Colors.Muted, fontSize = 13.sp)
         }
         Spacer(Modifier.height(48.dp))
         BackToLogin(onBackToLogin)

@@ -13,9 +13,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Edge-to-edge: conteúdo desenha por baixo das barras.
-        // O controle de ícones (claros/escuros) agora é feito DENTRO do VibeTheme,
-        // pra se adaptar automaticamente ao modo claro/escuro.
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.auto(
                 lightScrim = Color.TRANSPARENT,

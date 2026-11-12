@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.vibeeco.app.data.Article
 import com.vibeeco.app.data.Category
 import com.vibeeco.app.ui.components.*
-import com.vibeeco.app.ui.theme.VibeColors
+import com.vibeeco.app.ui.theme.Colors
 
 @Composable
 fun LearnScreen(
@@ -55,20 +55,20 @@ fun LearnScreen(
             VibeCard(Modifier.padding(horizontal = 16.dp).fillMaxWidth(), onClick = { onOpen(a) }) {
                 Row(Modifier.padding(14.dp), verticalAlignment = Alignment.Top) {
                     Box(
-                        Modifier.size(56.dp).background(VibeColors.GreenSoft, RoundedCornerShape(16.dp)),
+                        Modifier.size(56.dp).background(Colors.GreenSoft, RoundedCornerShape(16.dp)),
                         contentAlignment = Alignment.Center,
                     ) { Text(a.category.emoji, fontSize = 26.sp) }
                     Spacer(Modifier.width(12.dp))
                     Column(Modifier.weight(1f)) {
                         Text(a.category.label.uppercase(), fontSize = 10.sp, fontWeight = FontWeight.Bold,
-                            color = VibeColors.Green, letterSpacing = 0.8.sp)
-                        Text(a.title, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = VibeColors.Title)
-                        Text(a.summary, fontSize = 12.sp, color = VibeColors.Muted, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                            color = Colors.Green, letterSpacing = 0.8.sp)
+                        Text(a.title, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = Colors.Title)
+                        Text(a.summary, fontSize = 12.sp, color = Colors.Muted, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         Spacer(Modifier.height(6.dp))
                         Text(
                             if (read) "✓ Lido · ${a.minutes} min" else "${a.minutes} min · +${a.points} pts",
                             fontSize = 12.sp, fontWeight = FontWeight.Medium,
-                            color = if (read) VibeColors.Success else VibeColors.Muted,
+                            color = if (read) Colors.Success else Colors.Muted,
                         )
                     }
                 }
@@ -99,7 +99,7 @@ fun ArticleDetailScreen(
         }
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             article.body.split("\n\n").forEach {
-                Text(it, fontSize = 16.sp, lineHeight = 25.sp, color = VibeColors.Label)
+                Text(it, fontSize = 16.sp, lineHeight = 25.sp, color = Colors.Label)
             }
             Spacer(Modifier.height(8.dp))
             PrimaryButton(

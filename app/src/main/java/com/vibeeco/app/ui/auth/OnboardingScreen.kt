@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.sp
 import com.vibeeco.app.ui.components.VibeButton        // ← Troquei PrimaryButton por VibeButton
 import com.vibeeco.app.ui.components.VibeBackground   // (se ainda existir no seu projeto)
 import com.vibeeco.app.ui.components.VibeEcoLogo      // (se ainda existir no seu projeto)
-import com.vibeeco.app.ui.theme.VibeColors
+import com.vibeeco.app.ui.theme.Colors
 import kotlinx.coroutines.launch
 
 private data class OnbPage(val emoji: String, val title: String, val text: String)
@@ -68,19 +68,19 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             Box(
-                                Modifier.size(104.dp).background(VibeColors.GreenSoft, CircleShape),
+                                Modifier.size(104.dp).background(Colors.GreenSoft, CircleShape),
                                 contentAlignment = Alignment.Center,
                             ) { Text(pages[i].emoji, fontSize = 52.sp) }
                             Spacer(Modifier.height(20.dp))
 
                             // ✅ Linha 76 corrigida
                             Text(pages[i].title, fontSize = 22.sp, fontWeight = FontWeight.Bold,
-                                color = VibeColors.Title, textAlign = TextAlign.Center)
+                                color = Colors.Title, textAlign = TextAlign.Center)
 
                             Spacer(Modifier.height(8.dp))
 
                             // ✅ Linha 78 corrigida
-                            Text(pages[i].text, fontSize = 14.sp, color = VibeColors.Muted,
+                            Text(pages[i].text, fontSize = 14.sp, color = Colors.Muted,
                                 textAlign = TextAlign.Center, lineHeight = 21.sp,
                                 modifier = Modifier.height(66.dp))
                         }
@@ -92,7 +92,7 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                             val width by animateDpAsState(if (selected) 24.dp else 8.dp, label = "dot")
                             Box(
                                 Modifier.height(8.dp).width(width).background(
-                                    if (selected) VibeColors.Green else VibeColors.Border.copy(alpha = 0.6f),
+                                    if (selected) Colors.Green else Colors.Border.copy(alpha = 0.6f),
                                     CircleShape)
                             )
                         }
