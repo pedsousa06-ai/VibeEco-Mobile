@@ -114,7 +114,7 @@ fun AuthScaffold(
 fun VibeEcoLogo(modifier: Modifier = Modifier, textSize: Int = 34, iconSize: Int = 44) {
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
         Image(
-            painter = painterResource(R.drawable.ic_vibeeco_leaf),
+            painter = painterResource(R.drawable.logo_leaf),
             contentDescription = null,
             modifier = Modifier.size(iconSize.dp),
         )

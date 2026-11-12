@@ -10,6 +10,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vibeeco.app.data.AppConfig
 import com.vibeeco.app.ui.components.*
 import com.vibeeco.app.ui.theme.VibeColors
 
@@ -19,8 +20,8 @@ fun LoginScreen(
     onLogin: suspend (user: String, password: String, remember: Boolean) -> String?,
     onForgotPassword: () -> Unit,
 ) {
-    var user by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    var user by remember { mutableStateOf(if (AppConfig.SIMULATED_LOGIN) AppConfig.DEMO_EMAIL else "") }
+    var password by remember { mutableStateOf(if (AppConfig.SIMULATED_LOGIN) AppConfig.DEMO_PASSWORD else "") }
     var rememberMe by remember { mutableStateOf(true) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
