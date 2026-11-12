@@ -59,8 +59,16 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun finishOnboarding() { store.onboardingSeen = true }
 
     fun login(identifier: String, password: String, remember: Boolean): LoginResult {
-        val acc = store.findAccount(identifier) ?: return LoginResult.Error("Usuário não encontrado.")
-        if (acc.password != password) return LoginResult.Error("Senha incorreta.")
+        val acc: Account
+        if (AppConfig.SIMULATED_LOGIN) {
+            // Login simulado: usa a conta digitada, se existir; senão, a conta de demonstração.
+            acc = store.findAccount(identifier)
+                ?: store.findAccount(AppConfig.DEMO_EMAIL)
+                        ?: return LoginResult.Error("Conta de demonstração não encontrada.")
+        } else {
+            acc = store.findAccount(identifier) ?: return LoginResult.Error("Usuário não encontrado.")
+            if (acc.password != password) return LoginResult.Error("Senha incorreta.")
+        }
         load(acc)
         store.sessionEmail = if (remember && !acc.mustChange) acc.email else null
         return if (acc.mustChange) LoginResult.FirstAccess else LoginResult.Success
