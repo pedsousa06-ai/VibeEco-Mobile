@@ -16,12 +16,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vibeeco.app.data.Category
+import com.vibeeco.app.ui.theme.GreenPrimary
+import com.vibeeco.app.ui.theme.GreenPrimaryLight
 import com.vibeeco.app.ui.theme.VibeColors
 
 /** Cabeçalho verde com cantos arredondados embaixo; estende-se sob a barra de status. */
@@ -30,11 +33,16 @@ fun GradientHeader(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    // Criamos o gradiente aqui direto
+    val headerBrush = Brush.verticalGradient(
+        colors = listOf(GreenPrimaryLight, GreenPrimary)
+    )
+
     Column(
         modifier = modifier
             .fillMaxWidth()
             .background(
-                VibeColors.HeaderBrush,
+                headerBrush, // <--- Usa a variável local
                 RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp),
             )
             .statusBarsPadding()
