@@ -93,9 +93,8 @@ fun HomeScreen(
 
             // Grid de Estatísticas (igual ao Figma)
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                StatCardFigma(Modifier.weight(1f), "Moedas", "$points", YellowAccent, YellowContainer, Icons.Default.ThumbUp)
-                // ✅ AQUI ESTÁ A TROCA: De "Streak" para "Ofensiva"
-                StatCardFigma(Modifier.weight(1f), "Ofensiva", "$streak d", OrangeAccent, OrangeContainer, Icons.Default.Whatshot)
+                StatCardFigma(Modifier.weight(1f), "Moedas", "$points", YellowAccentDark, YellowContainer, Icons.Default.ThumbUp)
+                StatCardFigma(Modifier.weight(1f), "Ofensiva", "$streak d", OrangeAccentDark, OrangeContainer, Icons.Default.Whatshot)
             }
 
             Spacer(Modifier.height(24.dp))
@@ -112,16 +111,30 @@ fun HomeScreen(
                             modifier = Modifier
                                 .size(48.dp)
                                 .clip(CircleShape)
-                                .background(BlueContainer),
+                                .background(BlueContainer), // Fundo azul clarinho do ícone
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(Icons.Default.Eco, contentDescription = null, tint = BlueAccent)
                         }
+
                         Spacer(Modifier.width(12.dp))
+
+                        // ✅ AQUI ESTÁ A CORREÇÃO DO CONTRASTE:
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(challenge.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                            Text("+${challenge.points} XP", style = MaterialTheme.typography.bodySmall, color = GreenPrimary)
+                            Text(
+                                text = challenge.title,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = TextPrimary // Texto escuro para ler no fundo branco
+                            )
+                            Text(
+                                text = "+${challenge.points} XP",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = GreenPrimaryDark, // Verde escuro, chama mais atenção que o azul
+                                fontWeight = FontWeight.ExtraBold
+                            )
                         }
+
                         StatusChip(if (done) "Feito" else "Ativo", if (done) StatusType.Concluido else StatusType.Ativo)
                     }
                 }
@@ -149,6 +162,6 @@ private fun StatCardFigma(modifier: Modifier, title: String, value: String, colo
         }
         Spacer(Modifier.height(8.dp))
         Text(title, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
-        Text(value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = TextPrimary)
+        Text(value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = color) // Valor com a cor forte
     }
 }
