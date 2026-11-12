@@ -1,0 +1,18 @@
+[
+    {
+        "merged": "com.vibeeco.app-debug-52:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "com.vibeeco.app-main-54:/mipmap-anydpi-v26/ic_launcher.xml"
+    },
+    {
+        "merged": "com.vibeeco.app-debug-52:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "com.vibeeco.app-main-54:/drawable/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "com.vibeeco.app-debug-52:/drawable-nodpi_bg_vibeeco.png.flat",
+        "source": "com.vibeeco.app-main-54:/drawable-nodpi/bg_vibeeco.png"
+    },
+    {
+        "merged": "com.vibeeco.app-debug-52:/drawable_ic_vibeeco_leaf.xml.flat",
+        "source": "com.vibeeco.app-main-54:/drawable/ic_vibeeco_leaf.xml"
+    }
+]
