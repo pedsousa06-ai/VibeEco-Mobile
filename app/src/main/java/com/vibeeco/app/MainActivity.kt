@@ -7,16 +7,30 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.vibeeco.app.navigation.VibeNavHost
-import com.vibeeco.app.ui.theme.VibeEcoTheme
+import com.vibeeco.app.ui.theme.VibeTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Edge-to-edge: conteúdo desenha por baixo das barras.
+        // O controle de ícones (claros/escuros) agora é feito DENTRO do VibeTheme,
+        // pra se adaptar automaticamente ao modo claro/escuro.
         enableEdgeToEdge(
-            // ícones claros na barra de status (cabeçalhos verdes) e escuros na barra de navegação (barra branca)
-            statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
-            navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
+            statusBarStyle = SystemBarStyle.auto(
+                lightScrim = Color.TRANSPARENT,
+                darkScrim  = Color.TRANSPARENT
+            ),
+            navigationBarStyle = SystemBarStyle.auto(
+                lightScrim = Color.TRANSPARENT,
+                darkScrim  = Color.TRANSPARENT
+            ),
         )
-        setContent { VibeEcoTheme { VibeNavHost() } }
+
+        setContent {
+            VibeTheme {
+                VibeNavHost()
+            }
+        }
     }
 }

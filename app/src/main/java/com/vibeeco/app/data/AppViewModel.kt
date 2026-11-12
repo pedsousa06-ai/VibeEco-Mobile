@@ -46,10 +46,18 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         return n
     }
 
+    // ✅ TOTALMENTE LIMPO E CORRIGIDO
     private fun load(acc: Account) {
-        user = User(acc.name, acc.email, acc.matricula, acc.mustChange)
+        user = User(
+            name = acc.name,
+            email = acc.email,
+            matricula = acc.matricula,
+            mustChangePassword = acc.mustChange,
+            registration = acc.matricula // Usando matricula para preencher registration também
+        )
         progress = normalize(store.loadProgress(acc.email))
     }
+
 
     private fun update(p: Progress) {
         progress = p

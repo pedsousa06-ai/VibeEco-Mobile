@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -20,7 +21,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -40,12 +40,11 @@ import com.vibeeco.app.data.Content
 import com.vibeeco.app.data.LoginResult
 import com.vibeeco.app.ui.auth.*
 import com.vibeeco.app.ui.challenges.ChallengesScreen
-import com.vibeeco.app.ui.home.HomeScreen
+import com.vibeeco.app.ui.screens.home.HomeScreen
 import com.vibeeco.app.ui.learn.ArticleDetailScreen
 import com.vibeeco.app.ui.learn.LearnScreen
 import com.vibeeco.app.ui.profile.ProfileScreen
 import com.vibeeco.app.ui.ranking.RankingScreen
-import com.vibeeco.app.ui.theme.VibeColors
 import kotlinx.coroutines.delay
 import java.time.LocalDate
 
@@ -109,12 +108,18 @@ fun VibeNavHost() {
         if (vm.toggleChallenge(c)) toast("+${c.points} pontos! 🌱")
     }
 
+    // Cores do tema (já adaptam ao dark mode automaticamente)
+    val colorScheme = MaterialTheme.colorScheme
+
     Scaffold(
-        containerColor = VibeColors.Background,
+        containerColor = colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             AnimatedVisibility(visible = tabs.any { it.route == route }) {
-                NavigationBar(containerColor = Color.White, tonalElevation = 8.dp) {
+                NavigationBar(
+                    containerColor = colorScheme.surface,
+                    tonalElevation = 8.dp
+                ) {
                     tabs.forEach { tab ->
                         NavigationBarItem(
                             selected = route == tab.route,
@@ -122,11 +127,11 @@ fun VibeNavHost() {
                             icon = { Icon(tab.icon, contentDescription = tab.label) },
                             label = { Text(tab.label, fontSize = 11.sp) },
                             colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = VibeColors.Green,
-                                selectedTextColor = VibeColors.Green,
-                                indicatorColor = VibeColors.GreenSoft,
-                                unselectedIconColor = VibeColors.Muted,
-                                unselectedTextColor = VibeColors.Muted,
+                                selectedIconColor   = colorScheme.primary,
+                                selectedTextColor   = colorScheme.primary,
+                                indicatorColor      = colorScheme.primaryContainer,
+                                unselectedIconColor = colorScheme.onSurfaceVariant,
+                                unselectedTextColor = colorScheme.onSurfaceVariant,
                             ),
                         )
                     }
