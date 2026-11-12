@@ -79,8 +79,7 @@ drawable ic_call_answer_video
 drawable ic_call_answer_video_low
 drawable ic_call_decline
 drawable ic_call_decline_low
-drawable ic_launcher_foreground
-drawable ic_vibeeco_leaf
+drawable logo_leaf
 drawable notification_action_background
 drawable notification_bg
 drawable notification_bg_low
@@ -94,6 +93,7 @@ drawable notification_template_icon_bg
 drawable notification_template_icon_low_bg
 drawable notification_tile_bg
 drawable notify_panel_notification_icon_bg
+drawable vibeeco_icon_foreground
 id accessibility_action_clickable_span
 id accessibility_custom_action_0
 id accessibility_custom_action_1

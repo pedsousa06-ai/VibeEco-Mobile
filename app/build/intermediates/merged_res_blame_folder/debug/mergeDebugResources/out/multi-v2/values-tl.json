@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.vibeeco.app-mergeDebugResources-50:/values-tl/values-tl.xml",
+            "outputFile": "com.vibeeco.app-mergeDebugResources-51:/values-tl/values-tl.xml",
             "map": [
                 {
                     "source": "/Users/25203650/.gradle/caches/8.9/transforms/cca0cc3e8911fcf4cb5d95a8f2af57dc/transformed/ui-release/res/values-tl/values-tl.xml",

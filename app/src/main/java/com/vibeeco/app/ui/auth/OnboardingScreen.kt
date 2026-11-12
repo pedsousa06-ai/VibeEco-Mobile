@@ -21,9 +21,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.vibeeco.app.ui.components.PrimaryButton
-import com.vibeeco.app.ui.components.VibeBackground
-import com.vibeeco.app.ui.components.VibeEcoLogo
+import com.vibeeco.app.ui.components.VibeButton        // ← Troquei PrimaryButton por VibeButton
+import com.vibeeco.app.ui.components.VibeBackground   // (se ainda existir no seu projeto)
+import com.vibeeco.app.ui.components.VibeEcoLogo      // (se ainda existir no seu projeto)
 import com.vibeeco.app.ui.theme.VibeColors
 import kotlinx.coroutines.launch
 
@@ -72,9 +72,14 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                                 contentAlignment = Alignment.Center,
                             ) { Text(pages[i].emoji, fontSize = 52.sp) }
                             Spacer(Modifier.height(20.dp))
+
+                            // ✅ Linha 76 corrigida
                             Text(pages[i].title, fontSize = 22.sp, fontWeight = FontWeight.Bold,
                                 color = VibeColors.Title, textAlign = TextAlign.Center)
+
                             Spacer(Modifier.height(8.dp))
+
+                            // ✅ Linha 78 corrigida
                             Text(pages[i].text, fontSize = 14.sp, color = VibeColors.Muted,
                                 textAlign = TextAlign.Center, lineHeight = 21.sp,
                                 modifier = Modifier.height(66.dp))
@@ -94,12 +99,15 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                     }
                     Spacer(Modifier.height(24.dp))
                     Box(Modifier.padding(horizontal = 18.dp)) {
-                        PrimaryButton(
-                            if (isLast) "Começar" else "Próximo",
+
+                        // ✅ Botão atualizado
+                        VibeButton(
+                            text = if (isLast) "Começar" else "Próximo",
                             onClick = {
                                 if (isLast) onFinish()
                                 else scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
                             },
+                            style = com.vibeeco.app.ui.components.VibeButtonStyle.Primary
                         )
                     }
                 }

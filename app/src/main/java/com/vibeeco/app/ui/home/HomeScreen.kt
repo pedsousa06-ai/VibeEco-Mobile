@@ -1,55 +1,25 @@
-package com.vibeeco.app.ui.home
+package com.vibeeco.app.ui.screens.home
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.vibeeco.app.data.Challenge
-import com.vibeeco.app.data.Levels
-import com.vibeeco.app.data.formatCo2
-import com.vibeeco.app.ui.challenges.ChallengeCard
 import com.vibeeco.app.ui.components.*
-import com.vibeeco.app.ui.theme.VibeColors
-import java.time.LocalTime
-
-@Composable
-fun GoalRing(progress: Float, label: String, modifier: Modifier = Modifier) {
-    val animated by animateFloatAsState(progress.coerceIn(0f, 1f), tween(700), label = "ring")
-    Box(modifier.size(84.dp), contentAlignment = Alignment.Center) {
-        Canvas(Modifier.fillMaxSize()) {
-            val stroke = 10.dp.toPx()
-            val arcSize = Size(size.width - stroke, size.height - stroke)
-            val topLeft = Offset(stroke / 2, stroke / 2)
-            drawArc(
-                color = VibeColors.GreenSoft, startAngle = 0f, sweepAngle = 360f, useCenter = false,
-                topLeft = topLeft, size = arcSize, style = Stroke(stroke, cap = StrokeCap.Round),
-            )
-            drawArc(
-                color = VibeColors.Green, startAngle = -90f, sweepAngle = 360f * animated, useCenter = false,
-                topLeft = topLeft, size = arcSize, style = Stroke(stroke, cap = StrokeCap.Round),
-            )
-        }
-        Text(label, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = VibeColors.Title)
-    }
-}
+import com.vibeeco.app.ui.theme.*
 
 @Composable
 fun HomeScreen(
@@ -66,101 +36,119 @@ fun HomeScreen(
     onOpenProfile: () -> Unit,
     onOpenLearn: () -> Unit,
 ) {
-    val hour = LocalTime.now().hour
-    val greeting = when { hour < 12 -> "Bom dia"; hour < 18 -> "Boa tarde"; else -> "Boa noite" }
-    val firstName = userName.trim().split(" ").firstOrNull().orEmpty()
-    val doneToday = doneIds.size
-    val goalReached = doneToday >= dailyGoal
-
-    LazyColumn(
-        Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BackgroundNeutral)
+            .verticalScroll(rememberScrollState())
     ) {
-        item {
-            GradientHeader {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text("$greeting, $firstName! 👋", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 22.sp)
-                        Text("Vamos cuidar do planeta hoje?", color = Color.White.copy(alpha = 0.8f), fontSize = 14.sp)
-                    }
-                    Avatar(
-                        userName, 46.dp, background = Color.White.copy(alpha = 0.2f), textColor = Color.White,
-                        modifier = Modifier.clickable(onClick = onOpenProfile),
-                    )
-                }
-                Spacer(Modifier.height(20.dp))
-                Column(
-                    Modifier.fillMaxWidth()
-                        .background(Color.White.copy(alpha = 0.14f), RoundedCornerShape(20.dp))
-                        .padding(16.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(Levels.emoji(points), fontSize = 30.sp)
-                        Spacer(Modifier.width(12.dp))
-                        Column(Modifier.weight(1f)) {
-                            Text("Nível ${Levels.level(points)} · ${Levels.name(points)}",
-                                color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                            Text("$points pontos", color = Color.White.copy(alpha = 0.85f), fontSize = 13.sp)
-                        }
-                    }
-                    Spacer(Modifier.height(12.dp))
-                    VibeProgressBar(Levels.progress(points), height = 10.dp)
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        "Faltam ${Levels.remaining(points)} pts para ${Levels.name(points + Levels.remaining(points))}",
-                        color = Color.White.copy(alpha = 0.85f), fontSize = 12.sp,
-                    )
-                }
-            }
-        }
-        item {
-            Row(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                StatTile("🔥", if (streak == 1) "1 dia" else "$streak dias", "Sequência", Modifier.weight(1f))
-                StatTile("🌍", formatCo2(co2Grams), "CO₂ evitado", Modifier.weight(1f))
-                StatTile("✅", "$doneToday/$dailyGoal", "Meta de hoje", Modifier.weight(1f))
-            }
-        }
-        item {
-            VibeCard(Modifier.padding(horizontal = 16.dp).fillMaxWidth()) {
-                Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    GoalRing(doneToday / dailyGoal.toFloat(), "$doneToday/$dailyGoal")
-                    Spacer(Modifier.width(16.dp))
-                    Column {
-                        Text("Meta diária", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = VibeColors.Title)
-                        Text(
-                            if (goalReached) "Meta batida! 🎉 Você está arrasando."
-                            else "Complete mais ${dailyGoal - doneToday} desafio(s) para bater a meta de hoje.",
-                            fontSize = 13.sp, color = VibeColors.Muted, lineHeight = 18.sp,
-                        )
-                    }
-                }
-            }
-        }
-        item {
-            SectionTitle("Desafios de hoje", Modifier.padding(horizontal = 16.dp), "Ver todos", onSeeAll)
-        }
-        items(featured, key = { it.id }) { c ->
-            ChallengeCard(c, c.id in doneIds, { onToggle(c) }, Modifier.padding(horizontal = 16.dp))
-        }
-        item {
-            VibeCard(
-                Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
-                onClick = onOpenLearn,
-                containerColor = VibeColors.GreenSoft,
+        // 1. Header Verde (Figma)
+        VibeHeader(
+            title = "Bom dia, $userName",
+            subtitle = "Vamos salvar o planeta hoje?"
+        ) {
+            // Avatar do usuário (igual ao Figma)
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.2f))
+                    .clickable { onOpenProfile() },
+                contentAlignment = Alignment.Center
             ) {
-                Row(Modifier.padding(16.dp), verticalAlignment = Alignment.Top) {
-                    Text("💡", fontSize = 28.sp)
-                    Spacer(Modifier.width(12.dp))
-                    Column {
-                        Text("Dica do dia", fontWeight = FontWeight.Bold, color = VibeColors.GreenDark, fontSize = 15.sp)
-                        Spacer(Modifier.height(2.dp))
-                        Text(tip, fontSize = 13.sp, color = VibeColors.Label, lineHeight = 19.sp)
-                        Spacer(Modifier.height(6.dp))
-                        Text("Ver mais conteúdos →", fontSize = 12.sp, color = VibeColors.Green, fontWeight = FontWeight.SemiBold)
+                Icon(Icons.Default.Person, contentDescription = "Perfil", tint = Color.White)
+            }
+        }
+
+        // 2. Conteúdo que sobe por cima do header
+        Column(
+            modifier = Modifier
+                .padding(horizontal = 20.dp)
+                .offset(y = (-20).dp)
+        ) {
+            // Card de Progresso (Duolingo 3D style)
+            FigmaCard {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Seu progresso", style = MaterialTheme.typography.titleMedium, color = TextSecondary)
+                        Text("$points XP", style = MaterialTheme.typography.headlineMedium, color = GreenPrimaryDark, fontWeight = FontWeight.Black)
+                    }
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(GreenContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.Star, contentDescription = null, tint = GreenPrimary)
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
+                VibeProgressBar(progress = (points % 1000) / 1000f)
+                Spacer(Modifier.height(8.dp))
+                Text("Faltam ${1000 - (points % 1000)} XP para o próximo nível", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            // Grid de Estatísticas (igual ao Figma)
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                StatCardFigma(Modifier.weight(1f), "Moedas", "$points", YellowAccent, YellowContainer, Icons.Default.ThumbUp)
+                // ✅ AQUI ESTÁ A TROCA: De "Streak" para "Ofensiva"
+                StatCardFigma(Modifier.weight(1f), "Ofensiva", "$streak d", OrangeAccent, OrangeContainer, Icons.Default.Whatshot)
+            }
+
+            Spacer(Modifier.height(24.dp))
+
+            // Desafios de Hoje (Figma style)
+            Text("Desafios de hoje", style = MaterialTheme.typography.titleLarge, color = TextPrimary)
+            Spacer(Modifier.height(12.dp))
+
+            featured.take(2).forEach { challenge ->
+                val done = challenge.id in doneIds
+                FigmaCard(modifier = Modifier.padding(bottom = 12.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .background(BlueContainer),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.Eco, contentDescription = null, tint = BlueAccent)
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(challenge.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            Text("+${challenge.points} XP", style = MaterialTheme.typography.bodySmall, color = GreenPrimary)
+                        }
+                        StatusChip(if (done) "Feito" else "Ativo", if (done) StatusType.Concluido else StatusType.Ativo)
                     }
                 }
             }
+
+            Spacer(Modifier.height(24.dp))
+            VibeButton("Ver todos os desafios", onSeeAll, style = VibeButtonStyle.Primary)
+            Spacer(Modifier.height(32.dp))
         }
+    }
+}
+
+// Helper para os cards pequenos do Figma
+@Composable
+private fun StatCardFigma(modifier: Modifier, title: String, value: String, color: Color, bg: Color, icon: androidx.compose.ui.graphics.vector.ImageVector) {
+    FigmaCard(modifier = modifier) {
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(bg),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(20.dp))
+        }
+        Spacer(Modifier.height(8.dp))
+        Text(title, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+        Text(value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = TextPrimary)
     }
 }

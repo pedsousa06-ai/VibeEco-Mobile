@@ -13,6 +13,7 @@ data class User(
     val email: String,
     val matricula: String,
     val mustChangePassword: Boolean,
+    val registration: String,
 )
 
 data class Challenge(
