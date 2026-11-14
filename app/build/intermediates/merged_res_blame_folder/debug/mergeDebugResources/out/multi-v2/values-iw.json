@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.vibeeco.app-mergeDebugResources-50:/values-iw/values-iw.xml",
+            "outputFile": "com.vibeeco.app-mergeDebugResources-2:/values-iw/values-iw.xml",
             "map": [
                 {
                     "source": "C:\\Users\\Pedfr\\.gradle\\caches\\8.9\\transforms\\cd46abea9d16e862d0dfae7b2db85bca\\transformed\\core-1.15.0\\res\\values-iw\\values-iw.xml",

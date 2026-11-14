@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml:2:1-26:12
-INJECTED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml:2:1-26:12
-INJECTED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml:2:1-26:12
-INJECTED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml:2:1-26:12
+ADDED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml:2:1-26:12
+INJECTED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml:2:1-26:12
+INJECTED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml:2:1-26:12
+INJECTED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml:2:1-26:12
 MERGED from [androidx.compose.material3:material3-android:1.3.1] C:\Users\Pedfr\.gradle\caches\8.9\transforms\b1d196674fcf86ebe35485f15500c334\transformed\material3-release\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.navigation:navigation-common:2.8.4] C:\Users\Pedfr\.gradle\caches\8.9\transforms\762992857a2509213f78291299bb8946\transformed\navigation-common-2.8.4\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.navigation:navigation-runtime:2.8.4] C:\Users\Pedfr\.gradle\caches\8.9\transforms\a11d4ede99ff25cf2ec652eba74aab9c\transformed\navigation-runtime-2.8.4\AndroidManifest.xml:17:1-22:12
@@ -40,6 +40,7 @@ MERGED from [androidx.lifecycle:lifecycle-runtime-ktx-android:2.8.7] C:\Users\Pe
 MERGED from [androidx.lifecycle:lifecycle-viewmodel-compose-android:2.8.7] C:\Users\Pedfr\.gradle\caches\8.9\transforms\79d8dfbfac65c273f630a5e031f97372\transformed\lifecycle-viewmodel-compose-release\AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.compose.material:material-icons-core-android:1.7.5] C:\Users\Pedfr\.gradle\caches\8.9\transforms\5bab0b2fa79d1002a271c4146f45e4ab\transformed\material-icons-core-release\AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.compose.ui:ui-android:1.7.5] C:\Users\Pedfr\.gradle\caches\8.9\transforms\cca0cc3e8911fcf4cb5d95a8f2af57dc\transformed\ui-release\AndroidManifest.xml:2:1-7:12
+MERGED from [com.composables:icons-lucide-android-debug:1.0.0] C:\Users\Pedfr\.gradle\caches\8.9\transforms\01b8d3ea784af3f4a983ae8231b6dab5\transformed\icons-lucide-debug\AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.compose.foundation:foundation-android:1.7.5] C:\Users\Pedfr\.gradle\caches\8.9\transforms\ad8eea050f53ebc62f7f4a016af601f1\transformed\foundation-release\AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.autofill:autofill:1.0.0] C:\Users\Pedfr\.gradle\caches\8.9\transforms\913b9b15812cc1c29eb7a275314f50a6\transformed\autofill-1.0.0\AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.graphics:graphics-path:1.0.1] C:\Users\Pedfr\.gradle\caches\8.9\transforms\f20a1997074724b7156eff7f2a2bc541\transformed\graphics-path-1.0.1\AndroidManifest.xml:2:1-7:12
@@ -56,20 +57,20 @@ MERGED from [androidx.compose.runtime:runtime-saveable-android:1.7.5] C:\Users\P
 MERGED from [androidx.arch.core:core-runtime:2.2.0] C:\Users\Pedfr\.gradle\caches\8.9\transforms\17c2f6b23cd913db5ea64278319b9c14\transformed\core-runtime-2.2.0\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.annotation:annotation-experimental:1.4.1] C:\Users\Pedfr\.gradle\caches\8.9\transforms\e0e338b3f95b151fd3e8aa27f7091dc0\transformed\annotation-experimental-1.4.1\AndroidManifest.xml:2:1-7:12
 	package
-		INJECTED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml
 	android:versionName
-		INJECTED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml
 	android:versionCode
-		INJECTED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml
 	xmlns:android
-		ADDED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml:2:11-69
+		ADDED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml:2:11-69
 uses-permission#android.permission.INTERNET
-ADDED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml:4:5-67
+ADDED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml:4:5-67
 	android:name
-		ADDED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml:4:22-64
+		ADDED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml:4:22-64
 application
-ADDED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml:6:5-24:19
-INJECTED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml:6:5-24:19
+ADDED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml:6:5-24:19
+INJECTED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml:6:5-24:19
 MERGED from [androidx.compose.ui:ui-tooling-android:1.7.5] C:\Users\Pedfr\.gradle\caches\8.9\transforms\75da1d9fd0a9568c8027ba85e7b60180\transformed\ui-tooling-release\AndroidManifest.xml:22:5-26:19
 MERGED from [androidx.compose.ui:ui-tooling-android:1.7.5] C:\Users\Pedfr\.gradle\caches\8.9\transforms\75da1d9fd0a9568c8027ba85e7b60180\transformed\ui-tooling-release\AndroidManifest.xml:22:5-26:19
 MERGED from [androidx.emoji2:emoji2:1.3.0] C:\Users\Pedfr\.gradle\caches\8.9\transforms\e9a4de5f87829d8e56de87ff35dfed60\transformed\emoji2-1.3.0\AndroidManifest.xml:23:5-33:19
@@ -85,45 +86,45 @@ MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\Pedfr\.gradle\cach
 MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] C:\Users\Pedfr\.gradle\caches\8.9\transforms\6d440091e6cd38d79f85b9967a866a9c\transformed\versionedparcelable-1.1.1\AndroidManifest.xml:24:5-25:19
 MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] C:\Users\Pedfr\.gradle\caches\8.9\transforms\6d440091e6cd38d79f85b9967a866a9c\transformed\versionedparcelable-1.1.1\AndroidManifest.xml:24:5-25:19
 	android:extractNativeLibs
-		INJECTED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml
 	android:appComponentFactory
 		ADDED from [androidx.core:core:1.15.0] C:\Users\Pedfr\.gradle\caches\8.9\transforms\cd46abea9d16e862d0dfae7b2db85bca\transformed\core-1.15.0\AndroidManifest.xml:28:18-86
 	android:supportsRtl
-		ADDED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml:11:9-35
+		ADDED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml:11:9-35
 	android:label
-		ADDED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml:10:9-41
+		ADDED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml:10:9-41
 	android:roundIcon
-		ADDED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml:9:9-48
+		ADDED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml:9:9-48
 	android:icon
-		ADDED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml:8:9-43
+		ADDED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml:8:9-43
 	android:allowBackup
-		ADDED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml:7:9-35
+		ADDED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml:7:9-35
 	android:theme
-		ADDED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml:12:9-45
+		ADDED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml:12:9-45
 activity#com.vibeeco.app.MainActivity
-ADDED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml:14:9-23:20
+ADDED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml:14:9-23:20
 	android:windowSoftInputMode
-		ADDED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml:17:13-55
+		ADDED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml:17:13-55
 	android:exported
-		ADDED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml:16:13-36
+		ADDED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml:16:13-36
 	android:theme
-		ADDED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml:18:13-49
+		ADDED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml:18:13-49
 	android:name
-		ADDED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml:15:13-41
+		ADDED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml:15:13-41
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml:19:13-22:29
+ADDED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml:19:13-22:29
 action#android.intent.action.MAIN
-ADDED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml:20:17-69
+ADDED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml:20:17-69
 	android:name
-		ADDED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml:20:25-66
+		ADDED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml:20:25-66
 category#android.intent.category.LAUNCHER
-ADDED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml:21:17-77
+ADDED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml:21:17-77
 	android:name
-		ADDED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml:21:27-74
+		ADDED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml:21:27-74
 uses-sdk
-INJECTED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
-INJECTED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml
-INJECTED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml
+INJECTED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml
+INJECTED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml
 MERGED from [androidx.compose.material3:material3-android:1.3.1] C:\Users\Pedfr\.gradle\caches\8.9\transforms\b1d196674fcf86ebe35485f15500c334\transformed\material3-release\AndroidManifest.xml:20:5-44
 MERGED from [androidx.compose.material3:material3-android:1.3.1] C:\Users\Pedfr\.gradle\caches\8.9\transforms\b1d196674fcf86ebe35485f15500c334\transformed\material3-release\AndroidManifest.xml:20:5-44
 MERGED from [androidx.navigation:navigation-common:2.8.4] C:\Users\Pedfr\.gradle\caches\8.9\transforms\762992857a2509213f78291299bb8946\transformed\navigation-common-2.8.4\AndroidManifest.xml:20:5-44
@@ -196,6 +197,8 @@ MERGED from [androidx.compose.material:material-icons-core-android:1.7.5] C:\Use
 MERGED from [androidx.compose.material:material-icons-core-android:1.7.5] C:\Users\Pedfr\.gradle\caches\8.9\transforms\5bab0b2fa79d1002a271c4146f45e4ab\transformed\material-icons-core-release\AndroidManifest.xml:5:5-44
 MERGED from [androidx.compose.ui:ui-android:1.7.5] C:\Users\Pedfr\.gradle\caches\8.9\transforms\cca0cc3e8911fcf4cb5d95a8f2af57dc\transformed\ui-release\AndroidManifest.xml:5:5-44
 MERGED from [androidx.compose.ui:ui-android:1.7.5] C:\Users\Pedfr\.gradle\caches\8.9\transforms\cca0cc3e8911fcf4cb5d95a8f2af57dc\transformed\ui-release\AndroidManifest.xml:5:5-44
+MERGED from [com.composables:icons-lucide-android-debug:1.0.0] C:\Users\Pedfr\.gradle\caches\8.9\transforms\01b8d3ea784af3f4a983ae8231b6dab5\transformed\icons-lucide-debug\AndroidManifest.xml:5:5-44
+MERGED from [com.composables:icons-lucide-android-debug:1.0.0] C:\Users\Pedfr\.gradle\caches\8.9\transforms\01b8d3ea784af3f4a983ae8231b6dab5\transformed\icons-lucide-debug\AndroidManifest.xml:5:5-44
 MERGED from [androidx.compose.foundation:foundation-android:1.7.5] C:\Users\Pedfr\.gradle\caches\8.9\transforms\ad8eea050f53ebc62f7f4a016af601f1\transformed\foundation-release\AndroidManifest.xml:5:5-44
 MERGED from [androidx.compose.foundation:foundation-android:1.7.5] C:\Users\Pedfr\.gradle\caches\8.9\transforms\ad8eea050f53ebc62f7f4a016af601f1\transformed\foundation-release\AndroidManifest.xml:5:5-44
 MERGED from [androidx.autofill:autofill:1.0.0] C:\Users\Pedfr\.gradle\caches\8.9\transforms\913b9b15812cc1c29eb7a275314f50a6\transformed\autofill-1.0.0\AndroidManifest.xml:20:5-22:41
@@ -227,9 +230,9 @@ MERGED from [androidx.arch.core:core-runtime:2.2.0] C:\Users\Pedfr\.gradle\cache
 MERGED from [androidx.annotation:annotation-experimental:1.4.1] C:\Users\Pedfr\.gradle\caches\8.9\transforms\e0e338b3f95b151fd3e8aa27f7091dc0\transformed\annotation-experimental-1.4.1\AndroidManifest.xml:5:5-44
 MERGED from [androidx.annotation:annotation-experimental:1.4.1] C:\Users\Pedfr\.gradle\caches\8.9\transforms\e0e338b3f95b151fd3e8aa27f7091dc0\transformed\annotation-experimental-1.4.1\AndroidManifest.xml:5:5-44
 	android:targetSdkVersion
-		INJECTED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml
 	android:minSdkVersion
-		INJECTED from C:\Users\Pedfr\StudioProjects\VibeEco-Mobile\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\Pedfr\.gemini\antigravity\scratch\vibe-eco\VibeEco-Mobile\app\src\main\AndroidManifest.xml
 activity#androidx.compose.ui.tooling.PreviewActivity
 ADDED from [androidx.compose.ui:ui-tooling-android:1.7.5] C:\Users\Pedfr\.gradle\caches\8.9\transforms\75da1d9fd0a9568c8027ba85e7b60180\transformed\ui-tooling-release\AndroidManifest.xml:23:9-25:39
 	android:exported

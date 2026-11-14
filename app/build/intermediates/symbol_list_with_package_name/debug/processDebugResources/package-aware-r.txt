@@ -73,6 +73,7 @@ dimen notification_subtext_size
 dimen notification_top_pad
 dimen notification_top_pad_large_text
 drawable bg_vibeeco
+drawable fundo_cortado
 drawable ic_call_answer
 drawable ic_call_answer_low
 drawable ic_call_answer_video
@@ -80,6 +81,7 @@ drawable ic_call_answer_video_low
 drawable ic_call_decline
 drawable ic_call_decline_low
 drawable logo_leaf
+drawable logo_principal
 drawable notification_action_background
 drawable notification_bg
 drawable notification_bg_low

@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.vibeeco.app-mergeDebugResources-50:/values/values.xml",
+            "outputFile": "com.vibeeco.app-mergeDebugResources-2:/values/values.xml",
             "map": [
                 {
                     "source": "C:\\Users\\Pedfr\\.gradle\\caches\\8.9\\transforms\\802d15ab3f17d0d372794a38f6d4f737\\transformed\\startup-runtime-1.1.1\\res\\values\\values.xml",
@@ -91,6 +91,42 @@
                     }
                 },
                 {
+                    "source": "C:\\Users\\Pedfr\\.gemini\\antigravity\\scratch\\vibe-eco\\VibeEco-Mobile\\app\\src\\main\\res\\values\\strings.xml",
+                    "from": {
+                        "startLines": "1",
+                        "startColumns": "4",
+                        "startOffsets": "17",
+                        "endColumns": "44",
+                        "endOffsets": "57"
+                    },
+                    "to": {
+                        "startLines": "105",
+                        "startColumns": "4",
+                        "startOffsets": "6353",
+                        "endColumns": "44",
+                        "endOffsets": "6393"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\Pedfr\\.gemini\\antigravity\\scratch\\vibe-eco\\VibeEco-Mobile\\app\\src\\main\\res\\values\\themes.xml",
+                    "from": {
+                        "startLines": "1",
+                        "startColumns": "4",
+                        "startOffsets": "17",
+                        "endLines": "5",
+                        "endColumns": "12",
+                        "endOffsets": "342"
+                    },
+                    "to": {
+                        "startLines": "229",
+                        "startColumns": "4",
+                        "startOffsets": "14599",
+                        "endLines": "233",
+                        "endColumns": "12",
+                        "endOffsets": "14920"
+                    }
+                },
+                {
                     "source": "C:\\Users\\Pedfr\\.gradle\\caches\\8.9\\transforms\\762992857a2509213f78291299bb8946\\transformed\\navigation-common-2.8.4\\res\\values\\values.xml",
                     "from": {
                         "startLines": "2,15,21,27,30",
@@ -110,26 +146,7 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\Pedfr\\StudioProjects\\VibeEco-Mobile\\app\\src\\main\\res\\values\\themes.xml",
-                    "from": {
-                        "startLines": "1",
-                        "startColumns": "4",
-                        "startOffsets": "17",
-                        "endLines": "5",
-                        "endColumns": "12",
-                        "endOffsets": "342"
-                    },
-                    "to": {
-                        "startLines": "229",
-                        "startColumns": "4",
-                        "startOffsets": "14599",
-                        "endLines": "233",
-                        "endColumns": "12",
-                        "endOffsets": "14920"
-                    }
-                },
-                {
-                    "source": "C:\\Users\\Pedfr\\StudioProjects\\VibeEco-Mobile\\app\\src\\main\\res\\values\\colors.xml",
+                    "source": "C:\\Users\\Pedfr\\.gemini\\antigravity\\scratch\\vibe-eco\\VibeEco-Mobile\\app\\src\\main\\res\\values\\colors.xml",
                     "from": {
                         "startLines": "4,2,3",
                         "startColumns": "4,4,4",
@@ -251,23 +268,6 @@
                         "startOffsets": "5970",
                         "endColumns": "53",
                         "endOffsets": "6019"
-                    }
-                },
-                {
-                    "source": "C:\\Users\\Pedfr\\StudioProjects\\VibeEco-Mobile\\app\\src\\main\\res\\values\\strings.xml",
-                    "from": {
-                        "startLines": "1",
-                        "startColumns": "4",
-                        "startOffsets": "17",
-                        "endColumns": "44",
-                        "endOffsets": "57"
-                    },
-                    "to": {
-                        "startLines": "105",
-                        "startColumns": "4",
-                        "startOffsets": "6353",
-                        "endColumns": "44",
-                        "endOffsets": "6393"
                     }
                 },
                 {
