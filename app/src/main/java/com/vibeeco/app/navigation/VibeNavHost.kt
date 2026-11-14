@@ -7,8 +7,19 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -21,7 +32,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -58,8 +71,9 @@ import com.vibeeco.app.ui.community.FeedScreen
 import com.vibeeco.app.ui.home.HomeScreen
 import com.vibeeco.app.ui.learn.ArticleDetailScreen
 import com.vibeeco.app.ui.learn.LearnScreen
-import com.vibeeco.app.ui.profile.ProfileScreen
+import com.vibeeco.app.ui.profile.ConfiguracoesScreen
 import com.vibeeco.app.ui.profile.PerfilStore
+import com.vibeeco.app.ui.profile.ProfileScreen
 import com.vibeeco.app.ui.ranking.RankingScreen
 import com.vibeeco.app.ui.recompensas.Recompensa
 import com.vibeeco.app.ui.recompensas.RecompensasScreen
@@ -90,10 +104,15 @@ object Routes {
     const val ARTICLE = "article/{id}"
     const val PROFILE = "profile"
     const val COMMUNITY = "community"
+    const val CONFIGURACOES = "configuracoes"
+    const val HISTORICO = "historico"
+    const val NOTIFICACOES = "notificacoes"
+    const val MISSAO_DETALHE = "missao/{id}"
 
     fun verify(email: String) = "verify/${Uri.encode(email)}"
     fun article(id: String) = "article/$id"
     fun desafio(id: String) = "desafio/$id"
+    fun missao(id: String) = "missao/$id"
 }
 
 private data class Tab(val route: String, val label: String, val icon: ImageVector)
@@ -105,12 +124,10 @@ private val tabs = listOf(
     Tab(Routes.COMMUNITY, "Feed", Lucide.Users),
     Tab(Routes.LEARN, "Aprender", Lucide.BookOpen),
     Tab(Routes.PROFILE, "Perfil", Lucide.User),
-
-    )
+)
 
 private const val DAILY_GOAL = 3
 
-// Catálogo de exemplo até as recompensas virem do AppViewModel/Store
 private val catalogoRecompensas = listOf(
     Recompensa("r1", "Muda de árvore nativa", "Físico", 120, 1, emoji = "🌱"),
     Recompensa("r2", "Ecobag VibeEco", "Físico", 300, 3, estoque = 5, emoji = "👜", tema = TemaRecompensa.Laranja),
@@ -376,11 +393,10 @@ fun VibeNavHost() {
             }
 
             composable(Routes.RECOMPENSAS) {
-                // Estado local temporário: gasto e resgates ficam só em memória
                 val resgates = remember { mutableStateListOf<Resgate>() }
                 val gasto = resgates.sumOf { it.preco }
                 val saldo = (vm.progress.points - gasto).coerceAtLeast(0)
-                val nivel = vm.progress.points / 100 + 1 // ajuste se já tiver nível
+                val nivel = vm.progress.points / 100 + 1
 
                 RecompensasScreen(
                     saldo = saldo,
@@ -389,7 +405,6 @@ fun VibeNavHost() {
                     recompensas = catalogoRecompensas,
                     resgates = resgates,
                     onVoltar = {
-                        // volta para o ranking; se ele não estiver na pilha, abre a aba
                         if (!nav.popBackStack(Routes.RANKING, false)) nav.goToTab(Routes.RANKING)
                     },
                     onResgatar = { id ->
@@ -445,7 +460,7 @@ fun VibeNavHost() {
             composable(Routes.COMMUNITY) {
                 FeedScreen(
                     usuarioNome = vm.user?.name ?: "Visitante",
-                    usuarioNivel = "Nível ${vm.progress.points / 100 + 1}", // ajuste se já tiver nível
+                    usuarioNivel = "Nível ${vm.progress.points / 100 + 1}",
                 )
             }
 
@@ -454,13 +469,15 @@ fun VibeNavHost() {
                 if (u != null) {
                     val nivel = "Nível ${vm.progress.points / 100 + 1}"
 
-                    // Preenche nome/e-mail e mantém o nível atualizado no PerfilStore
                     LaunchedEffect(u.name, u.email, nivel) {
                         PerfilStore.sincronizar(u.name, u.email, nivel)
                     }
 
                     ProfileScreen(
-                        onAbrirMissao = { nav.goToTab(Routes.CHALLENGES) }, // troque quando houver rota de missões
+                        onAbrirConfiguracoes = { nav.navigate(Routes.CONFIGURACOES) },
+                        onAbrirHistorico = { nav.navigate(Routes.HISTORICO) },
+                        onAbrirNotificacoes = { nav.navigate(Routes.NOTIFICACOES) },
+                        onAbrirMissao = { _ -> nav.goToTab(Routes.CHALLENGES) },
                         onAlterarSenha = { nav.navigate(Routes.CHANGE_PASSWORD) },
                         onSair = {
                             vm.logout()
@@ -469,6 +486,81 @@ fun VibeNavHost() {
                     )
                 }
             }
+
+            composable(Routes.CONFIGURACOES) {
+                ConfiguracoesScreen(
+                    onVoltar = { nav.popBackStack() },
+                    onAlterarSenha = { nav.navigate(Routes.CHANGE_PASSWORD) },
+                    onAviso = { msg -> toast(msg) },
+                    onSair = {
+                        vm.logout()
+                        nav.goToLogin()
+                    },
+                )
+            }
+
+            composable(Routes.HISTORICO) {
+                TelaEmBreve(
+                    titulo = "Histórico",
+                    onVoltar = { nav.popBackStack() },
+                )
+            }
+
+            composable(Routes.NOTIFICACOES) {
+                TelaEmBreve(
+                    titulo = "Notificações",
+                    onVoltar = { nav.popBackStack() },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TelaEmBreve(titulo: String, onVoltar: () -> Unit) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+    ) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(horizontal = 8.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Box(
+                Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .clickable(onClick = onVoltar),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    "‹",
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground,
+                )
+            }
+            Text(
+                titulo,
+                color = MaterialTheme.colorScheme.onBackground,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.ExtraBold,
+            )
+        }
+        Box(
+            Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                "Em breve",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 16.sp,
+            )
         }
     }
 }

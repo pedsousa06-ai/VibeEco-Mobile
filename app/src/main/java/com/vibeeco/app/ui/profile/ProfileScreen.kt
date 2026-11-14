@@ -84,6 +84,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.composables.icons.lucide.Bell
 import com.composables.icons.lucide.CalendarDays
 import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.ChevronRight
@@ -91,12 +92,14 @@ import com.composables.icons.lucide.Clock
 import com.composables.icons.lucide.Coins
 import com.composables.icons.lucide.Eye
 import com.composables.icons.lucide.GraduationCap
+import com.composables.icons.lucide.History
 import com.composables.icons.lucide.Info
 import com.composables.icons.lucide.KeyRound
 import com.composables.icons.lucide.Lock
 import com.composables.icons.lucide.LogOut
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.MapPin
+import com.composables.icons.lucide.Settings
 import com.composables.icons.lucide.ShieldCheck
 import com.composables.icons.lucide.Sparkles
 import com.composables.icons.lucide.Star
@@ -109,7 +112,7 @@ import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 /* ------------------------------------------------------------------ */
-/*  CONSTANTES (ABAS / ROTULO_BOTAO do Perfil.vue)                     */
+/*  CONSTANTES                                                         */
 /* ------------------------------------------------------------------ */
 private val ABAS = listOf(
     "todas" to "Todas",
@@ -133,8 +136,7 @@ private fun percentualCompleto(p: PerfilUsuario): Int {
 /* ------------------------------------------------------------------ */
 @Composable
 fun ProfileScreen(
-    // Ordem da versão antiga (mantida para chamadas posicionais, como no AuthPreviews).
-    // user/progress/notifications não são mais usados: os dados vêm do PerfilStore.
+    // Compatibilidade com AuthPreviews (ignorados)
     @Suppress("UNUSED_PARAMETER") user: User? = null,
     @Suppress("UNUSED_PARAMETER") progress: Progress? = null,
     @Suppress("UNUSED_PARAMETER") notifications: Boolean = true,
@@ -146,12 +148,15 @@ fun ProfileScreen(
     onSair: () -> Unit = {},
     onVoltar: (() -> Unit)? = null,
     onAbrirMissao: (String) -> Unit = {},
+    // Atalhos do topo
+    onAbrirConfiguracoes: () -> Unit = {},
+    onAbrirHistorico: () -> Unit = {},
+    onAbrirNotificacoes: () -> Unit = {},
 ) {
     val acaoSenha = onChangePassword ?: onAlterarSenha
     val acaoSair = onLogout ?: onSair
     val perfil = PerfilStore.perfil
 
-    // Rascunho do formulário; reinicia sempre que o perfil salvo mudar
     var form by remember(perfil) { mutableStateOf(FormPerfil.de(perfil)) }
     var salvo by remember { mutableStateOf(false) }
     var periodo by remember { mutableStateOf("30") }
@@ -168,7 +173,34 @@ fun ProfileScreen(
     }
 
     Column(Modifier.fillMaxSize().background(PC.Pagina)) {
-        BarraTopo("Meu perfil", onVoltar)
+        // ---------- TOPO COM ATALHOS (engrenagem, histórico, notificações) ----------
+        BarraTopo(
+            titulo = "Meu perfil",
+            onVoltar = onVoltar,
+            acoes = {
+                BotaoIcone(
+                    icone = Lucide.Settings,
+                    descricao = "Configurações",
+                    onClick = onAbrirConfiguracoes,
+                    contorno = true,
+                )
+                Spacer(Modifier.width(6.dp))
+                BotaoIcone(
+                    icone = Lucide.History,
+                    descricao = "Histórico",
+                    onClick = onAbrirHistorico,
+                    contorno = true,
+                )
+                Spacer(Modifier.width(6.dp))
+                BotaoIcone(
+                    icone = Lucide.Bell,
+                    descricao = "Notificações",
+                    onClick = onAbrirNotificacoes,
+                    contorno = true,
+                    badge = NotificacoesStore.naoLidas,
+                )
+            },
+        )
 
         Column(
             modifier = Modifier
@@ -204,7 +236,6 @@ fun ProfileScreen(
 
             Revelar(0) { CartaoVisibilidade() }
 
-            // ---------- Desempenho e conquistas ----------
             Revelar(0) {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     TituloSecao("Desempenho e conquistas", "Sua jornada sustentável em números")
@@ -232,7 +263,6 @@ fun ProfileScreen(
 
             CartaoConquistas()
 
-            // ---------- Missões ----------
             Revelar(0) {
                 SecaoMissoes(aba, { aba = it }, onAbrirMissao)
             }
@@ -243,7 +273,7 @@ fun ProfileScreen(
 }
 
 /* ------------------------------------------------------------------ */
-/*  ANIMAÇÃO: revela o bloco quando ele entra na tela                  */
+/*  ANIMAÇÃO DE REVELAÇÃO                                              */
 /* ------------------------------------------------------------------ */
 @Composable
 private fun Revelar(
@@ -330,7 +360,6 @@ private fun CartaoIdentidade(perfil: PerfilUsuario) {
 
     Cartao {
         Box(Modifier.fillMaxWidth()) {
-            // Banner em gradiente com círculos decorativos
             Box(
                 Modifier
                     .fillMaxWidth()
@@ -381,7 +410,6 @@ private fun CartaoIdentidade(perfil: PerfilUsuario) {
                 DivisorLinha()
                 Spacer(Modifier.height(18.dp))
 
-                // Completude do perfil
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                     Box(Modifier.size(80.dp), contentAlignment = Alignment.Center) {
                         Canvas(Modifier.size(80.dp)) {
@@ -780,7 +808,7 @@ private fun LinhaConquista(c: Conquista) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  CONTA (alterar senha / sair)                                       */
+/*  CONTA                                                              */
 /* ------------------------------------------------------------------ */
 @Composable
 private fun CartaoConta(onAlterarSenha: () -> Unit, onSair: () -> Unit) {
