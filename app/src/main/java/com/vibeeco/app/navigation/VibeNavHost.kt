@@ -5,12 +5,6 @@ import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -29,10 +23,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.vibeeco.app.ui.theme.BorderLight
-import com.vibeeco.app.ui.theme.GreenBrand
-import com.vibeeco.app.ui.theme.GreenContainer
-import com.vibeeco.app.ui.theme.TextMuted
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -42,6 +32,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.composables.icons.lucide.BookOpen
+import com.composables.icons.lucide.House
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Target
+import com.composables.icons.lucide.Trophy
+import com.composables.icons.lucide.User
 import com.vibeeco.app.data.AppViewModel
 import com.vibeeco.app.data.Challenge
 import com.vibeeco.app.data.Content
@@ -53,6 +49,10 @@ import com.vibeeco.app.ui.learn.ArticleDetailScreen
 import com.vibeeco.app.ui.learn.LearnScreen
 import com.vibeeco.app.ui.profile.ProfileScreen
 import com.vibeeco.app.ui.ranking.RankingScreen
+import com.vibeeco.app.ui.theme.BorderLight
+import com.vibeeco.app.ui.theme.GreenBrand
+import com.vibeeco.app.ui.theme.GreenContainer
+import com.vibeeco.app.ui.theme.TextMuted
 import kotlinx.coroutines.delay
 
 object Routes {
@@ -78,11 +78,11 @@ object Routes {
 private data class Tab(val route: String, val label: String, val icon: ImageVector)
 
 private val tabs = listOf(
-    Tab(Routes.HOME, "Início", Icons.Filled.Home),
-    Tab(Routes.CHALLENGES, "Desafios", Icons.Filled.CheckCircle),
-    Tab(Routes.RANKING, "Ranking", Icons.Filled.Star),
-    Tab(Routes.LEARN, "Aprender", Icons.AutoMirrored.Filled.List),
-    Tab(Routes.PROFILE, "Perfil", Icons.Filled.Person),
+    Tab(Routes.HOME, "Início", Lucide.House),
+    Tab(Routes.CHALLENGES, "Desafios", Lucide.Target),
+    Tab(Routes.RANKING, "Ranking", Lucide.Trophy),
+    Tab(Routes.LEARN, "Aprender", Lucide.BookOpen),
+    Tab(Routes.PROFILE, "Perfil", Lucide.User),
 )
 
 private const val DAILY_GOAL = 3
@@ -112,7 +112,7 @@ fun VibeNavHost() {
     fun toast(msg: String) = Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
 
     val onToggleChallenge: (Challenge) -> Unit = { c ->
-        if (vm.toggleChallenge(c)) toast("+${c.points} pontos! 🌱")
+        if (vm.toggleChallenge(c)) toast("+${c.points} pontos!")
     }
 
     val colorScheme = MaterialTheme.colorScheme
@@ -144,13 +144,13 @@ fun VibeNavHost() {
                                 Text(
                                     tab.label,
                                     fontSize = 11.sp,
-                                    fontWeight = if (isSelected) FontWeight.Bold else  FontWeight.Normal
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                                 )
                             },
                             colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor   = GreenBrand,
-                                selectedTextColor   = GreenBrand,
-                                indicatorColor      = GreenContainer,
+                                selectedIconColor = GreenBrand,
+                                selectedTextColor = GreenBrand,
+                                indicatorColor = GreenContainer,
                                 unselectedIconColor = TextMuted,
                                 unselectedTextColor = TextMuted,
                             ),
@@ -259,7 +259,7 @@ fun VibeNavHost() {
                         vm.completeFirstAccess(id, current, new)
                     },
                     onSuccess = {
-                        toast("Senha criada! Bem-vindo ao VibeEco 🌱")
+                        toast("Senha criada! Bem-vindo ao VibeEco")
                         nav.navigate(Routes.HOME) { popUpTo(Routes.LOGIN) { inclusive = true } }
                     },
                     onBackToLogin = { nav.popBackStack(Routes.LOGIN, false) },
@@ -323,7 +323,7 @@ fun VibeNavHost() {
                         isRead = article.id in vm.progress.readArticles,
                         onBack = { nav.popBackStack() },
                         onMarkRead = {
-                            if (vm.markArticleRead(article)) toast("+${article.points} pontos por aprender! 📚")
+                            if (vm.markArticleRead(article)) toast("+${article.points} pontos por aprender!")
                         },
                     )
                 }

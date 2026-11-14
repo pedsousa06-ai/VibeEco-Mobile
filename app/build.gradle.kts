@@ -51,5 +51,8 @@ dependencies {
     implementation("androidx.compose.material:material-icons-core")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
 
+    // Ícones Lucide (mesmo conjunto usado no front web)
+    implementation("com.composables:icons-lucide:1.0.0")
+
     debugImplementation("androidx.compose.ui:ui-tooling")
 }

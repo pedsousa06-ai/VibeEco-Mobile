@@ -1,11 +1,25 @@
 package com.vibeeco.app.data
 
-enum class Category(val label: String, val emoji: String) {
-    ENERGIA("Energia", "⚡"),
-    AGUA("Água", "💧"),
-    RESIDUOS("Resíduos", "♻️"),
-    TRANSPORTE("Transporte", "🚲"),
-    ALIMENTACAO("Alimentação", "🥗"),
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.composables.icons.lucide.Bike
+import com.composables.icons.lucide.Droplets
+import com.composables.icons.lucide.Flower2
+import com.composables.icons.lucide.Leaf
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Nut
+import com.composables.icons.lucide.Recycle
+import com.composables.icons.lucide.Salad
+import com.composables.icons.lucide.Sprout
+import com.composables.icons.lucide.TreeDeciduous
+import com.composables.icons.lucide.TreePine
+import com.composables.icons.lucide.Zap
+
+enum class Category(val label: String, val emoji: String, val icon: ImageVector) {
+    ENERGIA("Energia", "⚡", Lucide.Zap),
+    AGUA("Água", "💧", Lucide.Droplets),
+    RESIDUOS("Resíduos", "♻️", Lucide.Recycle),
+    TRANSPORTE("Transporte", "🚲", Lucide.Bike),
+    ALIMENTACAO("Alimentação", "🥗", Lucide.Salad),
 }
 
 data class User(
@@ -63,10 +77,19 @@ data class RankEntry(
 object Levels {
     private val names = listOf("Semente", "Broto", "Muda", "Arbusto", "Árvore", "Floresta")
     private val emojis = listOf("🌰", "🌱", "🌿", "🪴", "🌳", "🌲")
+    private val icons = listOf(
+        Lucide.Nut,
+        Lucide.Sprout,
+        Lucide.Leaf,
+        Lucide.Flower2,
+        Lucide.TreeDeciduous,
+        Lucide.TreePine,
+    )
 
     fun level(points: Int) = points / 100 + 1
     fun name(points: Int) = names[(level(points) - 1).coerceAtMost(names.lastIndex)]
     fun emoji(points: Int) = emojis[(level(points) - 1).coerceAtMost(emojis.lastIndex)]
+    fun icon(points: Int): ImageVector = icons[(level(points) - 1).coerceAtMost(icons.lastIndex)]
     fun progress(points: Int) = (points % 100) / 100f
     fun remaining(points: Int) = 100 - points % 100
 }

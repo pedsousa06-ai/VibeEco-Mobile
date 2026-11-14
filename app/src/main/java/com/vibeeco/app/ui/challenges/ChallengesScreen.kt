@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,6 +22,24 @@ import com.vibeeco.app.data.formatCo2
 import com.vibeeco.app.ui.components.*
 import com.vibeeco.app.ui.theme.VibeColors
 
+/** Cor do ícone de cada categoria. */
+private fun Category.tint(): Color = when (this) {
+    Category.AGUA -> Color(0xFF2563EB)
+    Category.ENERGIA -> Color(0xFFD97706)
+    Category.RESIDUOS -> Color(0xFF16A34A)
+    Category.TRANSPORTE -> Color(0xFF7C3AED)
+    Category.ALIMENTACAO -> Color(0xFFEA580C)
+}
+
+/** Fundo suave de cada categoria. */
+private fun Category.softBackground(): Color = when (this) {
+    Category.AGUA -> Color(0xFFDBEAFE)
+    Category.ENERGIA -> Color(0xFFFEF3C7)
+    Category.RESIDUOS -> Color(0xFFDCF5E5)
+    Category.TRANSPORTE -> Color(0xFFEDE9FE)
+    Category.ALIMENTACAO -> Color(0xFFFFEDD5)
+}
+
 @Composable
 fun ChallengeCard(
     challenge: Challenge,
@@ -32,9 +51,18 @@ fun ChallengeCard(
         Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(
                 Modifier.size(46.dp).background(
-                    if (done) VibeColors.GreenSoft else Color(0xFFF1F3F2), RoundedCornerShape(14.dp)),
+                    if (done) VibeColors.GreenSoft else challenge.category.softBackground(),
+                    RoundedCornerShape(14.dp)
+                ),
                 contentAlignment = Alignment.Center,
-            ) { Text(challenge.category.emoji, fontSize = 22.sp) }
+            ) {
+                Icon(
+                    imageVector = challenge.category.icon,
+                    contentDescription = challenge.category.label,
+                    tint = if (done) VibeColors.Green else challenge.category.tint(),
+                    modifier = Modifier.size(24.dp),
+                )
+            }
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Text(
