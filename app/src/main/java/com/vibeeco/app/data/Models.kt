@@ -35,6 +35,24 @@ data class Article(
     val points: Int = 10,
 )
 
+data class Mission(
+    val id: String,
+    val title: String,
+    val category: Category,
+    val difficulty: String, // "Fácil", "Médio", "Difícil"
+    val xp: Int,
+    val deadline: String,
+    val progress: Int, // 0..100
+)
+
+data class AchievementBadge(
+    val id: String,
+    val name: String,
+    val icon: String,
+    val color: String, // "verde", "amarelo", "azul", "roxo"
+    val unlocked: Boolean = true,
+)
+
 data class RankEntry(
     val name: String,
     val course: String,
@@ -69,6 +87,19 @@ object Content {
         Challenge("c8", "Ir a pé, de bike ou de ônibus", "Troque o carro por uma opção mais limpa.", Category.TRANSPORTE, 30, 1200),
         Challenge("c9", "Refeição sem carne", "Experimente uma refeição vegetariana hoje.", Category.ALIMENTACAO, 25, 1500),
         Challenge("c10", "Zero desperdício de comida", "Aproveite tudo o que está no prato e na geladeira.", Category.ALIMENTACAO, 20, 500),
+    )
+
+    val missions = listOf(
+        Mission("m1", "Economia no Campus: Luzes e Aparelhos", Category.ENERGIA, "Fácil", 150, "3 dias", 65),
+        Mission("m2", "Semana do Desperdício Zero", Category.ALIMENTACAO, "Médio", 250, "5 dias", 40),
+        Mission("m3", "Gincana de Reciclagem de Eletrônicos", Category.RESIDUOS, "Difícil", 400, "1 dia", 85),
+    )
+
+    val achievements = listOf(
+        AchievementBadge("b1", "Primeira Missão", "🌱", "verde"),
+        AchievementBadge("b2", "Reciclador", "♻️", "verde"),
+        AchievementBadge("b3", "Guardião da Água", "💧", "azul"),
+        AchievementBadge("b4", "Eco Energético", "⚡", "amarelo"),
     )
 
     val articles = listOf(
