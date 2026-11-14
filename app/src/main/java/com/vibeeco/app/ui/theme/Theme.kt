@@ -1,7 +1,6 @@
 package com.vibeeco.app.ui.theme
 
 import android.app.Activity
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -32,6 +31,8 @@ private val VibeLightColorScheme = lightColorScheme(
     onErrorContainer = RedDangerDark
 )
 
+// Mantido no arquivo para caso você queira usar em previews/testes.
+// O app NÃO usa esse esquema por padrão.
 private val VibeDarkColorScheme = darkColorScheme(
     primary = GreenBrandLight,
     onPrimary = DarkBackground,
@@ -50,9 +51,17 @@ private val VibeDarkColorScheme = darkColorScheme(
     onError = DarkBackground
 )
 
+/**
+ * Tema oficial do VibeEco.
+ *
+ * IMPORTANTE: o app é SEMPRE claro. O [darkTheme] está aqui apenas para uso
+ * explícito em previews/testes. O padrão é `false` e o `isSystemInDarkTheme()`
+ * do sistema é IGNORADO de propósito, para manter a identidade visual
+ * branca/verde do design em qualquer aparelho.
+ */
 @Composable
 fun VibeTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = if (darkTheme) VibeDarkColorScheme else VibeLightColorScheme
@@ -62,7 +71,11 @@ fun VibeTheme(
         SideEffect {
             val window = (view.context as Activity).window
             window.statusBarColor = colorScheme.background.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            // Força ícones escuros na status bar e navigation bar (modo claro)
+            WindowCompat.getInsetsController(window, view).apply {
+                isAppearanceLightStatusBars = !darkTheme
+                isAppearanceLightNavigationBars = !darkTheme
+            }
         }
     }
 

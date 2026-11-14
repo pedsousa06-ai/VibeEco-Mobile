@@ -13,14 +13,18 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // App é SEMPRE claro.
+        // isDark = false força ícones escuros na status bar e navigation bar,
+        // independentemente do modo do sistema. Sem isso, no modo escuro do
+        // celular os ícones ficam brancos e desaparecem no fundo claro do app.
         enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.auto(
-                lightScrim = Color.TRANSPARENT,
-                darkScrim  = Color.TRANSPARENT
+            statusBarStyle = SystemBarStyle.light(
+                scrim = Color.TRANSPARENT,
+                darkScrim = Color.TRANSPARENT,
             ),
-            navigationBarStyle = SystemBarStyle.auto(
-                lightScrim = Color.TRANSPARENT,
-                darkScrim  = Color.TRANSPARENT
+            navigationBarStyle = SystemBarStyle.light(
+                scrim = Color.TRANSPARENT,
+                darkScrim = Color.TRANSPARENT,
             ),
         )
 

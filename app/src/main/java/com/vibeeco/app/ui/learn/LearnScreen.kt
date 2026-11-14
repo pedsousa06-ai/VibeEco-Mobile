@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
@@ -30,13 +31,11 @@ import com.vibeeco.app.data.Category
 import com.vibeeco.app.ui.components.GradientHeader
 import com.vibeeco.app.ui.components.VibeCard
 import com.vibeeco.app.ui.components.VibeProgressBar
-import com.vibeeco.app.ui.theme.BorderLight
 import com.vibeeco.app.ui.theme.GoldXP
 import com.vibeeco.app.ui.theme.GoldXPText
 import com.vibeeco.app.ui.theme.GreenBrand
 import com.vibeeco.app.ui.theme.GreenContainer
-import com.vibeeco.app.ui.theme.TextMain
-import com.vibeeco.app.ui.theme.TextMuted
+import com.vibeeco.app.ui.theme.GreenOnContainer
 
 @Composable
 fun LearnScreen(
@@ -63,7 +62,9 @@ fun LearnScreen(
     }
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
         contentPadding = PaddingValues(bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -101,10 +102,13 @@ fun LearnScreen(
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = GreenBrand,
-                    unfocusedBorderColor = BorderLight,
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    cursorColor = MaterialTheme.colorScheme.primary,
                 ),
             )
         }
@@ -119,15 +123,21 @@ fun LearnScreen(
                     Surface(
                         onClick = { filtro = cat },
                         shape = RoundedCornerShape(50),
-                        color = if (selecionado) GreenBrand else Color.White,
-                        border = BorderStroke(1.dp, if (selecionado) GreenBrand else BorderLight),
+                        color = if (selecionado) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.surface,
+                        border = BorderStroke(
+                            1.dp,
+                            if (selecionado) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.outline,
+                        ),
                     ) {
                         Text(
                             text = cat?.label ?: "Todos",
                             modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
-                            color = if (selecionado) Color.White else TextMain,
+                            color = if (selecionado) MaterialTheme.colorScheme.onPrimary
+                            else MaterialTheme.colorScheme.onSurface,
                         )
                     }
                 }
@@ -140,20 +150,20 @@ fun LearnScreen(
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
                         .fillMaxWidth()
-                        .background(Color.White, RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp))
                         .padding(32.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
                         "Nenhum conteúdo encontrado.",
                         fontWeight = FontWeight.SemiBold,
-                        color = TextMain,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 14.sp,
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
                         "Tente outro termo ou escolha outra categoria.",
-                        color = TextMuted,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.5.sp,
                     )
                 }
@@ -186,22 +196,26 @@ private fun ArticleCard(
                     .fillMaxWidth()
                     .height(100.dp)
                     .background(
-                        if (read) GreenContainer.copy(alpha = 0.5f) else GreenContainer,
+                        if (read) MaterialTheme.colorScheme.surfaceVariant
+                        else MaterialTheme.colorScheme.secondaryContainer,
                         RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
                     ),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(article.category.emoji, fontSize = 40.sp)
+                Text(
+                    article.category.emoji,
+                    fontSize = 40.sp,
+                )
                 Surface(
                     shape = RoundedCornerShape(50),
-                    color = GreenBrand,
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .align(Alignment.BottomStart)
                         .padding(10.dp),
                 ) {
                     Text(
                         text = article.category.label,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
@@ -210,7 +224,7 @@ private fun ArticleCard(
                 if (read) {
                     Surface(
                         shape = RoundedCornerShape(50),
-                        color = GreenBrand,
+                        color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .padding(10.dp),
@@ -218,7 +232,7 @@ private fun ArticleCard(
                         Icon(
                             Lucide.Check,
                             contentDescription = "Concluído",
-                            tint = Color.White,
+                            tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier
                                 .padding(5.dp)
                                 .size(14.dp),
@@ -232,7 +246,7 @@ private fun ArticleCard(
                     article.title,
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,
-                    color = TextMain,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -240,7 +254,7 @@ private fun ArticleCard(
                 Text(
                     article.summary,
                     fontSize = 12.sp,
-                    color = TextMuted,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -254,11 +268,15 @@ private fun ArticleCard(
                         Icon(
                             Lucide.Clock,
                             contentDescription = null,
-                            tint = TextMuted,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(13.dp),
                         )
                         Spacer(Modifier.width(4.dp))
-                        Text("${article.minutes} min", fontSize = 12.sp, color = TextMuted)
+                        Text(
+                            "${article.minutes} min",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
@@ -272,7 +290,7 @@ private fun ArticleCard(
                             if (read) "Lido" else "+${article.points} XP",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (read) GreenBrand else GoldXPText,
+                            color = if (read) MaterialTheme.colorScheme.primary else GoldXPText,
                         )
                     }
                 }

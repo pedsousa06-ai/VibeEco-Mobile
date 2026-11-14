@@ -17,10 +17,6 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -57,14 +53,12 @@ fun VibeBackground(content: @Composable BoxScope.() -> Unit) {
             .fillMaxSize()
             .background(ForestDarkest)
     ) {
-        // Tenta carregar fundo_cortado ou bg_vibeeco
         Image(
             painter = painterResource(R.drawable.fundo_cortado),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop,
         )
-        // Overlay verde-escuro translúcido linear-gradient(rgba(0, 25, 10, 0.45), rgba(0, 25, 10, 0.45))
         Box(
             Modifier
                 .fillMaxSize()
@@ -74,7 +68,11 @@ fun VibeBackground(content: @Composable BoxScope.() -> Unit) {
     }
 }
 
-/** Scaffold compartilhado para telas de autenticação: Logo + Cartão Branco flutuante */
+/**
+ * Scaffold compartilhado para telas de autenticação.
+ * O cartão interno é sempre branco por design (login é sempre escuro),
+ * então aqui mantemos as cores fixas — é intencional.
+ */
 @Composable
 fun AuthScaffold(
     title: String,
@@ -96,7 +94,6 @@ fun AuthScaffold(
         ) {
             Spacer(Modifier.height(16.dp))
 
-            // Logo Principal
             VibeEcoLogo(
                 modifier = Modifier
                     .widthIn(max = 240.dp)
@@ -165,7 +162,7 @@ fun AuthScaffold(
     }
 }
 
-/** Logo do VibeEco usando a imagem oficial logo_principal ou fallback */
+/** Logo do VibeEco */
 @Composable
 fun VibeEcoLogo(
     modifier: Modifier = Modifier,
@@ -182,7 +179,11 @@ fun VibeEcoLogo(
     )
 }
 
-/** Campo de texto estilizado idêntico aos inputs do web front-end */
+/**
+ * Campo de texto estilizado.
+ * Usa MaterialTheme.colorScheme onde possível, mas o container segue branco
+ * porque o uso principal é dentro do AuthScaffold (fundo branco fixo).
+ */
 @Composable
 fun VibeTextField(
     label: String,
@@ -198,6 +199,7 @@ fun VibeTextField(
 ) {
     var visible by remember { mutableStateOf(false) }
     val focus = LocalFocusManager.current
+    val scheme = MaterialTheme.colorScheme
 
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
@@ -278,7 +280,11 @@ fun VibeTextField(
     }
 }
 
-/** Botão Principal com degradê verde esmeralda idêntico ao desktop */
+/**
+ * Botão Principal com degradê verde esmeralda.
+ * Usado em várias telas (inclusive fora do auth), então precisa
+ * respeitar o tema no estado desabilitado/loading.
+ */
 @Composable
 fun PrimaryButton(
     text: String,
@@ -288,7 +294,7 @@ fun PrimaryButton(
     loading: Boolean = false,
 ) {
     val shape = RoundedCornerShape(10.dp)
-    val interactionSource = remember { MutableInteractionSource() }
+    val scheme = MaterialTheme.colorScheme
 
     Box(
         modifier = modifier
@@ -297,15 +303,15 @@ fun PrimaryButton(
             .shadow(
                 elevation = if (enabled && !loading) 4.dp else 0.dp,
                 shape = shape,
-                ambientColor = GreenBrand.copy(alpha = 0.35f),
-                spotColor = GreenBrand.copy(alpha = 0.35f)
+                ambientColor = scheme.primary.copy(alpha = 0.35f),
+                spotColor = scheme.primary.copy(alpha = 0.35f)
             )
             .clip(shape)
             .background(
                 brush = if (enabled && !loading) {
                     Brush.horizontalGradient(listOf(Color(0xFF1A8F4E), Color(0xFF22C55E)))
                 } else {
-                    SolidColor(GreenBrand.copy(alpha = 0.45f))
+                    SolidColor(scheme.primary.copy(alpha = 0.45f))
                 }
             )
             .clickable(
@@ -348,7 +354,7 @@ fun BackToLogin(onClick: () -> Unit, text: String = "← Voltar ao login") {
     }
 }
 
-/** Banner de Mensagem de Aviso / Sucesso / Erro idêntico ao web */
+/** Banner de Mensagem de Aviso / Sucesso / Erro */
 @Composable
 fun VibeAlert(
     message: String,
@@ -447,7 +453,7 @@ private fun RequirementRow(text: String, ok: Boolean) {
     }
 }
 
-/** Campo de código OTP de 6 dígitos com caixinhas modernas */
+/** Campo de código OTP de 6 dígitos */
 @Composable
 fun OtpCodeInput(
     value: String,

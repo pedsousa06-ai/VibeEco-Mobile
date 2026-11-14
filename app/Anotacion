@@ -1,0 +1,6 @@
+git checkout -b feature/perfil
+git add app/src/main/java/com/vibeeco/app/ui/profile/ProfileCommon.kt app/src/main/java/com/vibeeco/app/ui/profile/ProfileData.kt
+git commit -m "feat(profile): modelos, stores e componentes compartilhados"
+git add app/src/main/java/com/vibeeco/app/ui/profile/ProfileScreen.kt
+git commit -m "feat(profile): tela de perfil com edição, visibilidade, desempenho, conquistas e missões"
+git push -u origin feature/perfil
