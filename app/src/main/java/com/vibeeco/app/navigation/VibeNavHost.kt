@@ -44,6 +44,7 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Target
 import com.composables.icons.lucide.Trophy
 import com.composables.icons.lucide.User
+import com.composables.icons.lucide.Users
 import com.vibeeco.app.data.AppViewModel
 import com.vibeeco.app.data.Challenge
 import com.vibeeco.app.data.Content
@@ -52,6 +53,7 @@ import com.vibeeco.app.data.LoginResult
 import com.vibeeco.app.ui.auth.*
 import com.vibeeco.app.ui.challenges.DesafioDetalheScreen
 import com.vibeeco.app.ui.challenges.DesafiosScreen
+import com.vibeeco.app.ui.community.FeedScreen
 import com.vibeeco.app.ui.home.HomeScreen
 import com.vibeeco.app.ui.learn.ArticleDetailScreen
 import com.vibeeco.app.ui.learn.LearnScreen
@@ -85,6 +87,7 @@ object Routes {
     const val LEARN = "learn"
     const val ARTICLE = "article/{id}"
     const val PROFILE = "profile"
+    const val COMMUNITY = "community"
 
     fun verify(email: String) = "verify/${Uri.encode(email)}"
     fun article(id: String) = "article/$id"
@@ -97,8 +100,10 @@ private val tabs = listOf(
     Tab(Routes.HOME, "Início", Lucide.House),
     Tab(Routes.CHALLENGES, "Desafios", Lucide.Target),
     Tab(Routes.RANKING, "Ranking", Lucide.Trophy),
+    Tab(Routes.COMMUNITY, "Feed", Lucide.Users),
     Tab(Routes.LEARN, "Aprender", Lucide.BookOpen),
     Tab(Routes.PROFILE, "Perfil", Lucide.User),
+
 )
 
 private const val DAILY_GOAL = 3
@@ -433,6 +438,13 @@ fun VibeNavHost() {
                         },
                     )
                 }
+            }
+
+            composable(Routes.COMMUNITY) {
+                FeedScreen(
+                    usuarioNome = vm.user?.name ?: "Visitante",
+                    usuarioNivel = "Nível ${vm.progress.points / 100 + 1}", // ajuste se já tiver nível
+                )
             }
 
             composable(Routes.PROFILE) {
