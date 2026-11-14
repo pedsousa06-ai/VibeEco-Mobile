@@ -17,6 +17,7 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
@@ -58,6 +59,7 @@ import com.vibeeco.app.ui.home.HomeScreen
 import com.vibeeco.app.ui.learn.ArticleDetailScreen
 import com.vibeeco.app.ui.learn.LearnScreen
 import com.vibeeco.app.ui.profile.ProfileScreen
+import com.vibeeco.app.ui.profile.PerfilStore
 import com.vibeeco.app.ui.ranking.RankingScreen
 import com.vibeeco.app.ui.recompensas.Recompensa
 import com.vibeeco.app.ui.recompensas.RecompensasScreen
@@ -104,7 +106,7 @@ private val tabs = listOf(
     Tab(Routes.LEARN, "Aprender", Lucide.BookOpen),
     Tab(Routes.PROFILE, "Perfil", Lucide.User),
 
-)
+    )
 
 private const val DAILY_GOAL = 3
 
@@ -450,13 +452,17 @@ fun VibeNavHost() {
             composable(Routes.PROFILE) {
                 val u = vm.user
                 if (u != null) {
+                    val nivel = "Nível ${vm.progress.points / 100 + 1}"
+
+                    // Preenche nome/e-mail e mantém o nível atualizado no PerfilStore
+                    LaunchedEffect(u.name, u.email, nivel) {
+                        PerfilStore.sincronizar(u.name, u.email, nivel)
+                    }
+
                     ProfileScreen(
-                        user = u,
-                        progress = vm.progress,
-                        notifications = vm.notifications,
-                        onNotificationsChange = { vm.updateNotifications(it) },
-                        onChangePassword = { nav.navigate(Routes.CHANGE_PASSWORD) },
-                        onLogout = {
+                        onAbrirMissao = { nav.goToTab(Routes.CHALLENGES) }, // troque quando houver rota de missões
+                        onAlterarSenha = { nav.navigate(Routes.CHANGE_PASSWORD) },
+                        onSair = {
                             vm.logout()
                             nav.goToLogin()
                         },
