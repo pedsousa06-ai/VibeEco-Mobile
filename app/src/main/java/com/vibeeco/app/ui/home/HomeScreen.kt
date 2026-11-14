@@ -4,18 +4,26 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -27,27 +35,33 @@ import com.vibeeco.app.data.Levels
 import com.vibeeco.app.data.formatCo2
 import com.vibeeco.app.ui.challenges.ChallengeCard
 import com.vibeeco.app.ui.components.*
-import com.vibeeco.app.ui.theme.VibeColors
+import com.vibeeco.app.ui.theme.*
 import java.time.LocalTime
 
 @Composable
 fun GoalRing(progress: Float, label: String, modifier: Modifier = Modifier) {
     val animated by animateFloatAsState(progress.coerceIn(0f, 1f), tween(700), label = "ring")
-    Box(modifier.size(84.dp), contentAlignment = Alignment.Center) {
+    Box(modifier.size(76.dp), contentAlignment = Alignment.Center) {
         Canvas(Modifier.fillMaxSize()) {
-            val stroke = 10.dp.toPx()
+            val stroke = 8.dp.toPx()
             val arcSize = Size(size.width - stroke, size.height - stroke)
             val topLeft = Offset(stroke / 2, stroke / 2)
             drawArc(
-                color = VibeColors.GreenSoft, startAngle = 0f, sweepAngle = 360f, useCenter = false,
+                color = Color(0xFFD6EADB), startAngle = 0f, sweepAngle = 360f, useCenter = false,
                 topLeft = topLeft, size = arcSize, style = Stroke(stroke, cap = StrokeCap.Round),
             )
             drawArc(
-                color = VibeColors.Green, startAngle = -90f, sweepAngle = 360f * animated, useCenter = false,
+                brush = Brush.sweepGradient(listOf(Color(0xFF16A34A), Color(0xFF4ADE80), Color(0xFF16A34A))),
+                startAngle = -90f, sweepAngle = 360f * animated, useCenter = false,
                 topLeft = topLeft, size = arcSize, style = Stroke(stroke, cap = StrokeCap.Round),
             )
         }
-        Text(label, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = VibeColors.Title)
+        Text(
+            text = label,
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp,
+            color = TextMain
+        )
     }
 }
 
@@ -73,91 +87,243 @@ fun HomeScreen(
     val goalReached = doneToday >= dailyGoal
 
     LazyColumn(
-        Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 24.dp),
+        Modifier
+            .fillMaxSize()
+            .background(BackgroundApp),
+        contentPadding = PaddingValues(bottom = 32.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        // BANNER DE BOAS-VINDAS (Degradê Floresta)
         item {
             GradientHeader {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text("$greeting, $firstName! 👋", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 22.sp)
-                        Text("Vamos cuidar do planeta hoje?", color = Color.White.copy(alpha = 0.8f), fontSize = 14.sp)
-                    }
-                    Avatar(
-                        userName, 46.dp, background = Color.White.copy(alpha = 0.2f), textColor = Color.White,
-                        modifier = Modifier.clickable(onClick = onOpenProfile),
-                    )
-                }
-                Spacer(Modifier.height(20.dp))
-                Column(
-                    Modifier.fillMaxWidth()
-                        .background(Color.White.copy(alpha = 0.14f), RoundedCornerShape(20.dp))
-                        .padding(16.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(Levels.emoji(points), fontSize = 30.sp)
-                        Spacer(Modifier.width(12.dp))
-                        Column(Modifier.weight(1f)) {
-                            Text("Nível ${Levels.level(points)} · ${Levels.name(points)}",
-                                color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                            Text("$points pontos", color = Color.White.copy(alpha = 0.85f), fontSize = 13.sp)
-                        }
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            text = "$greeting, $firstName! 👋",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 22.sp,
+                            letterSpacing = (-0.3).sp
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = "Você está em uma sequência de $streak dias!",
+                            color = Color.White.copy(alpha = 0.85f),
+                            fontSize = 13.5.sp
+                        )
                     }
-                    Spacer(Modifier.height(12.dp))
-                    VibeProgressBar(Levels.progress(points), height = 10.dp)
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        "Faltam ${Levels.remaining(points)} pts para ${Levels.name(points + Levels.remaining(points))}",
-                        color = Color.White.copy(alpha = 0.85f), fontSize = 12.sp,
+
+                    Avatar(
+                        name = userName,
+                        size = 46.dp,
+                        modifier = Modifier
+                            .clickable(onClick = onOpenProfile)
+                            .border(2.dp, Color.White.copy(alpha = 0.4f), CircleShape)
                     )
                 }
-            }
-        }
-        item {
-            Row(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                StatTile("🔥", if (streak == 1) "1 dia" else "$streak dias", "Sequência", Modifier.weight(1f))
-                StatTile("🌍", formatCo2(co2Grams), "CO₂ evitado", Modifier.weight(1f))
-                StatTile("✅", "$doneToday/$dailyGoal", "Meta de hoje", Modifier.weight(1f))
-            }
-        }
-        item {
-            VibeCard(Modifier.padding(horizontal = 16.dp).fillMaxWidth()) {
-                Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    GoalRing(doneToday / dailyGoal.toFloat(), "$doneToday/$dailyGoal")
-                    Spacer(Modifier.width(16.dp))
-                    Column {
-                        Text("Meta diária", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = VibeColors.Title)
+
+                Spacer(Modifier.height(18.dp))
+
+                // Cartão translúcido de Nível e XP
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color.White.copy(alpha = 0.12f),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(Modifier.padding(14.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(Levels.emoji(points), fontSize = 26.sp)
+                            Spacer(Modifier.width(10.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text(
+                                    text = "Nível ${Levels.level(points)} · ${Levels.name(points)}",
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 15.sp
+                                )
+                                Text(
+                                    text = "$points XP acumulados",
+                                    color = Color.White.copy(alpha = 0.85f),
+                                    fontSize = 12.5.sp
+                                )
+                            }
+
+                            // Chip XP em Destaque
+                            Surface(
+                                shape = RoundedCornerShape(50),
+                                color = GoldXPContainer,
+                                modifier = Modifier.padding(start = 4.dp)
+                            ) {
+                                Row(
+                                    Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Star,
+                                        contentDescription = null,
+                                        tint = GoldXP,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    Spacer(Modifier.width(4.dp))
+                                    Text(
+                                        text = "$points XP",
+                                        color = GoldXPText,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 12.sp
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(Modifier.height(12.dp))
+
+                        // Barra clara de progresso
+                        val prog = Levels.progress(points).coerceIn(0f, 1f)
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(7.dp)
+                                .clip(RoundedCornerShape(50))
+                                .background(Color.White.copy(alpha = 0.25f))
+                        ) {
+                            Box(
+                                Modifier
+                                    .fillMaxHeight()
+                                    .fillMaxWidth(prog)
+                                    .clip(RoundedCornerShape(50))
+                                    .background(
+                                        Brush.horizontalGradient(
+                                            listOf(Color(0xFF86EFAC), Color.White)
+                                        )
+                                    )
+                            )
+                        }
+
+                        Spacer(Modifier.height(6.dp))
+
                         Text(
-                            if (goalReached) "Meta batida! 🎉 Você está arrasando."
-                            else "Complete mais ${dailyGoal - doneToday} desafio(s) para bater a meta de hoje.",
-                            fontSize = 13.sp, color = VibeColors.Muted, lineHeight = 18.sp,
+                            text = "Faltam ${Levels.remaining(points)} XP para ${Levels.name(points + Levels.remaining(points))}",
+                            color = Color.White.copy(alpha = 0.8f),
+                            fontSize = 11.5.sp,
                         )
                     }
                 }
             }
         }
+
+        // CARDS DE RESUMO (3 MÉTRICAS)
         item {
-            SectionTitle("Desafios de hoje", Modifier.padding(horizontal = 16.dp), "Ver todos", onSeeAll)
+            Row(
+                Modifier.padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                StatTile(
+                    emoji = "🔥",
+                    value = if (streak == 1) "1 dia" else "$streak dias",
+                    label = "Ofensiva",
+                    modifier = Modifier.weight(1f)
+                )
+                StatTile(
+                    emoji = "🌍",
+                    value = formatCo2(co2Grams),
+                    label = "CO₂ evitado",
+                    modifier = Modifier.weight(1f)
+                )
+                StatTile(
+                    emoji = "🎯",
+                    value = "$doneToday/$dailyGoal",
+                    label = "Meta do dia",
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
+
+        // CARD DA META DIÁRIA
+        item {
+            VibeCard(Modifier.padding(horizontal = 16.dp).fillMaxWidth()) {
+                Row(
+                    Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    GoalRing(doneToday / dailyGoal.toFloat(), "$doneToday/$dailyGoal")
+                    Spacer(Modifier.width(16.dp))
+                    Column {
+                        Text(
+                            text = "Meta Diária de Sustentabilidade",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp,
+                            color = TextMain
+                        )
+                        Spacer(Modifier.height(3.dp))
+                        Text(
+                            text = if (goalReached)
+                                "Parabéns! Meta batida hoje! 🎉 Continue gerando impacto positivo."
+                            else
+                                "Complete mais ${dailyGoal - doneToday} ação(ões) para bater a meta de hoje.",
+                            fontSize = 13.sp,
+                            color = TextMuted,
+                            lineHeight = 18.sp,
+                        )
+                    }
+                }
+            }
+        }
+
+        // CABEÇALHO DA SEÇÃO DE DESAFIOS
+        item {
+            SectionTitle(
+                title = "Desafios em Destaque",
+                modifier = Modifier.padding(horizontal = 16.dp),
+                action = "Ver todos",
+                onAction = onSeeAll
+            )
+        }
+
+        // LISTA DE DESAFIOS
         items(featured, key = { it.id }) { c ->
-            ChallengeCard(c, c.id in doneIds, { onToggle(c) }, Modifier.padding(horizontal = 16.dp))
+            ChallengeCard(
+                challenge = c,
+                done = c.id in doneIds,
+                onToggle = { onToggle(c) },
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
         }
+
+        // CARD DE DICA DO DIA / CONTEÚDOS
         item {
             VibeCard(
-                Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
+                modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
                 onClick = onOpenLearn,
-                containerColor = VibeColors.GreenSoft,
+                containerColor = GreenContainer,
+                borderColor = Color(0xFFC7EBD2)
             ) {
                 Row(Modifier.padding(16.dp), verticalAlignment = Alignment.Top) {
-                    Text("💡", fontSize = 28.sp)
+                    Text("💡", fontSize = 26.sp)
                     Spacer(Modifier.width(12.dp))
                     Column {
-                        Text("Dica do dia", fontWeight = FontWeight.Bold, color = VibeColors.GreenDark, fontSize = 15.sp)
+                        Text(
+                            text = "Dica Sustentável",
+                            fontWeight = FontWeight.Bold,
+                            color = GreenOnContainer,
+                            fontSize = 14.5.sp
+                        )
                         Spacer(Modifier.height(2.dp))
-                        Text(tip, fontSize = 13.sp, color = VibeColors.Label, lineHeight = 19.sp)
+                        Text(
+                            text = tip,
+                            fontSize = 13.sp,
+                            color = Color(0xFF344638),
+                            lineHeight = 19.sp
+                        )
                         Spacer(Modifier.height(6.dp))
-                        Text("Ver mais conteúdos →", fontSize = 12.sp, color = VibeColors.Green, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            text = "Aprender mais conteúdos →",
+                            fontSize = 12.5.sp,
+                            color = GreenBrand,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }

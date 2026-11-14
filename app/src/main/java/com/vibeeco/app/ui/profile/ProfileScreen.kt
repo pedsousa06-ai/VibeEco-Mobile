@@ -127,11 +127,11 @@ fun ProfileScreen(
                         colors = SwitchDefaults.colors(checkedTrackColor = VibeColors.Green),
                     )
                 }
-                HorizontalDivider(color = VibeColors.GreenSoft)
+                HorizontalDivider(color = com.vibeeco.app.ui.theme.BorderLight)
                 SettingRow(Icons.Filled.Lock, "Alterar senha", onClick = onChangePassword)
-                HorizontalDivider(color = VibeColors.GreenSoft)
+                HorizontalDivider(color = com.vibeeco.app.ui.theme.BorderLight)
                 SettingRow(Icons.Filled.Info, "Sobre o VibeEco", onClick = { showAbout = true })
-                HorizontalDivider(color = VibeColors.GreenSoft)
+                HorizontalDivider(color = com.vibeeco.app.ui.theme.BorderLight)
                 SettingRow(Icons.AutoMirrored.Filled.ExitToApp, "Sair da conta",
                     tint = VibeColors.Error, onClick = { confirmLogout = true })
             }

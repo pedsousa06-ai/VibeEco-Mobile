@@ -128,6 +128,29 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         return null
     }
 
+    /** Valida se o usuário existe para o primeiro acesso. Retorna null se OK ou mensagem de erro. */
+    fun verifyFirstAccessUser(identifier: String): Pair<Boolean, String?> {
+        val acc = store.findAccount(identifier.trim())
+            ?: return false to "E-mail ou matrícula não encontrado na instituição."
+        return true to null
+    }
+
+    /** Executa o primeiro acesso: salva a nova senha e já autentica o usuário. */
+    fun completeFirstAccess(identifier: String, currentPassword: String?, newPassword: String): String? {
+        val acc = store.findAccount(identifier.trim())
+            ?: return "Conta não encontrada na instituição."
+        if (currentPassword != null && currentPassword.isNotBlank() && currentPassword != acc.password) {
+            return "Senha provisória incorreta."
+        }
+        if (newPassword == acc.password) {
+            return "A nova senha deve ser diferente da provisória."
+        }
+        store.updatePassword(acc.email, newPassword, mustChange = false)
+        load(acc.copy(password = newPassword, mustChange = false))
+        store.sessionEmail = acc.email
+        return null
+    }
+
     // ---------- desafios ----------
     /** Retorna true se o desafio ficou concluído. */
     fun toggleChallenge(c: Challenge): Boolean {

@@ -1,10 +1,15 @@
 package com.vibeeco.app.ui.auth
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.vibeeco.app.ui.components.*
 
 enum class PasswordMode(val requiresCurrent: Boolean) {
@@ -52,31 +57,70 @@ fun NewPasswordScreen(
             PasswordMode.Reset -> "Código confirmado! Escolha uma nova senha para sua conta."
             PasswordMode.Change -> "Informe sua senha atual e escolha uma nova."
         },
+        topAction = if (onBack != null) {
+            {
+                Text(
+                    text = "← Voltar",
+                    color = Color(0xFF5B7A66),
+                    fontSize = 13.5.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.clickable(onClick = onBack)
+                )
+            }
+        } else null
     ) {
+        if (error != null) {
+            VibeAlert(message = error!!, isError = true)
+        }
+
         if (mode.requiresCurrent) {
             VibeTextField(
-                if (mode == PasswordMode.FirstAccess) "Senha Atual (provisória)" else "Senha Atual",
-                current, { current = it; error = null },
+                label = if (mode == PasswordMode.FirstAccess) "Senha Atual (provisória)" else "Senha Atual",
+                value = current,
+                onValueChange = { current = it; error = null },
                 placeholder = if (mode == PasswordMode.FirstAccess) "Digite sua senha provisória" else "Digite sua senha atual",
                 isPassword = true,
             )
             Spacer(Modifier.height(14.dp))
         }
-        VibeTextField("Nova Senha", new, { new = it; error = null },
-            placeholder = "Digite sua nova senha", isPassword = true)
+
+        VibeTextField(
+            label = "Nova Senha",
+            value = new,
+            onValueChange = { new = it; error = null },
+            placeholder = "Digite sua nova senha",
+            isPassword = true
+        )
+
         PasswordStrengthIndicator(rules, visible = new.isNotEmpty())
+
         Spacer(Modifier.height(14.dp))
-        VibeTextField("Confirmar Nova Senha", confirm, { confirm = it; error = null },
-            placeholder = "Confirme sua nova senha", isPassword = true,
+
+        val confirmMismatch = confirm.isNotEmpty() && (confirm.length >= new.length || !new.startsWith(confirm)) && !matches
+        VibeTextField(
+            label = "Confirmar Nova Senha",
+            value = confirm,
+            onValueChange = { confirm = it; error = null },
+            placeholder = "Confirme sua nova senha",
+            isPassword = true,
             imeAction = ImeAction.Done,
-            onImeAction = { if (canSave) trigger++ },
-            error = error ?: if (confirm.isNotEmpty() && !matches) "As senhas não coincidem" else null)
+            onImeAction = { if (canSave && !loading) trigger++ },
+            error = if (confirmMismatch) "As senhas não coincidem" else null
+        )
+
         PasswordRequirements(rules)
-        Spacer(Modifier.height(28.dp))
-        PrimaryButton("Salvar nova senha", onClick = { error = null; trigger++ },
-            enabled = canSave, loading = loading)
+
+        Spacer(Modifier.height(24.dp))
+
+        PrimaryButton(
+            text = if (loading) "Salvando..." else "Salvar nova senha",
+            onClick = { error = null; trigger++ },
+            enabled = canSave,
+            loading = loading
+        )
+
         if (onBack != null) {
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(14.dp))
             BackToLogin(onBack, "← Voltar")
         }
     }

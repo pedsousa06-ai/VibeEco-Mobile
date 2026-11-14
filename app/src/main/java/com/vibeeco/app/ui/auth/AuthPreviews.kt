@@ -53,7 +53,13 @@ private fun ResetPreview() = VibeTheme {
 @Preview(name = "7 Primeiro acesso", device = SPEC)
 @Composable
 private fun FirstAccessPreview() = VibeTheme {
-    NewPasswordScreen(PasswordMode.FirstAccess, onSave = { _, _ -> null }, onSaved = {})
+    FirstAccessScreen(
+        initialEmail = "",
+        onVerifyUser = { true to null },
+        onComplete = { _, _, _ -> null },
+        onSuccess = {},
+        onBackToLogin = {}
+    )
 }
 
 private val sampleProgress = Progress(

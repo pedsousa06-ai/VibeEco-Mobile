@@ -21,10 +21,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vibeeco.app.ui.theme.BorderLight
+import com.vibeeco.app.ui.theme.GreenBrand
+import com.vibeeco.app.ui.theme.GreenContainer
+import com.vibeeco.app.ui.theme.TextMuted
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -115,21 +123,36 @@ fun VibeNavHost() {
         bottomBar = {
             AnimatedVisibility(visible = tabs.any { it.route == route }) {
                 NavigationBar(
-                    containerColor = colorScheme.surface,
-                    tonalElevation = 8.dp
+                    containerColor = Color.White,
+                    tonalElevation = 0.dp,
+                    modifier = Modifier.drawBehind {
+                        drawLine(
+                            color = BorderLight,
+                            start = Offset(0f, 0f),
+                            end = Offset(size.width, 0f),
+                            strokeWidth = 1.dp.toPx()
+                        )
+                    }
                 ) {
                     tabs.forEach { tab ->
+                        val isSelected = route == tab.route
                         NavigationBarItem(
-                            selected = route == tab.route,
+                            selected = isSelected,
                             onClick = { if (route != tab.route) nav.goToTab(tab.route) },
                             icon = { Icon(tab.icon, contentDescription = tab.label) },
-                            label = { Text(tab.label, fontSize = 11.sp) },
+                            label = {
+                                Text(
+                                    tab.label,
+                                    fontSize = 11.sp,
+                                    fontWeight = if (isSelected) FontWeight.Bold else  FontWeight.Normal
+                                )
+                            },
                             colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor   = colorScheme.primary,
-                                selectedTextColor   = colorScheme.primary,
-                                indicatorColor      = colorScheme.primaryContainer,
-                                unselectedIconColor = colorScheme.onSurfaceVariant,
-                                unselectedTextColor = colorScheme.onSurfaceVariant,
+                                selectedIconColor   = GreenBrand,
+                                selectedTextColor   = GreenBrand,
+                                indicatorColor      = GreenContainer,
+                                unselectedIconColor = TextMuted,
+                                unselectedTextColor = TextMuted,
                             ),
                         )
                     }
@@ -179,6 +202,7 @@ fun VibeNavHost() {
                         }
                     },
                     onForgotPassword = { nav.navigate(Routes.FORGOT) },
+                    onFirstAccess = { nav.navigate(Routes.FIRST_ACCESS) },
                 )
             }
 
@@ -224,13 +248,21 @@ fun VibeNavHost() {
             }
 
             composable(Routes.FIRST_ACCESS) {
-                NewPasswordScreen(
-                    mode = PasswordMode.FirstAccess,
-                    onSave = { current, new -> delay(700); vm.changePassword(current, new) },
-                    onSaved = {
+                FirstAccessScreen(
+                    initialEmail = vm.user?.email.orEmpty(),
+                    onVerifyUser = { id ->
+                        delay(400)
+                        vm.verifyFirstAccessUser(id)
+                    },
+                    onComplete = { id, current, new ->
+                        delay(600)
+                        vm.completeFirstAccess(id, current, new)
+                    },
+                    onSuccess = {
                         toast("Senha criada! Bem-vindo ao VibeEco 🌱")
                         nav.navigate(Routes.HOME) { popUpTo(Routes.LOGIN) { inclusive = true } }
                     },
+                    onBackToLogin = { nav.popBackStack(Routes.LOGIN, false) },
                 )
             }
 

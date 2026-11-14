@@ -7,20 +7,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.vibeeco.app.ui.theme.BlueContainer
-import com.vibeeco.app.ui.theme.BlueAccentDark
-import com.vibeeco.app.ui.theme.GreenContainer
-import com.vibeeco.app.ui.theme.GreenOnContainer
-import com.vibeeco.app.ui.theme.YellowContainer
-import com.vibeeco.app.ui.theme.YellowAccentDark
-import com.vibeeco.app.ui.theme.RedContainer
-import com.vibeeco.app.ui.theme.RedDangerDark
-import com.vibeeco.app.ui.theme.SurfaceVariant
-import com.vibeeco.app.ui.theme.TextSecondary
+import com.vibeeco.app.ui.theme.*
 
 enum class StatusType { Ativo, Pendente, Concluido, Expirado, Neutro }
 
@@ -32,7 +22,7 @@ fun StatusChip(
 ) {
     val (bg, fg) = when (status) {
         StatusType.Ativo     -> GreenContainer  to GreenOnContainer
-        StatusType.Pendente  -> YellowContainer to YellowAccentDark
+        StatusType.Pendente  -> GoldXPContainer to GoldXPText
         StatusType.Concluido -> BlueContainer   to BlueAccentDark
         StatusType.Expirado  -> RedContainer    to RedDangerDark
         StatusType.Neutro    -> SurfaceVariant  to TextSecondary
@@ -46,9 +36,9 @@ fun StatusChip(
         Text(
             text = text,
             color = fg,
-            fontWeight = FontWeight.ExtraBold,
-            fontSize = 11.sp,
-            letterSpacing = 0.3.sp
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 11.5.sp,
+            letterSpacing = 0.2.sp
         )
     }
 }

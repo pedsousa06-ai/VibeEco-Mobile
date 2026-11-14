@@ -12,34 +12,40 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val VibeLightColorScheme = lightColorScheme(
-    primary = GreenPrimary,
-    onPrimary = TextOnPrimary,
+    primary = GreenBrand,
+    onPrimary = TextWhite,
     primaryContainer = GreenContainer,
     onPrimaryContainer = GreenOnContainer,
-    secondary = BlueAccent,
-    onSecondary = TextOnPrimary,
-    secondaryContainer = BlueContainer,
-    background = BackgroundNeutral,
-    onBackground = TextPrimary,
-    surface = SurfaceNeutral,
-    onSurface = TextPrimary,
-    surfaceVariant = SurfaceVariant,
-    onSurfaceVariant = TextSecondary,
+    secondary = ForestMedium,
+    onSecondary = TextWhite,
+    secondaryContainer = GreenContainer,
+    background = BackgroundApp,
+    onBackground = TextMain,
+    surface = SurfaceApp,
+    onSurface = TextMain,
+    surfaceVariant = SurfaceVariantApp,
+    onSurfaceVariant = TextMuted,
+    outline = BorderLight,
     error = RedDanger,
-    onError = TextOnPrimary
+    onError = TextWhite,
+    errorContainer = RedContainer,
+    onErrorContainer = RedDangerDark
 )
 
 private val VibeDarkColorScheme = darkColorScheme(
-    primary = GreenPrimary,
+    primary = GreenBrandLight,
     onPrimary = DarkBackground,
-    primaryContainer = GreenOnContainer,
+    primaryContainer = ForestMedium,
     onPrimaryContainer = GreenContainer,
-    secondary = BlueAccent,
+    secondary = GreenBrand,
     onSecondary = DarkBackground,
     background = DarkBackground,
     onBackground = DarkTextPrimary,
     surface = DarkSurface,
     onSurface = DarkTextPrimary,
+    surfaceVariant = DarkSurfaceVariant,
+    onSurfaceVariant = DarkTextSecondary,
+    outline = DarkBorder,
     error = RedDanger,
     onError = DarkBackground
 )
@@ -62,7 +68,8 @@ fun VibeTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = VibeTypography, // Certifique-se que essa variável existe no Type.kt
+        typography = VibeTypography,
+        shapes = VibeShapes,
         content = content
     )
 }

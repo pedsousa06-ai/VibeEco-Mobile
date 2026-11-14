@@ -1,42 +1,30 @@
 package com.vibeeco.app.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.vibeeco.app.ui.theme.BorderStrong
-import com.vibeeco.app.ui.theme.GreenPrimary
-import com.vibeeco.app.ui.theme.GreenPrimaryDark
-import com.vibeeco.app.ui.theme.RedDanger
-import com.vibeeco.app.ui.theme.RedDangerDark
-import com.vibeeco.app.ui.theme.TextOnPrimary
-import com.vibeeco.app.ui.theme.TextPrimary
+import com.vibeeco.app.ui.theme.*
 
-enum class VibeButtonStyle { Primary, Secondary, Danger }
+enum class VibeButtonStyle { Primary, Secondary, Danger, Outline }
 
 /**
- * Botão estilo Duolingo: face colorida + "sombra" sólida embaixo.
- * Quando pressionado, "afunda" 4dp e a sombra encolhe → feedback tátil visual.
+ * Botão moderno do VibeEco: degradê suave, cantos refinados e feedback tátil fluido.
  */
 @Composable
 fun VibeButton(
@@ -46,83 +34,99 @@ fun VibeButton(
     style: VibeButtonStyle = VibeButtonStyle.Primary,
     enabled: Boolean = true,
     loading: Boolean = false,
-    uppercase: Boolean = true,
+    uppercase: Boolean = false,
     fillWidth: Boolean = true
 ) {
-    val (faceColor, shadowColor, textColor) = when (style) {
-        VibeButtonStyle.Primary   -> Triple(GreenPrimary, GreenPrimaryDark, TextOnPrimary)
-        VibeButtonStyle.Secondary -> Triple(Color.White, BorderStrong, TextPrimary)
-        VibeButtonStyle.Danger    -> Triple(RedDanger, RedDangerDark, TextOnPrimary)
+    val shape = RoundedCornerShape(10.dp)
+
+    val (bgBrush, textColor, borderStroke) = when (style) {
+        VibeButtonStyle.Primary -> Triple(
+            if (enabled) Brush.horizontalGradient(listOf(Color(0xFF1A8F4E), Color(0xFF22C55E)))
+            else SolidColor(GreenBrand.copy(alpha = 0.45f)),
+            Color.White,
+            null
+        )
+        VibeButtonStyle.Secondary -> Triple(
+            SolidColor(Color.White),
+            TextMain,
+            BorderStroke(1.dp, BorderInput)
+        )
+        VibeButtonStyle.Outline -> Triple(
+            SolidColor(Color.Transparent),
+            GreenBrand,
+            BorderStroke(1.5.dp, GreenBrand)
+        )
+        VibeButtonStyle.Danger -> Triple(
+            SolidColor(RedDanger),
+            Color.White,
+            null
+        )
     }
 
-    val faceColorFinal   = if (enabled) faceColor   else faceColor.copy(alpha = 0.5f)
-    val shadowColorFinal = if (enabled) shadowColor else shadowColor.copy(alpha = 0.5f)
+    val finalModifier = modifier
+        .then(if (fillWidth) Modifier.fillMaxWidth() else Modifier)
+        .height(48.dp)
 
-    val interaction = remember { MutableInteractionSource() }
-    val pressed by interaction.collectIsPressedAsState()
-    val offsetY = if (pressed) 4.dp else 0.dp
-    val shadowHeight = if (pressed) 0.dp else 4.dp
-
-    val shape = RoundedCornerShape(16.dp)
-
-    Box(
-        modifier = modifier
-            .then(if (fillWidth) Modifier.fillMaxWidth() else Modifier)
-    ) {
-        // sombra sólida embaixo (visual)
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .offset(y = 4.dp)
-                .clip(shape)
-                .background(shadowColorFinal)
-        )
-
-        // sombra "extra" que reduz quando pressionado (efeito de afundar)
-        if (shadowHeight > 0.dp) {
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .offset(y = 4.dp)
-                    .clip(shape)
-                    .background(Color.Transparent)
-            )
+    if (borderStroke != null) {
+        OutlinedButton(
+            onClick = onClick,
+            enabled = enabled && !loading,
+            shape = shape,
+            border = borderStroke,
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = textColor,
+                containerColor = Color.White
+            ),
+            modifier = finalModifier
+        ) {
+            ButtonContent(text, uppercase, textColor, loading)
         }
-
-        // face do botão
+    } else {
         Button(
             onClick = onClick,
             enabled = enabled && !loading,
-            interactionSource = interaction,
             shape = shape,
             colors = ButtonDefaults.buttonColors(
-                containerColor = faceColorFinal,
-                contentColor   = textColor,
-                disabledContainerColor = faceColorFinal,
-                disabledContentColor   = textColor.copy(alpha = 0.7f)
+                containerColor = Color.Transparent,
+                disabledContainerColor = Color.Transparent
             ),
-            elevation = ButtonDefaults.buttonElevation(0.dp, 0.dp, 0.dp, 0.dp, 0.dp),
-            contentPadding = PaddingValues(vertical = 14.dp, horizontal = 20.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .offset(y = offsetY)
+            contentPadding = PaddingValues(0.dp),
+            modifier = finalModifier
+                .shadow(
+                    elevation = if (enabled && !loading && style == VibeButtonStyle.Primary) 3.dp else 0.dp,
+                    shape = shape,
+                    ambientColor = GreenBrand.copy(alpha = 0.3f),
+                    spotColor = GreenBrand.copy(alpha = 0.3f)
+                )
+                .clip(shape)
+                .background(bgBrush)
         ) {
-            if (loading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    color = textColor,
-                    strokeWidth = 2.dp
-                )
-            } else {
-                Text(
-                    text = if (uppercase) text.uppercase() else text,
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 15.sp,
-                    letterSpacing = 0.8.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(vertical = 2.dp)
-                )
-            }
+            ButtonContent(text, uppercase, textColor, loading)
         }
+    }
+}
+
+@Composable
+private fun ButtonContent(
+    text: String,
+    uppercase: Boolean,
+    textColor: Color,
+    loading: Boolean
+) {
+    if (loading) {
+        CircularProgressIndicator(
+            modifier = Modifier.size(20.dp),
+            color = textColor,
+            strokeWidth = 2.dp
+        )
+    } else {
+        Text(
+            text = if (uppercase) text.uppercase() else text,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 15.sp,
+            letterSpacing = if (uppercase) 0.8.sp else 0.2.sp,
+            textAlign = TextAlign.Center,
+            color = textColor
+        )
     }
 }
