@@ -1,20 +1,41 @@
-*.iml
-.gradle
-/local.properties
-/.idea
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
-*.apk
-*.aab
-
-# Android / Gradle build files
+﻿# ===== Android / Gradle =====
+.gradle/
 build/
 app/build/
-.gradle/
-.idea/
 local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+
+# ===== Android Studio / IntelliJ =====
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# ===== Kotlin =====
+*.kotlin_module
+.kotlin/
+
+# ===== Build artifacts =====
 *.apk
 *.aab
+*.ap_
+*.dex
+*.class
+
+# ===== Logs e temporários =====
+*.log
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
+
+# ===== Assinatura / segredos =====
+*.jks
+*.keystore
+!debug.keystore
+keystore.properties
+.env
+.env.*
