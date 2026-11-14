@@ -47,6 +47,7 @@ data class Article(
     val category: Category,
     val minutes: Int,
     val points: Int = 10,
+    val quiz: List<QuizQuestion> = emptyList(),
 )
 
 data class Mission(
@@ -73,6 +74,20 @@ data class RankEntry(
     val points: Int,
     val isMe: Boolean = false,
 )
+
+data class QuizQuestion(
+    val pergunta: String,
+    val opcoes: List<String>,
+    val correta: Int,
+    val explicacao: String,
+) {
+    init {
+        require(opcoes.size >= 2) { "Um quiz precisa de pelo menos 2 opções" }
+        require(correta in opcoes.indices) {
+            "correta ($correta) fora do intervalo de opcoes (${opcoes.indices})"
+        }
+    }
+}
 
 object Levels {
     private val names = listOf("Semente", "Broto", "Muda", "Arbusto", "Árvore", "Floresta")
@@ -131,36 +146,175 @@ object Content {
             "Entenda como suas escolhas diárias se transformam em emissões.",
             "A pegada de carbono é a soma dos gases de efeito estufa gerados por nossas atividades: o que comemos, como nos locomovemos, quanta energia consumimos e o que descartamos.\n\nO primeiro passo para reduzi-la é conhecer onde ela é maior. Transporte, alimentação e energia elétrica costumam ser os maiores vilões na rotina de quem vive em cidades.\n\nA boa notícia: pequenas mudanças repetidas todos os dias, como desligar aparelhos, caminhar mais e evitar desperdício, somam um impacto real ao longo do tempo.",
             Category.ENERGIA, 3,
+            quiz = listOf(
+                QuizQuestion(
+                    pergunta = "Qual destas atitudes ajuda a reduzir a pegada de carbono?",
+                    opcoes = listOf(
+                        "Trocar de celular todo ano",
+                        "Caminhar em vez de ir de carro",
+                        "Deixar aparelhos em standby",
+                        "Comprar tudo que está em promoção",
+                    ),
+                    correta = 1,
+                    explicacao = "Caminhar reduz emissões de transporte no dia a dia.",
+                ),
+                QuizQuestion(
+                    pergunta = "Quais áreas costumam gerar mais emissões na rotina urbana?",
+                    opcoes = listOf(
+                        "Transporte, alimentação e energia",
+                        "Apenas transporte",
+                        "Apenas alimentação",
+                        "Nenhuma das anteriores",
+                    ),
+                    correta = 0,
+                    explicacao = "Transporte, alimentação e energia elétrica são os maiores vilões no dia a dia.",
+                ),
+            ),
         ),
         Article(
             "a2", "Como economizar água em casa",
             "Hábitos simples que poupam milhares de litros por ano.",
             "A água potável é um recurso limitado e seu uso consciente começa dentro de casa. Banhos mais curtos, torneiras fechadas durante a escovação e a correção de vazamentos já fazem grande diferença.\n\nUma torneira pingando ou uma descarga com vazamento podem desperdiçar muita água ao longo do mês sem que ninguém perceba. Vale revisar as instalações periodicamente.\n\nSempre que possível, reaproveite a água, por exemplo a da máquina de lavar, para limpar quintais e calçadas.",
             Category.AGUA, 3,
+            quiz = listOf(
+                QuizQuestion(
+                    pergunta = "Qual atitude economiza mais água em casa?",
+                    opcoes = listOf(
+                        "Tomar banhos mais curtos",
+                        "Lavar calçada com mangueira",
+                        "Deixar a torneira aberta ao escovar os dentes",
+                        "Ignorar vazamentos pequenos",
+                    ),
+                    correta = 0,
+                    explicacao = "Banhos curtos economizam dezenas de litros por dia.",
+                ),
+                QuizQuestion(
+                    pergunta = "O que fazer com a água da máquina de lavar?",
+                    opcoes = listOf(
+                        "Jogar fora imediatamente",
+                        "Reaproveitar para limpar quintais e calçadas",
+                        "Usar para beber",
+                        "Misturar com produtos químicos",
+                    ),
+                    correta = 1,
+                    explicacao = "A água de reuso serve para limpeza, reduzindo o consumo de água potável.",
+                ),
+            ),
         ),
         Article(
             "a3", "Reciclagem: o que vai em cada lixeira",
             "Aprenda a separar corretamente e facilite o trabalho da coleta seletiva.",
             "A coleta seletiva usa cores padronizadas: azul para papel, vermelho para plástico, verde para vidro, amarelo para metal e marrom para resíduos orgânicos.\n\nAntes de descartar, esvazie e enxágue as embalagens. Restos de comida contaminam o material e podem impedir a reciclagem.\n\nLembre-se de que reduzir e reutilizar vêm antes de reciclar. O melhor resíduo é aquele que nem chega a ser gerado.",
             Category.RESIDUOS, 4,
+            quiz = listOf(
+                QuizQuestion(
+                    pergunta = "Qual é a cor padrão da lixeira de plástico?",
+                    opcoes = listOf("Azul", "Vermelho", "Verde", "Amarelo"),
+                    correta = 1,
+                    explicacao = "Vermelho é a cor padrão para plástico na coleta seletiva.",
+                ),
+                QuizQuestion(
+                    pergunta = "Antes de descartar uma embalagem reciclável, você deve:",
+                    opcoes = listOf(
+                        "Deixar restos de comida dentro",
+                        "Esvaziar e enxaguar",
+                        "Amassar sempre",
+                        "Misturar com lixo orgânico",
+                    ),
+                    correta = 1,
+                    explicacao = "Esvaziar e enxaguar evita contaminação e facilita a reciclagem.",
+                ),
+            ),
         ),
         Article(
             "a4", "Mobilidade sustentável no dia a dia",
             "Caminhar, pedalar e usar transporte coletivo faz bem ao planeta e a você.",
             "Os meios de transporte individuais motorizados estão entre as principais fontes de emissões nas cidades. Trocar parte dos deslocamentos por caminhada, bicicleta ou transporte coletivo reduz a poluição e o trânsito.\n\nPara trajetos curtos, a bicicleta costuma ser tão rápida quanto o carro e ainda ajuda na saúde física e mental.\n\nQuando o carro for necessário, a carona solidária divide as emissões entre várias pessoas.",
             Category.TRANSPORTE, 3,
+            quiz = listOf(
+                QuizQuestion(
+                    pergunta = "Para trajetos curtos, qual opção costuma ser mais sustentável?",
+                    opcoes = listOf(
+                        "Carro individual",
+                        "Bicicleta",
+                        "Motocicleta",
+                        "Carro com apenas o motorista",
+                    ),
+                    correta = 1,
+                    explicacao = "A bicicleta não emite poluentes e ainda melhora a saúde.",
+                ),
+                QuizQuestion(
+                    pergunta = "O que é carona solidária?",
+                    opcoes = listOf(
+                        "Dividir o carro com outras pessoas",
+                        "Alugar carro por aplicativo",
+                        "Comprar carro novo",
+                        "Andar sozinho todos os dias",
+                    ),
+                    correta = 0,
+                    explicacao = "A carona solidária divide as emissões entre várias pessoas.",
+                ),
+            ),
         ),
         Article(
             "a5", "Alimentação e clima",
             "O que está no seu prato também influencia o meio ambiente.",
             "A produção de alimentos consome terra, água e energia. Dietas com mais vegetais, frutas e grãos costumam ter menor impacto ambiental do que dietas com muita carne.\n\nVocê não precisa mudar tudo de uma vez: começar com uma refeição sem carne por dia ou por semana já é um ótimo passo.\n\nPlanejar as compras, guardar bem os alimentos e aproveitar sobras também reduz o desperdício e economiza dinheiro.",
             Category.ALIMENTACAO, 3,
+            quiz = listOf(
+                QuizQuestion(
+                    pergunta = "Qual dieta costuma ter menor impacto ambiental?",
+                    opcoes = listOf(
+                        "Rica em carne bovina",
+                        "Rica em vegetais, frutas e grãos",
+                        "Baseada em alimentos ultraprocessados",
+                        "Baseada em fast food",
+                    ),
+                    correta = 1,
+                    explicacao = "Dietas com mais vegetais tendem a emitir menos gases de efeito estufa.",
+                ),
+                QuizQuestion(
+                    pergunta = "Uma atitude que reduz o desperdício de comida é:",
+                    opcoes = listOf(
+                        "Comprar sem planejar",
+                        "Planejar as compras da semana",
+                        "Jogar sobras fora",
+                        "Cozinhar em excesso sempre",
+                    ),
+                    correta = 1,
+                    explicacao = "Planejar as compras evita comprar além do necessário.",
+                ),
+            ),
         ),
         Article(
             "a6", "Energia no campus: onde dá para economizar",
             "Salas, laboratórios e bibliotecas também podem consumir menos.",
             "Ambientes compartilhados costumam ter lâmpadas e equipamentos ligados sem necessidade. Desligar projetores, computadores e ar-condicionado ao fim do uso é uma ação simples e coletiva.\n\nAproveitar a luz natural e manter janelas e portas fechadas com o ar-condicionado ligado aumenta a eficiência.\n\nSe você notar desperdícios, comunique a administração. A conscientização de uma pessoa inspira a de muitas outras.",
             Category.ENERGIA, 3,
+            quiz = listOf(
+                QuizQuestion(
+                    pergunta = "Qual atitude economiza energia no campus?",
+                    opcoes = listOf(
+                        "Deixar projetores ligados",
+                        "Desligar equipamentos ao fim do uso",
+                        "Abrir janelas com ar-condicionado ligado",
+                        "Manter luzes acesas em salas vazias",
+                    ),
+                    correta = 1,
+                    explicacao = "Desligar equipamentos ao fim do uso evita consumo desnecessário.",
+                ),
+                QuizQuestion(
+                    pergunta = "Manter portas e janelas fechadas com o ar-condicionado ligado:",
+                    opcoes = listOf(
+                        "Aumenta o consumo",
+                        "Não faz diferença",
+                        "Aumenta a eficiência energética",
+                        "Quebra o aparelho",
+                    ),
+                    correta = 2,
+                    explicacao = "Ambientes fechados ajudam o ar-condicionado a trabalhar com menos esforço.",
+                ),
+            ),
         ),
     )
 
