@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.vibeeco.app-mergeDebugResources-50:/values-en-rXC/values-en-rXC.xml",
+            "outputFile": "com.vibeeco.app-mergeDebugResources-2:/values-en-rXC/values-en-rXC.xml",
             "map": [
                 {
                     "source": "C:\\Users\\Pedfr\\.gradle\\caches\\8.9\\transforms\\cca0cc3e8911fcf4cb5d95a8f2af57dc\\transformed\\ui-release\\res\\values-en-rXC\\values-en-rXC.xml",

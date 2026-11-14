@@ -4,7 +4,9 @@ color vibe_dark
 color vibe_green
 color vibe_green_bright
 drawable bg_vibeeco
+drawable fundo_cortado
 drawable logo_leaf
+drawable logo_principal
 drawable vibeeco_icon_foreground
 mipmap ic_launcher
 string app_name
