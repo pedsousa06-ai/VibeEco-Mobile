@@ -41,9 +41,11 @@ import com.composables.icons.lucide.User
 import com.vibeeco.app.data.AppViewModel
 import com.vibeeco.app.data.Challenge
 import com.vibeeco.app.data.Content
+import com.vibeeco.app.data.DesafiosViewModel
 import com.vibeeco.app.data.LoginResult
 import com.vibeeco.app.ui.auth.*
-import com.vibeeco.app.ui.challenges.ChallengesScreen
+import com.vibeeco.app.ui.challenges.DesafioDetalheScreen
+import com.vibeeco.app.ui.challenges.DesafiosScreen
 import com.vibeeco.app.ui.home.HomeScreen
 import com.vibeeco.app.ui.learn.ArticleDetailScreen
 import com.vibeeco.app.ui.learn.LearnScreen
@@ -66,6 +68,7 @@ object Routes {
     const val CHANGE_PASSWORD = "change_password"
     const val HOME = "home"
     const val CHALLENGES = "challenges"
+    const val DESAFIO = "desafio/{id}"
     const val RANKING = "ranking"
     const val LEARN = "learn"
     const val ARTICLE = "article/{id}"
@@ -73,6 +76,7 @@ object Routes {
 
     fun verify(email: String) = "verify/${Uri.encode(email)}"
     fun article(id: String) = "article/$id"
+    fun desafio(id: String) = "desafio/$id"
 }
 
 private data class Tab(val route: String, val label: String, val icon: ImageVector)
@@ -104,6 +108,7 @@ private fun NavHostController.goToLogin() {
 @Composable
 fun VibeNavHost() {
     val vm: AppViewModel = viewModel()
+    val desafiosVm: DesafiosViewModel = viewModel()
     val nav = rememberNavController()
     val context = LocalContext.current
     val entry by nav.currentBackStackEntryAsState()
@@ -296,7 +301,32 @@ fun VibeNavHost() {
             }
 
             composable(Routes.CHALLENGES) {
-                ChallengesScreen(Content.challenges, vm.progress.doneIds, onToggleChallenge)
+                DesafiosScreen(
+                    desafios = desafiosVm.desafios,
+                    onOpen = { nav.navigate(Routes.desafio(it.id)) },
+                    onParticipar = {
+                        desafiosVm.participar(it.id)
+                        nav.navigate(Routes.desafio(it.id))
+                    },
+                    onAbandonar = { desafiosVm.abandonar(it.id) },
+                )
+            }
+
+            composable(
+                Routes.DESAFIO,
+                arguments = listOf(navArgument("id") { type = NavType.StringType }),
+            ) { backStackEntry ->
+                val id = backStackEntry.arguments?.getString("id").orEmpty()
+                val desafio = desafiosVm.buscar(id)
+                if (desafio != null) {
+                    DesafioDetalheScreen(
+                        desafio = desafio,
+                        onBack = { nav.popBackStack() },
+                        onParticipar = { desafiosVm.participar(id) },
+                        onAbandonar = { desafiosVm.abandonar(id) },
+                        onToggleTarefa = { desafiosVm.alternarTarefa(id, it.id) },
+                    )
+                }
             }
 
             composable(Routes.RANKING) {
