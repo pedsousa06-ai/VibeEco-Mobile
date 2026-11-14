@@ -26,7 +26,6 @@ import androidx.compose.ui.unit.sp
 import com.vibeeco.app.data.Category
 import com.vibeeco.app.ui.theme.*
 
-/** Cabeçalho com degradê floresta idêntico ao menu/banner do web desktop */
 @Composable
 fun GradientHeader(
     modifier: Modifier = Modifier,
@@ -47,13 +46,12 @@ fun GradientHeader(
     )
 }
 
-/** Card padrão com cantos de 16dp e borda sutil idêntico à web */
 @Composable
 fun VibeCard(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
-    containerColor: Color = Color.White,
-    borderColor: Color = BorderLight,
+    containerColor: Color = MaterialTheme.colorScheme.surface,
+    borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val shape = RoundedCornerShape(16.dp)
@@ -82,14 +80,13 @@ fun VibeCard(
     }
 }
 
-/** Barra de progresso com degradê suave */
 @Composable
 fun VibeProgressBar(
     progress: Float,
     modifier: Modifier = Modifier,
     height: Dp = 8.dp,
-    color: Color = GreenBrandLight,
-    track: Color = Color(0xFFD6EADB),
+    color: Color = MaterialTheme.colorScheme.primary,
+    track: Color = MaterialTheme.colorScheme.surfaceVariant,
 ) {
     val animated by animateFloatAsState(progress.coerceIn(0f, 1f), tween(650), label = "progress")
     Box(
@@ -147,14 +144,13 @@ fun Avatar(
     }
 }
 
-/** Card de métrica / resumo com ícone colorido em caixa suave */
 @Composable
 fun StatTile(
     emoji: String,
     value: String,
     label: String,
     modifier: Modifier = Modifier,
-    containerColor: Color = Color.White
+    containerColor: Color = MaterialTheme.colorScheme.surface
 ) {
     VibeCard(modifier = modifier, containerColor = containerColor) {
         Column(
@@ -169,13 +165,13 @@ fun StatTile(
                 text = value,
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
-                color = TextMain
+                color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(Modifier.height(2.dp))
             Text(
                 text = label,
                 fontSize = 11.5.sp,
-                color = TextMuted
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -196,7 +192,7 @@ fun SectionTitle(
             text = title,
             fontWeight = FontWeight.Bold,
             fontSize = 18.sp,
-            color = TextMain,
+            color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.weight(1f)
         )
         if (action != null) {
@@ -206,7 +202,7 @@ fun SectionTitle(
             ) {
                 Text(
                     text = "$action →",
-                    color = GreenBrand,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 13.sp
                 )
@@ -217,11 +213,12 @@ fun SectionTitle(
 
 @Composable
 fun CategoryChips(selected: Category?, onSelect: (Category?) -> Unit) {
+    val scheme = MaterialTheme.colorScheme
     val chipColors = FilterChipDefaults.filterChipColors(
-        containerColor = Color.White,
-        labelColor = TextMuted,
-        selectedContainerColor = GreenBrand,
-        selectedLabelColor = Color.White,
+        containerColor = scheme.surface,
+        labelColor = scheme.onSurfaceVariant,
+        selectedContainerColor = scheme.primary,
+        selectedLabelColor = scheme.onPrimary,
     )
     LazyRow(
         contentPadding = PaddingValues(horizontal = 16.dp),
@@ -237,8 +234,8 @@ fun CategoryChips(selected: Category?, onSelect: (Category?) -> Unit) {
                 border = FilterChipDefaults.filterChipBorder(
                     enabled = true,
                     selected = selected == null,
-                    borderColor = BorderLight,
-                    selectedBorderColor = GreenBrand
+                    borderColor = scheme.outline,
+                    selectedBorderColor = scheme.primary
                 )
             )
         }
@@ -253,28 +250,31 @@ fun CategoryChips(selected: Category?, onSelect: (Category?) -> Unit) {
                 border = FilterChipDefaults.filterChipBorder(
                     enabled = true,
                     selected = isSelected,
-                    borderColor = BorderLight,
-                    selectedBorderColor = GreenBrand
+                    borderColor = scheme.outline,
+                    selectedBorderColor = scheme.primary
                 )
             )
         }
     }
 }
 
-/** Círculo de marcação (check) dos desafios */
 @Composable
 fun CheckCircle(checked: Boolean, modifier: Modifier = Modifier) {
-    val bg by animateColorAsState(if (checked) GreenBrand else Color.White, label = "check")
+    val scheme = MaterialTheme.colorScheme
+    val bg by animateColorAsState(
+        if (checked) scheme.primary else scheme.surface,
+        label = "check"
+    )
     Box(
         modifier = modifier
             .size(28.dp)
             .clip(CircleShape)
             .background(bg)
-            .border(1.5.dp, if (checked) GreenBrand else BorderInput, CircleShape),
+            .border(1.5.dp, if (checked) scheme.primary else scheme.outline, CircleShape),
         contentAlignment = Alignment.Center,
     ) {
         if (checked) {
-            Text("✓", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text("✓", color = scheme.onPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
         }
     }
 }

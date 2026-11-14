@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.Coins
@@ -177,8 +178,6 @@ fun RecompensasScreen(
         copiado = codigo
     }
 
-    val saldoAnimado by animateIntAsState(saldo, tween(900), label = "saldo")
-
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -193,7 +192,7 @@ fun RecompensasScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item(span = { GridItemSpan(maxLineSpan) }) {
-                CardSaldo(saldoAnimado, totalResgatado)
+                CardSaldo(saldo, totalResgatado)
             }
             item(span = { GridItemSpan(maxLineSpan) }) {
                 Abas(aba = aba, qtdResgates = resgates.size, onSelecionar = { aba = it })
@@ -282,7 +281,8 @@ private fun BarraTopo(onVoltar: () -> Unit) {
 
 /* ---------- SALDO ---------- */
 @Composable
-private fun CardSaldo(saldoExibido: Int, totalResgatado: Int) {
+private fun CardSaldo(saldo: Int, totalResgatado: Int) {
+    val saldoExibido by animateIntAsState(saldo, tween(900), label = "saldo")
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -611,14 +611,18 @@ private fun ModalResgate(
     onConfirmar: () -> Unit,
     onVerResgatadas: () -> Unit,
 ) {
-    Dialog(onDismissRequest = onFechar) {
+    Dialog(
+        onDismissRequest = onFechar,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+    ) {
         Column(
             modifier = Modifier
+                .padding(horizontal = 24.dp)
+                .widthIn(max = 440.dp)
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(20.dp))
                 .background(Color.White)
-                .padding(start = 24.dp, end = 24.dp, top = 28.dp, bottom = 24.dp)
-                .animateContentSize(),
+                .padding(start = 24.dp, end = 24.dp, top = 28.dp, bottom = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {

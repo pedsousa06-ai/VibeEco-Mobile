@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -50,8 +51,6 @@ import com.vibeeco.app.ui.components.GradientHeader
 import com.vibeeco.app.ui.components.PrimaryButton
 import com.vibeeco.app.ui.theme.GoldXP
 import com.vibeeco.app.ui.theme.GoldXPText
-import com.vibeeco.app.ui.theme.TextMain
-import com.vibeeco.app.ui.theme.TextMuted
 import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
 
@@ -97,27 +96,39 @@ fun ArticleDetailScreen(
         Column(
             Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
                 .verticalScroll(rememberScrollState())
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             TextButton(onClick = { etapa = Etapa.Revisao }) {
-                Text("← Voltar à revisão", color = TextMuted)
+                Text(
+                    "← Voltar à revisão",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
 
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text("Questão ${indice + 1} de $total", fontSize = 13.sp, color = TextMuted)
-                Text("$porcentagem% concluído", fontSize = 13.sp, color = TextMuted)
+                Text(
+                    "Questão ${indice + 1} de $total",
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    "$porcentagem% concluído",
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
             Box(
                 Modifier
                     .fillMaxWidth()
                     .height(8.dp)
                     .clip(RoundedCornerShape(50))
-                    .background(Color(0xFFD6EADB)),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
             ) {
                 Box(
                     Modifier
@@ -134,7 +145,8 @@ fun ArticleDetailScreen(
 
             Surface(
                 shape = RoundedCornerShape(16.dp),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 1.dp,
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -142,7 +154,7 @@ fun ArticleDetailScreen(
                         questaoAtual.pergunta,
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
-                        color = TextMain,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
 
                     questaoAtual.opcoes.forEachIndexed { i, opcao ->
@@ -170,10 +182,12 @@ fun ArticleDetailScreen(
                         val acertou = selecionada == questaoAtual.correta
                         Surface(
                             shape = RoundedCornerShape(12.dp),
-                            color = if (acertou) Color(0xFFECF9F0) else Color(0xFFFEF1F1),
+                            color = if (acertou) Color(0xFF16A34A).copy(alpha = 0.12f)
+                            else Color(0xFFEF4444).copy(alpha = 0.12f),
                             border = BorderStroke(
                                 1.dp,
-                                if (acertou) Color(0xFFBFE3C9) else Color(0xFFF7CACA),
+                                if (acertou) Color(0xFF16A34A).copy(alpha = 0.4f)
+                                else Color(0xFFEF4444).copy(alpha = 0.4f),
                             ),
                             modifier = Modifier.fillMaxWidth(),
                         ) {
@@ -182,13 +196,13 @@ fun ArticleDetailScreen(
                                     if (acertou) "Resposta correta" else "Resposta incorreta",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 13.5.sp,
-                                    color = if (acertou) Color(0xFF0F6B34) else Color(0xFFB91C1C),
+                                    color = if (acertou) Color(0xFF16A34A) else Color(0xFFEF4444),
                                 )
                                 Spacer(Modifier.height(4.dp))
                                 Text(
                                     questaoAtual.explicacao,
                                     fontSize = 13.sp,
-                                    color = if (acertou) Color(0xFF0F6B34) else Color(0xFFB91C1C),
+                                    color = MaterialTheme.colorScheme.onSurface,
                                 )
                             }
                         }
@@ -211,7 +225,6 @@ fun ArticleDetailScreen(
         return
     }
 
-    // ===== RESULTADO =====
     ResultadoQuiz(
         article = article,
         isRead = isRead,
@@ -242,7 +255,12 @@ private fun Revisao(
     onMarkRead: () -> Unit,
     onIniciarQuiz: (() -> Unit)?,
 ) {
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .verticalScroll(rememberScrollState()),
+    ) {
         GradientHeader {
             IconButton(onClick = onBack) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar", tint = Color.White)
@@ -267,7 +285,12 @@ private fun Revisao(
 
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             article.body.split("\n\n").forEach {
-                Text(it, fontSize = 16.sp, lineHeight = 25.sp, color = TextMain)
+                Text(
+                    it,
+                    fontSize = 16.sp,
+                    lineHeight = 25.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
             }
 
             if (onIniciarQuiz != null) {
@@ -291,33 +314,36 @@ private fun Opcao(
     habilitado: Boolean,
     onClick: () -> Unit,
 ) {
+    val verde = Color(0xFF16A34A)
+    val vermelho = Color(0xFFEF4444)
+
     val estilo: EstiloOpcao = when (estado) {
         OpcaoEstado.Correta -> EstiloOpcao(
-            bg = Color(0xFFECF9F0),
-            borda = Color(0xFF16A34A),
-            cor = Color(0xFF0F6B34),
-            marcadorBg = Color(0xFF16A34A),
+            bg = verde.copy(alpha = 0.14f),
+            borda = verde.copy(alpha = 0.6f),
+            cor = MaterialTheme.colorScheme.onSurface,
+            marcadorBg = verde,
             icone = Lucide.Check,
         )
         OpcaoEstado.Errada -> EstiloOpcao(
-            bg = Color(0xFFFEF1F1),
-            borda = Color(0xFFEF4444),
-            cor = Color(0xFFB91C1C),
-            marcadorBg = Color(0xFFEF4444),
+            bg = vermelho.copy(alpha = 0.14f),
+            borda = vermelho.copy(alpha = 0.6f),
+            cor = MaterialTheme.colorScheme.onSurface,
+            marcadorBg = vermelho,
             icone = Lucide.X,
         )
         OpcaoEstado.Apagar -> EstiloOpcao(
-            bg = Color(0xFFF5F5F5),
+            bg = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
             borda = null,
-            cor = Color(0xFF9E9E9E),
+            cor = MaterialTheme.colorScheme.onSurfaceVariant,
             marcadorBg = Color.Transparent,
             icone = null,
         )
         OpcaoEstado.Neutra -> EstiloOpcao(
-            bg = Color(0xFFF7F9F7),
+            bg = MaterialTheme.colorScheme.surfaceVariant,
             borda = null,
-            cor = TextMain,
-            marcadorBg = Color.White,
+            cor = MaterialTheme.colorScheme.onSurface,
+            marcadorBg = MaterialTheme.colorScheme.surface,
             icone = null,
         )
     }
@@ -364,10 +390,6 @@ private data class EstiloOpcao(
     val icone: ImageVector?,
 )
 
-// ============================================================
-// TELA DE RESULTADO COM ANIMAÇÃO (SEM EMOJI, SÓ LUCIDE)
-// ============================================================
-
 @Composable
 private fun ResultadoQuiz(
     article: Article,
@@ -382,7 +404,8 @@ private fun ResultadoQuiz(
     val aprovado = total > 0 && acertos >= (total * 0.6).toInt()
     val porcentagem = if (total == 0) 0 else (acertos * 100) / total
     val corPrincipal = if (aprovado) Color(0xFF16A34A) else Color(0xFFEA580C)
-    val corFundo = if (aprovado) Color(0xFFECF9F0) else Color(0xFFFFF7ED)
+    val corFundo = if (aprovado) Color(0xFF16A34A).copy(alpha = 0.15f)
+    else Color(0xFFEA580C).copy(alpha = 0.15f)
     val titulo = if (aprovado) "Conteúdo concluído!" else "Quase lá!"
     val subtitulo = if (aprovado) {
         if (isRead) "Você já tinha concluído este conteúdo antes."
@@ -393,7 +416,6 @@ private fun ResultadoQuiz(
     val iconeResultado: ImageVector = if (aprovado) Lucide.PartyPopper else Lucide.Dumbbell
     val corIcone = if (aprovado) Color(0xFF16A34A) else Color(0xFFEA580C)
 
-    // ===== animações de entrada =====
     val iconeScale = remember { Animatable(0.3f) }
     val iconeAlpha = remember { Animatable(0f) }
     val arcoProgresso = remember { Animatable(0f) }
@@ -418,6 +440,7 @@ private fun ResultadoQuiz(
     Column(
         Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
             .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -425,7 +448,6 @@ private fun ResultadoQuiz(
     ) {
         Spacer(Modifier.height(12.dp))
 
-        // ===== ícone Lucide com pop (em vez de emoji) =====
         Icon(
             imageVector = iconeResultado,
             contentDescription = null,
@@ -436,19 +458,18 @@ private fun ResultadoQuiz(
                 .graphicsLayer { alpha = iconeAlpha.value },
         )
 
-        // título e subtítulo (fade junto do ícone)
         Text(
             titulo,
             fontWeight = FontWeight.Bold,
             fontSize = 26.sp,
-            color = TextMain,
+            color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center,
             modifier = Modifier.graphicsLayer { alpha = iconeAlpha.value },
         )
         Text(
             subtitulo,
             fontSize = 14.sp,
-            color = TextMuted,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             lineHeight = 20.sp,
             modifier = Modifier.graphicsLayer { alpha = iconeAlpha.value },
@@ -456,7 +477,6 @@ private fun ResultadoQuiz(
 
         Spacer(Modifier.height(4.dp))
 
-        // ===== anel animado =====
         Box(
             modifier = Modifier.size(180.dp),
             contentAlignment = Alignment.Center,
@@ -495,12 +515,11 @@ private fun ResultadoQuiz(
                 Text(
                     "de acerto",
                     fontSize = 12.sp,
-                    color = TextMuted,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
 
-        // ===== card do placar =====
         AnimatedVisibility(
             visible = mostrarCards,
             enter = fadeIn(tween(350)) + slideInVertically(
@@ -510,7 +529,8 @@ private fun ResultadoQuiz(
         ) {
             Surface(
                 shape = RoundedCornerShape(16.dp),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 1.dp,
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Column(
@@ -521,12 +541,16 @@ private fun ResultadoQuiz(
                         Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        Text("Acertos", fontSize = 13.sp, color = TextMuted)
+                        Text(
+                            "Acertos",
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                         Text(
                             "$acertos de $total",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
-                            color = TextMain,
+                            color = MaterialTheme.colorScheme.onSurface,
                         )
                     }
 
@@ -578,7 +602,6 @@ private fun ResultadoQuiz(
             }
         }
 
-        // ===== revisão das questões =====
         if (total > 0) {
             AnimatedVisibility(
                 visible = mostrarCards,
@@ -589,7 +612,8 @@ private fun ResultadoQuiz(
             ) {
                 Surface(
                     shape = RoundedCornerShape(16.dp),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 1.dp,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Column(
@@ -600,7 +624,7 @@ private fun ResultadoQuiz(
                             "Revisão das questões",
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp,
-                            color = TextMain,
+                            color = MaterialTheme.colorScheme.onSurface,
                         )
 
                         article.quiz.forEachIndexed { i, q ->
@@ -632,7 +656,7 @@ private fun ResultadoQuiz(
                                         "${i + 1}. ${q.pergunta}",
                                         fontSize = 13.sp,
                                         fontWeight = FontWeight.Medium,
-                                        color = TextMain,
+                                        color = MaterialTheme.colorScheme.onSurface,
                                         lineHeight = 18.sp,
                                     )
                                     if (!acertou) {
@@ -640,7 +664,7 @@ private fun ResultadoQuiz(
                                         Text(
                                             "Resposta correta: ${q.opcoes[q.correta]}",
                                             fontSize = 12.sp,
-                                            color = Color(0xFF0F6B34),
+                                            color = Color(0xFF16A34A),
                                         )
                                     }
                                 }
@@ -653,7 +677,6 @@ private fun ResultadoQuiz(
 
         Spacer(Modifier.height(8.dp))
 
-        // ===== botões =====
         AnimatedVisibility(
             visible = mostrarBotoes,
             enter = fadeIn(tween(300)) + slideInVertically(
@@ -675,16 +698,20 @@ private fun ResultadoQuiz(
                         .fillMaxWidth()
                         .height(46.dp),
                     shape = RoundedCornerShape(10.dp),
-                    border = BorderStroke(1.dp, Color(0xFF16A34A)),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
                 ) {
-                    Text("Refazer quiz", color = Color(0xFF16A34A), fontWeight = FontWeight.SemiBold)
+                    Text(
+                        "Refazer quiz",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold,
+                    )
                 }
 
                 TextButton(
                     onClick = onRever,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text("Rever conteúdo", color = TextMuted)
+                    Text("Rever conteúdo", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }

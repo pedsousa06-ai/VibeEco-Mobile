@@ -2,12 +2,10 @@ package com.vibeeco.app.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,9 +21,6 @@ import com.vibeeco.app.ui.theme.*
 
 enum class VibeButtonStyle { Primary, Secondary, Danger, Outline }
 
-/**
- * Botão moderno do VibeEco: degradê suave, cantos refinados e feedback tátil fluido.
- */
 @Composable
 fun VibeButton(
     text: String,
@@ -38,27 +33,28 @@ fun VibeButton(
     fillWidth: Boolean = true
 ) {
     val shape = RoundedCornerShape(10.dp)
+    val scheme = MaterialTheme.colorScheme
 
     val (bgBrush, textColor, borderStroke) = when (style) {
         VibeButtonStyle.Primary -> Triple(
             if (enabled) Brush.horizontalGradient(listOf(Color(0xFF1A8F4E), Color(0xFF22C55E)))
-            else SolidColor(GreenBrand.copy(alpha = 0.45f)),
+            else SolidColor(scheme.primary.copy(alpha = 0.45f)),
             Color.White,
             null
         )
         VibeButtonStyle.Secondary -> Triple(
-            SolidColor(Color.White),
-            TextMain,
-            BorderStroke(1.dp, BorderInput)
+            SolidColor(scheme.surface),
+            scheme.onSurface,
+            BorderStroke(1.dp, scheme.outline)
         )
         VibeButtonStyle.Outline -> Triple(
             SolidColor(Color.Transparent),
-            GreenBrand,
-            BorderStroke(1.5.dp, GreenBrand)
+            scheme.primary,
+            BorderStroke(1.5.dp, scheme.primary)
         )
         VibeButtonStyle.Danger -> Triple(
-            SolidColor(RedDanger),
-            Color.White,
+            SolidColor(scheme.error),
+            scheme.onError,
             null
         )
     }
@@ -75,7 +71,7 @@ fun VibeButton(
             border = borderStroke,
             colors = ButtonDefaults.outlinedButtonColors(
                 contentColor = textColor,
-                containerColor = Color.White
+                containerColor = scheme.surface
             ),
             modifier = finalModifier
         ) {
@@ -95,8 +91,8 @@ fun VibeButton(
                 .shadow(
                     elevation = if (enabled && !loading && style == VibeButtonStyle.Primary) 3.dp else 0.dp,
                     shape = shape,
-                    ambientColor = GreenBrand.copy(alpha = 0.3f),
-                    spotColor = GreenBrand.copy(alpha = 0.3f)
+                    ambientColor = scheme.primary.copy(alpha = 0.3f),
+                    spotColor = scheme.primary.copy(alpha = 0.3f)
                 )
                 .clip(shape)
                 .background(bgBrush)
