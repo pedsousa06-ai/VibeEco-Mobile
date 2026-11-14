@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.Coins
 import com.composables.icons.lucide.Copy
@@ -151,6 +152,7 @@ fun RecompensasScreen(
     recompensas: List<Recompensa>,
     resgates: List<Resgate>,
     onResgatar: (idRecompensa: String) -> ResultadoResgate,
+    onVoltar: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     var aba by rememberSaveable { mutableStateOf(AbaRecompensas.Disponiveis) }
@@ -177,49 +179,54 @@ fun RecompensasScreen(
 
     val saldoAnimado by animateIntAsState(saldo, tween(900), label = "saldo")
 
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
+    Column(
         modifier = modifier
             .fillMaxSize()
             .background(Color(0xFFF7FAF8)),
-        contentPadding = PaddingValues(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            CardSaldo(saldoAnimado, totalResgatado)
-        }
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            Abas(aba = aba, qtdResgates = resgates.size, onSelecionar = { aba = it })
-        }
-
-        if (aba == AbaRecompensas.Disponiveis) {
-            items(recompensas, key = { it.id }) { r ->
-                val estado = estadoDe(r, saldo, nivelUsuario)
-                CardRecompensa(
-                    r = r,
-                    estado = estado,
-                    faltam = (r.preco - saldo).coerceAtLeast(0),
-                    nivelInsuficiente = nivelUsuario < r.nivelMinimo,
-                    onResgatar = {
-                        selecionada = r
-                        fase = FaseModal.Confirmar
-                        erro = ""
-                    },
-                )
+        BarraTopo(onVoltar = onVoltar)
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                CardSaldo(saldoAnimado, totalResgatado)
             }
-        } else {
-            if (resgates.isEmpty()) {
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    EstadoVazio(onVerRecompensas = { aba = AbaRecompensas.Disponiveis })
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                Abas(aba = aba, qtdResgates = resgates.size, onSelecionar = { aba = it })
+            }
+
+            if (aba == AbaRecompensas.Disponiveis) {
+                items(recompensas, key = { it.id }) { r ->
+                    val estado = estadoDe(r, saldo, nivelUsuario)
+                    CardRecompensa(
+                        r = r,
+                        estado = estado,
+                        faltam = (r.preco - saldo).coerceAtLeast(0),
+                        nivelInsuficiente = nivelUsuario < r.nivelMinimo,
+                        onResgatar = {
+                            selecionada = r
+                            fase = FaseModal.Confirmar
+                            erro = ""
+                        },
+                    )
                 }
             } else {
-                items(resgates, key = { it.id }, span = { GridItemSpan(maxLineSpan) }) { r ->
-                    CardResgatada(r, copiado == r.codigo, copiar)
+                if (resgates.isEmpty()) {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        EstadoVazio(onVerRecompensas = { aba = AbaRecompensas.Disponiveis })
+                    }
+                } else {
+                    items(resgates, key = { it.id }, span = { GridItemSpan(maxLineSpan) }) { r ->
+                        CardResgatada(r, copiado == r.codigo, copiar)
+                    }
                 }
             }
         }
-    }
+    } // fim Column
 
     // MODAL
     selecionada?.let { rec ->
@@ -246,6 +253,30 @@ fun RecompensasScreen(
                 aba = AbaRecompensas.Resgatadas
             },
         )
+    }
+}
+
+/* ---------- BARRA DE TOPO ---------- */
+@Composable
+private fun BarraTopo(onVoltar: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(horizontal = 8.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .clip(CircleShape)
+                .clickable(role = Role.Button, onClickLabel = "Voltar para o ranking", onClick = onVoltar),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(Lucide.ArrowLeft, contentDescription = "Voltar para o ranking", tint = RC.Preco, modifier = Modifier.size(24.dp))
+        }
+        Text("Recompensas", color = RC.Texto, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
     }
 }
 
