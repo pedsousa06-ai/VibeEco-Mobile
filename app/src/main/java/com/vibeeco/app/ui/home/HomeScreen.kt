@@ -1,8 +1,5 @@
 package com.vibeeco.app.ui.home
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,28 +9,37 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.composables.icons.lucide.Award
+import com.composables.icons.lucide.Check
+import com.composables.icons.lucide.Clock
+import com.composables.icons.lucide.Coins
+import com.composables.icons.lucide.Droplets
+import com.composables.icons.lucide.Flame
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Medal
+import com.composables.icons.lucide.Recycle
+import com.composables.icons.lucide.Sprout
+import com.composables.icons.lucide.Star
+import com.composables.icons.lucide.Target
+import com.composables.icons.lucide.Trophy
+import com.composables.icons.lucide.Zap
 import com.vibeeco.app.data.*
 import com.vibeeco.app.ui.challenges.ChallengeCard
 import com.vibeeco.app.ui.components.*
 import com.vibeeco.app.ui.theme.*
+import java.time.LocalDate
 import java.time.LocalTime
 
 @Composable
@@ -125,17 +131,17 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         BannerStatChip(
-                            icon = "★",
+                            icon = Lucide.Star,
                             iconColor = Color(0xFFFDE68A),
                             label = "$points XP"
                         )
                         BannerStatChip(
-                            icon = "🪙",
+                            icon = Lucide.Coins,
                             iconColor = Color(0xFFA7F3D0),
                             label = "$mcMoedas MC"
                         )
                         BannerStatChip(
-                            icon = "🔥",
+                            icon = Lucide.Flame,
                             iconColor = Color(0xFFFDBA74),
                             label = "$streak dias"
                         )
@@ -156,7 +162,12 @@ fun HomeScreen(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(Levels.emoji(points), fontSize = 22.sp)
+                                    Icon(
+                                        imageVector = Levels.icon(points),
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(24.dp)
+                                    )
                                     Spacer(Modifier.width(8.dp))
                                     Text(
                                         text = "Nível ${Levels.level(points)} - ${Levels.name(points)}",
@@ -194,7 +205,7 @@ fun HomeScreen(
                                                 listOf(Color(0xFF86EFAC), Color.White)
                                             )
                                         )
-                                    )
+                                )
                             }
                         }
                     }
@@ -215,14 +226,16 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     ResumoCard(
-                        icon = "🎯",
+                        icon = Lucide.Target,
+                        iconTint = Color(0xFF16A34A),
                         iconBg = Color(0xFFDCF5E5),
                         value = "3",
                         label = "Missões em Andamento",
                         modifier = Modifier.weight(1f)
                     )
                     ResumoCard(
-                        icon = "🏅",
+                        icon = Lucide.Medal,
+                        iconTint = Color(0xFFD97706),
                         iconBg = Color(0xFFFEF3C7),
                         value = "14",
                         label = "Missões Concluídas",
@@ -235,14 +248,16 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     ResumoCard(
-                        icon = "⚡",
+                        icon = Lucide.Zap,
+                        iconTint = Color(0xFF7C3AED),
                         iconBg = Color(0xFFEDE9FE),
                         value = "${featured.size}",
                         label = "Desafios Ativos",
                         modifier = Modifier.weight(1f)
                     )
                     ResumoCard(
-                        icon = "🏆",
+                        icon = Lucide.Trophy,
+                        iconTint = Color(0xFFEA580C),
                         iconBg = Color(0xFFFFEDD5),
                         value = "#$myRankPosition",
                         label = "Posição no Ranking",
@@ -254,89 +269,15 @@ fun HomeScreen(
         }
 
         // =========================================================================
-        // 3. OFENSIVA SEMANAL (7 dias S, T, Q, Q, S, S, D com fogo)
+        // 3. OFENSIVA SEMANAL
         // =========================================================================
         item {
-            VibeCard(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .fillMaxWidth()
-            ) {
-                Column(Modifier.padding(18.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("🔥", fontSize = 20.sp)
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            text = "Ofensiva Diária",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp,
-                            color = TextMain
-                        )
-                    }
-
-                    Spacer(Modifier.height(12.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column {
-                            Text(
-                                text = "$streak",
-                                fontSize = 38.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = Color(0xFFEA580C),
-                                lineHeight = 38.sp
-                            )
-                            Text(
-                                text = "dias consecutivos",
-                                fontSize = 12.5.sp,
-                                color = TextMuted
-                            )
-                        }
-
-                        // Os 7 dias da semana
-                        val dias = listOf("S", "T", "Q", "Q", "S", "S", "D")
-                        val diasCumpridos = streak.coerceAtMost(7)
-
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            dias.forEachIndexed { index, letra ->
-                                val ativo = index < diasCumpridos
-                                val hoje = index == (diasCumpridos - 1).coerceAtLeast(0)
-                                Box(
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                        .clip(CircleShape)
-                                        .background(
-                                            if (ativo) Brush.linearGradient(
-                                                listOf(Color(0xFFF97316), Color(0xFFEA580C))
-                                            )
-                                            else Brush.linearGradient(
-                                                listOf(Color(0xFFFFEDD5), Color(0xFFFFEDD5))
-                                            )
-                                        )
-                                        .then(
-                                            if (hoje) Modifier.border(
-                                                2.dp,
-                                                Color(0xFFEA580C),
-                                                CircleShape
-                                            ) else Modifier
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = letra,
-                                        fontSize = 11.5.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (ativo) Color.White else Color(0xFFC2410C)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            StreakCard(
+                streak = streak,
+                doneToday = doneToday,
+                dailyGoal = dailyGoal,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
         }
 
         // =========================================================================
@@ -427,7 +368,12 @@ fun HomeScreen(
                                 }
 
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text("★", color = GoldXP, fontSize = 12.sp)
+                                    Icon(
+                                        imageVector = Lucide.Star,
+                                        contentDescription = null,
+                                        tint = GoldXP,
+                                        modifier = Modifier.size(13.dp)
+                                    )
                                     Spacer(Modifier.width(3.dp))
                                     Text(
                                         text = "${article.points} XP",
@@ -451,11 +397,20 @@ fun HomeScreen(
 
                             Spacer(Modifier.height(8.dp))
 
-                            Text(
-                                text = "⏱ ${article.minutes} min de leitura",
-                                fontSize = 11.5.sp,
-                                color = TextMuted
-                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Lucide.Clock,
+                                    contentDescription = null,
+                                    tint = TextMuted,
+                                    modifier = Modifier.size(13.dp)
+                                )
+                                Spacer(Modifier.width(4.dp))
+                                Text(
+                                    text = "${article.minutes} min de leitura",
+                                    fontSize = 11.5.sp,
+                                    color = TextMuted
+                                )
+                            }
                         }
                     }
                 }
@@ -473,7 +428,12 @@ fun HomeScreen(
             ) {
                 Column(Modifier.padding(18.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("🏅", fontSize = 19.sp)
+                        Icon(
+                            imageVector = Lucide.Award,
+                            contentDescription = null,
+                            tint = Color(0xFFD97706),
+                            modifier = Modifier.size(22.dp)
+                        )
                         Spacer(Modifier.width(8.dp))
                         Text(
                             text = "Conquistas Recentes",
@@ -515,8 +475,190 @@ fun HomeScreen(
 // =========================================================================
 
 @Composable
+private fun StreakCard(
+    streak: Int,
+    doneToday: Int,
+    dailyGoal: Int,
+    modifier: Modifier = Modifier
+) {
+    val laranja = Color(0xFFEA580C)
+    val laranjaClaro = Color(0xFFFFF1E6)
+    val dias = listOf("S", "T", "Q", "Q", "S", "S", "D")
+    val hojeIdx = LocalDate.now().dayOfWeek.value - 1 // segunda = 0
+    val metaHoje = dailyGoal.coerceAtLeast(1)
+    val progressoHoje = (doneToday.toFloat() / metaHoje).coerceIn(0f, 1f)
+    val metaBatida = doneToday >= metaHoje
+
+    VibeCard(modifier = modifier.fillMaxWidth()) {
+        Column(Modifier.padding(18.dp)) {
+            // Cabeçalho: chama + título + contador
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(50.dp)
+                        .background(
+                            Brush.linearGradient(listOf(Color(0xFFFB923C), Color(0xFFEA580C))),
+                            CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Lucide.Flame,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(26.dp)
+                    )
+                }
+
+                Spacer(Modifier.width(14.dp))
+
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        text = "Ofensiva Diária",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        color = TextMain
+                    )
+                    Text(
+                        text = if (streak > 0) "Continue assim para manter a sequência" else "Complete um desafio hoje para começar",
+                        fontSize = 12.sp,
+                        color = TextMuted
+                    )
+                }
+
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = "$streak",
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = laranja,
+                        lineHeight = 32.sp
+                    )
+                    Text(
+                        text = if (streak == 1) "dia" else "dias",
+                        fontSize = 11.5.sp,
+                        color = TextMuted
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(18.dp))
+
+            // Semana: um círculo por dia, com a letra embaixo
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                dias.forEachIndexed { index, letra ->
+                    val ehHoje = index == hojeIdx
+                    val ativo = index <= hojeIdx && index > hojeIdx - streak
+
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    if (ativo) Brush.linearGradient(
+                                        listOf(Color(0xFFFB923C), Color(0xFFEA580C))
+                                    ) else Brush.linearGradient(
+                                        listOf(laranjaClaro, laranjaClaro)
+                                    )
+                                )
+                                .then(
+                                    if (ehHoje) Modifier.border(2.dp, laranja, CircleShape)
+                                    else Modifier
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (ativo) {
+                                Icon(
+                                    imageVector = Lucide.Flame,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+
+                        Spacer(Modifier.height(6.dp))
+
+                        Text(
+                            text = letra,
+                            fontSize = 11.5.sp,
+                            fontWeight = if (ehHoje) FontWeight.ExtraBold else FontWeight.Medium,
+                            color = if (ehHoje) laranja else TextMuted
+                        )
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            // Meta de hoje
+            Surface(
+                shape = RoundedCornerShape(14.dp),
+                color = laranjaClaro,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(Modifier.padding(12.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = if (metaBatida) Lucide.Check else Lucide.Target,
+                            contentDescription = null,
+                            tint = if (metaBatida) Color(0xFF16A34A) else laranja,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = if (metaBatida) "Meta de hoje concluída!" else "Meta de hoje",
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 13.sp,
+                            color = TextMain,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text(
+                            text = "$doneToday/$metaHoje desafios",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (metaBatida) Color(0xFF16A34A) else laranja
+                        )
+                    }
+
+                    Spacer(Modifier.height(8.dp))
+
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(6.dp)
+                            .clip(RoundedCornerShape(50))
+                            .background(Color.White)
+                    ) {
+                        Box(
+                            Modifier
+                                .fillMaxHeight()
+                                .fillMaxWidth(progressoHoje)
+                                .clip(RoundedCornerShape(50))
+                                .background(
+                                    Brush.horizontalGradient(
+                                        if (metaBatida) listOf(Color(0xFF16A34A), Color(0xFF4ADE80))
+                                        else listOf(Color(0xFFFB923C), Color(0xFFEA580C))
+                                    )
+                                )
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun BannerStatChip(
-    icon: String,
+    icon: ImageVector,
     iconColor: Color,
     label: String,
     modifier: Modifier = Modifier
@@ -531,7 +673,12 @@ private fun BannerStatChip(
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = icon, fontSize = 13.sp, color = iconColor)
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconColor,
+                modifier = Modifier.size(15.dp)
+            )
             Spacer(Modifier.width(5.dp))
             Text(
                 text = label,
@@ -545,7 +692,8 @@ private fun BannerStatChip(
 
 @Composable
 private fun ResumoCard(
-    icon: String,
+    icon: ImageVector,
+    iconTint: Color,
     iconBg: Color,
     value: String,
     label: String,
@@ -563,7 +711,12 @@ private fun ResumoCard(
                     .background(iconBg, RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = icon, fontSize = 22.sp)
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = iconTint,
+                    modifier = Modifier.size(22.dp)
+                )
             }
 
             Spacer(Modifier.width(12.dp))
@@ -621,13 +774,24 @@ private fun MissionCard(
                         shape = RoundedCornerShape(50),
                         color = GreenContainer
                     ) {
-                        Text(
-                            text = "${mission.category.emoji} ${mission.category.label}",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = GreenOnContainer,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-                        )
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = mission.category.icon,
+                                contentDescription = null,
+                                tint = GreenOnContainer,
+                                modifier = Modifier.size(12.dp)
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                text = mission.category.label,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = GreenOnContainer
+                            )
+                        }
                     }
 
                     Text(
@@ -639,7 +803,12 @@ private fun MissionCard(
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("★", color = GoldXP, fontSize = 13.sp)
+                    Icon(
+                        imageVector = Lucide.Star,
+                        contentDescription = null,
+                        tint = GoldXP,
+                        modifier = Modifier.size(13.dp)
+                    )
                     Spacer(Modifier.width(3.dp))
                     Text(
                         text = "+${mission.xp} XP",
@@ -717,6 +886,19 @@ private fun AchievementItem(
         "azul" -> Color(0xFFDBEAFE)
         else -> Color(0xFFEDE9FE)
     }
+    val tint = when (badge.color) {
+        "verde" -> Color(0xFF16A34A)
+        "amarelo" -> Color(0xFFD97706)
+        "azul" -> Color(0xFF2563EB)
+        else -> Color(0xFF7C3AED)
+    }
+    val vetor = when (badge.id) {
+        "b1" -> Lucide.Sprout
+        "b2" -> Lucide.Recycle
+        "b3" -> Lucide.Droplets
+        "b4" -> Lucide.Zap
+        else -> Lucide.Award
+    }
 
     Surface(
         shape = RoundedCornerShape(12.dp),
@@ -733,7 +915,12 @@ private fun AchievementItem(
                     .background(bgColor, RoundedCornerShape(8.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = badge.icon, fontSize = 18.sp)
+                Icon(
+                    imageVector = vetor,
+                    contentDescription = null,
+                    tint = tint,
+                    modifier = Modifier.size(20.dp)
+                )
             }
             Spacer(Modifier.width(8.dp))
             Text(
