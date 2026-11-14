@@ -3,6 +3,10 @@ package com.vibeeco.app.navigation
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
@@ -14,6 +18,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
@@ -51,6 +57,11 @@ import com.vibeeco.app.ui.learn.ArticleDetailScreen
 import com.vibeeco.app.ui.learn.LearnScreen
 import com.vibeeco.app.ui.profile.ProfileScreen
 import com.vibeeco.app.ui.ranking.RankingScreen
+import com.vibeeco.app.ui.recompensas.Recompensa
+import com.vibeeco.app.ui.recompensas.RecompensasScreen
+import com.vibeeco.app.ui.recompensas.Resgate
+import com.vibeeco.app.ui.recompensas.ResultadoResgate
+import com.vibeeco.app.ui.recompensas.TemaRecompensa
 import com.vibeeco.app.ui.theme.BorderLight
 import com.vibeeco.app.ui.theme.GreenBrand
 import com.vibeeco.app.ui.theme.GreenContainer
@@ -70,6 +81,7 @@ object Routes {
     const val CHALLENGES = "challenges"
     const val DESAFIO = "desafio/{id}"
     const val RANKING = "ranking"
+    const val RECOMPENSAS = "recompensas"
     const val LEARN = "learn"
     const val ARTICLE = "article/{id}"
     const val PROFILE = "profile"
@@ -90,6 +102,19 @@ private val tabs = listOf(
 )
 
 private const val DAILY_GOAL = 3
+
+// Catálogo de exemplo até as recompensas virem do AppViewModel/Store
+private val catalogoRecompensas = listOf(
+    Recompensa("r1", "Muda de árvore nativa", "Físico", 120, 1, emoji = "🌱"),
+    Recompensa("r2", "Ecobag VibeEco", "Físico", 300, 3, estoque = 5, emoji = "👜", tema = TemaRecompensa.Laranja),
+    Recompensa("r3", "Curso de compostagem", "Digital", 500, 8, emoji = "📚", tema = TemaRecompensa.Azul),
+    Recompensa("r4", "Garrafa reutilizável", "Físico", 250, 2, estoque = 0, emoji = "🥤", tema = TemaRecompensa.Terra),
+)
+
+private const val ALFABETO_CODIGO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+
+private fun gerarCodigoResgate(): String =
+    "VIBE-" + (1..6).map { ALFABETO_CODIGO.random() }.joinToString("")
 
 private fun NavHostController.goToTab(route: String) {
     navigate(route) {
@@ -124,9 +149,13 @@ fun VibeNavHost() {
 
     Scaffold(
         containerColor = colorScheme.background,
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        contentWindowInsets = WindowInsets(0),
         bottomBar = {
-            AnimatedVisibility(visible = tabs.any { it.route == route }) {
+            AnimatedVisibility(
+                visible = tabs.any { it.route == route },
+                enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+                exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+            ) {
                 NavigationBar(
                     containerColor = Color.White,
                     tonalElevation = 0.dp,
@@ -265,7 +294,9 @@ fun VibeNavHost() {
                     },
                     onSuccess = {
                         toast("Senha criada! Bem-vindo ao VibeEco")
-                        nav.navigate(Routes.HOME) { popUpTo(Routes.LOGIN) { inclusive = true } }
+                        nav.navigate(Routes.HOME) {
+                            popUpTo(nav.graph.findStartDestination().id) { inclusive = true }
+                        }
                     },
                     onBackToLogin = { nav.popBackStack(Routes.LOGIN, false) },
                 )
@@ -330,7 +361,52 @@ fun VibeNavHost() {
             }
 
             composable(Routes.RANKING) {
-                RankingScreen(vm.ranking())
+                RankingScreen(
+                    entries = vm.ranking(),
+                    meuNome = vm.user?.name,
+                    onAbrirRecompensas = { nav.navigate(Routes.RECOMPENSAS) },
+                )
+            }
+
+            composable(Routes.RECOMPENSAS) {
+                // Estado local temporário: gasto e resgates ficam só em memória
+                val resgates = remember { mutableStateListOf<Resgate>() }
+                val gasto = resgates.sumOf { it.preco }
+                val saldo = (vm.progress.points - gasto).coerceAtLeast(0)
+                val nivel = vm.progress.points / 100 + 1 // ajuste se já tiver nível
+
+                RecompensasScreen(
+                    saldo = saldo,
+                    totalResgatado = gasto,
+                    nivelUsuario = nivel,
+                    recompensas = catalogoRecompensas,
+                    resgates = resgates,
+                    onVoltar = {
+                        // volta para o ranking; se ele não estiver na pilha, abre a aba
+                        if (!nav.popBackStack(Routes.RANKING, false)) nav.goToTab(Routes.RANKING)
+                    },
+                    onResgatar = { id ->
+                        val r = catalogoRecompensas.firstOrNull { it.id == id }
+                        when {
+                            r == null -> ResultadoResgate.Erro("Recompensa não encontrada.")
+                            saldo < r.preco -> ResultadoResgate.Erro("Saldo insuficiente.")
+                            else -> {
+                                val novo = Resgate(
+                                    id = "res-${System.currentTimeMillis()}",
+                                    nome = r.titulo,
+                                    tipo = r.tipo,
+                                    dataIso = java.time.LocalDate.now().toString(),
+                                    preco = r.preco,
+                                    codigo = gerarCodigoResgate(),
+                                    emoji = r.emoji,
+                                    tema = r.tema,
+                                )
+                                resgates.add(0, novo)
+                                ResultadoResgate.Ok(novo)
+                            }
+                        }
+                    },
+                )
             }
 
             composable(Routes.LEARN) {
