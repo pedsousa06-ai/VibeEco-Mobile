@@ -1,7 +1,7 @@
 package com.vibeeco.app.ui.auth
 
 import androidx.compose.ui.graphics.Color
-import com.vibeeco.app.ui.theme.Colors
+import com.vibeeco.app.ui.theme.VibeColors
 
 data class PasswordRules(
     val minLength: Boolean,
@@ -13,10 +13,10 @@ data class PasswordRules(
     val isValid get() = score == 4
     val label get() = when (score) { 0, 1 -> "Fraca"; 2 -> "Média"; 3 -> "Boa"; else -> "Forte" }
     val color: Color get() = when (score) {
-        0, 1 -> Colors.Error
-        2 -> Colors.Warning
-        3 -> Colors.Medium
-        else -> Colors.Success
+        0, 1 -> VibeColors.Error
+        2 -> VibeColors.Warning
+        3 -> VibeColors.Medium
+        else -> VibeColors.Success
     }
 }
 

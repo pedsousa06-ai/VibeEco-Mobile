@@ -1,17 +1,17 @@
-#Thu Nov 12 11:18:29 BRT 2026
-base.0=/Users/25203650/StudioProjects/VibeEco-Mobile/app/build/intermediates/dex/debug/mergeExtDexDebug/classes.dex
-base.1=/Users/25203650/StudioProjects/VibeEco-Mobile/app/build/intermediates/dex/debug/mergeProjectDexDebug/0/classes.dex
-base.2=/Users/25203650/StudioProjects/VibeEco-Mobile/app/build/intermediates/dex/debug/mergeProjectDexDebug/1/classes.dex
-base.3=/Users/25203650/StudioProjects/VibeEco-Mobile/app/build/intermediates/dex/debug/mergeProjectDexDebug/10/classes.dex
-base.4=/Users/25203650/StudioProjects/VibeEco-Mobile/app/build/intermediates/dex/debug/mergeProjectDexDebug/3/classes.dex
-base.5=/Users/25203650/StudioProjects/VibeEco-Mobile/app/build/intermediates/dex/debug/mergeProjectDexDebug/7/classes.dex
-base.6=/Users/25203650/StudioProjects/VibeEco-Mobile/app/build/intermediates/dex/debug/mergeProjectDexDebug/8/classes.dex
-base.7=/Users/25203650/StudioProjects/VibeEco-Mobile/app/build/intermediates/dex/debug/mergeProjectDexDebug/9/classes.dex
-base.8=/Users/25203650/StudioProjects/VibeEco-Mobile/app/build/intermediates/dex/debug/mergeExtDexDebug/classes2.dex
+#Sat Nov 14 00:06:08 BRT 2026
+base.0=C\:\\Users\\Pedfr\\StudioProjects\\VibeEco-Mobile\\app\\build\\intermediates\\dex\\debug\\mergeExtDexDebug\\classes.dex
+base.1=C\:\\Users\\Pedfr\\StudioProjects\\VibeEco-Mobile\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\0\\classes.dex
+base.2=C\:\\Users\\Pedfr\\StudioProjects\\VibeEco-Mobile\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\10\\classes.dex
+base.3=C\:\\Users\\Pedfr\\StudioProjects\\VibeEco-Mobile\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\1\\classes.dex
+base.4=C\:\\Users\\Pedfr\\StudioProjects\\VibeEco-Mobile\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\3\\classes.dex
+base.5=C\:\\Users\\Pedfr\\StudioProjects\\VibeEco-Mobile\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\7\\classes.dex
+base.6=C\:\\Users\\Pedfr\\StudioProjects\\VibeEco-Mobile\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\8\\classes.dex
+base.7=C\:\\Users\\Pedfr\\StudioProjects\\VibeEco-Mobile\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\9\\classes.dex
+base.8=C\:\\Users\\Pedfr\\StudioProjects\\VibeEco-Mobile\\app\\build\\intermediates\\dex\\debug\\mergeExtDexDebug\\classes2.dex
 path.0=classes.dex
 path.1=0/classes.dex
-path.2=1/classes.dex
-path.3=10/classes.dex
+path.2=10/classes.dex
+path.3=1/classes.dex
 path.4=3/classes.dex
 path.5=7/classes.dex
 path.6=8/classes.dex

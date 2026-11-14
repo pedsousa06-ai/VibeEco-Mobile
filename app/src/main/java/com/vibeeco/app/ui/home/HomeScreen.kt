@@ -27,7 +27,7 @@ import com.vibeeco.app.data.Levels
 import com.vibeeco.app.data.formatCo2
 import com.vibeeco.app.ui.challenges.ChallengeCard
 import com.vibeeco.app.ui.components.*
-import com.vibeeco.app.ui.theme.Colors
+import com.vibeeco.app.ui.theme.VibeColors
 import java.time.LocalTime
 
 @Composable
@@ -39,15 +39,15 @@ fun GoalRing(progress: Float, label: String, modifier: Modifier = Modifier) {
             val arcSize = Size(size.width - stroke, size.height - stroke)
             val topLeft = Offset(stroke / 2, stroke / 2)
             drawArc(
-                color = Colors.GreenSoft, startAngle = 0f, sweepAngle = 360f, useCenter = false,
+                color = VibeColors.GreenSoft, startAngle = 0f, sweepAngle = 360f, useCenter = false,
                 topLeft = topLeft, size = arcSize, style = Stroke(stroke, cap = StrokeCap.Round),
             )
             drawArc(
-                color = Colors.Green, startAngle = -90f, sweepAngle = 360f * animated, useCenter = false,
+                color = VibeColors.Green, startAngle = -90f, sweepAngle = 360f * animated, useCenter = false,
                 topLeft = topLeft, size = arcSize, style = Stroke(stroke, cap = StrokeCap.Round),
             )
         }
-        Text(label, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Colors.Title)
+        Text(label, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = VibeColors.Title)
     }
 }
 
@@ -127,11 +127,11 @@ fun HomeScreen(
                     GoalRing(doneToday / dailyGoal.toFloat(), "$doneToday/$dailyGoal")
                     Spacer(Modifier.width(16.dp))
                     Column {
-                        Text("Meta diária", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Colors.Title)
+                        Text("Meta diária", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = VibeColors.Title)
                         Text(
                             if (goalReached) "Meta batida! 🎉 Você está arrasando."
                             else "Complete mais ${dailyGoal - doneToday} desafio(s) para bater a meta de hoje.",
-                            fontSize = 13.sp, color = Colors.Muted, lineHeight = 18.sp,
+                            fontSize = 13.sp, color = VibeColors.Muted, lineHeight = 18.sp,
                         )
                     }
                 }
@@ -147,17 +147,17 @@ fun HomeScreen(
             VibeCard(
                 Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
                 onClick = onOpenLearn,
-                containerColor = Colors.GreenSoft,
+                containerColor = VibeColors.GreenSoft,
             ) {
                 Row(Modifier.padding(16.dp), verticalAlignment = Alignment.Top) {
                     Text("💡", fontSize = 28.sp)
                     Spacer(Modifier.width(12.dp))
                     Column {
-                        Text("Dica do dia", fontWeight = FontWeight.Bold, color = Colors.GreenDark, fontSize = 15.sp)
+                        Text("Dica do dia", fontWeight = FontWeight.Bold, color = VibeColors.GreenDark, fontSize = 15.sp)
                         Spacer(Modifier.height(2.dp))
-                        Text(tip, fontSize = 13.sp, color = Colors.Label, lineHeight = 19.sp)
+                        Text(tip, fontSize = 13.sp, color = VibeColors.Label, lineHeight = 19.sp)
                         Spacer(Modifier.height(6.dp))
-                        Text("Ver mais conteúdos →", fontSize = 12.sp, color = Colors.Green, fontWeight = FontWeight.SemiBold)
+                        Text("Ver mais conteúdos →", fontSize = 12.sp, color = VibeColors.Green, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }

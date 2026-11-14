@@ -48,7 +48,7 @@ val DarkTextPrimary    = Color(0xFFF1F7FB)
 val DarkTextSecondary  = Color(0xFFAFC1C9)
 
 object VibeColors {
-    val HeaderBrush = Brush.verticalGradient(colors = listOf(GreenPrimaryLight, GreenPrimary))
+    val HeaderBrush = Brush.verticalGradient(listOf(GreenPrimaryLight, GreenPrimary))
     val GreenBright = GreenPrimaryLight
 
     val Background      = BackgroundNeutral

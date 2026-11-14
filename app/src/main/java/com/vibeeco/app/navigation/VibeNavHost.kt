@@ -107,7 +107,6 @@ fun VibeNavHost() {
         if (vm.toggleChallenge(c)) toast("+${c.points} pontos! 🌱")
     }
 
-    // Cores do tema (já adaptam ao dark mode automaticamente)
     val colorScheme = MaterialTheme.colorScheme
 
     Scaffold(

@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vibeeco.app.data.Category
-import com.vibeeco.app.ui.theme.Colors
+import com.vibeeco.app.ui.theme.VibeColors
 
 /** Cabeçalho verde com cantos arredondados embaixo; estende-se sob a barra de status. */
 @Composable
@@ -34,7 +34,7 @@ fun GradientHeader(
         modifier = modifier
             .fillMaxWidth()
             .background(
-                Colors.HeaderBrush,
+                VibeColors.HeaderBrush,
                 RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp),
             )
             .statusBarsPadding()
@@ -51,13 +51,13 @@ fun VibeCard(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val shape = RoundedCornerShape(20.dp)
-    val colors = CardDefaults.cardColors(containerColor = containerColor)
+    val cardColors = CardDefaults.cardColors(containerColor = containerColor)
     val elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     if (onClick != null) {
-        Card(onClick = onClick, modifier = modifier, shape = shape, colors = colors,
+        Card(onClick = onClick, modifier = modifier, shape = shape, colors = cardColors,
             elevation = elevation, content = content)
     } else {
-        Card(modifier = modifier, shape = shape, colors = colors,
+        Card(modifier = modifier, shape = shape, colors = cardColors,
             elevation = elevation, content = content)
     }
 }
@@ -67,7 +67,7 @@ fun VibeProgressBar(
     progress: Float,
     modifier: Modifier = Modifier,
     height: Dp = 8.dp,
-    color: Color = Colors.GreenBright,
+    color: Color = VibeColors.GreenBright,
     track: Color = Color.White.copy(alpha = 0.25f),
 ) {
     val animated by animateFloatAsState(progress.coerceIn(0f, 1f), tween(600), label = "progress")
@@ -85,8 +85,8 @@ fun initialsOf(name: String): String =
 fun Avatar(
     name: String,
     size: Dp = 44.dp,
-    background: Color = Colors.GreenSoft,
-    textColor: Color = Colors.Green,
+    background: Color = VibeColors.GreenSoft,
+    textColor: Color = VibeColors.Green,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -106,8 +106,8 @@ fun StatTile(emoji: String, value: String, label: String, modifier: Modifier = M
         ) {
             Text(emoji, fontSize = 22.sp)
             Spacer(Modifier.height(4.dp))
-            Text(value, fontWeight = FontWeight.Bold, fontSize = 17.sp, color = Colors.Title)
-            Text(label, fontSize = 11.sp, color = Colors.Muted)
+            Text(value, fontWeight = FontWeight.Bold, fontSize = 17.sp, color = VibeColors.Title)
+            Text(label, fontSize = 11.sp, color = VibeColors.Muted)
         }
     }
 }
@@ -115,10 +115,10 @@ fun StatTile(emoji: String, value: String, label: String, modifier: Modifier = M
 @Composable
 fun SectionTitle(title: String, modifier: Modifier = Modifier, action: String? = null, onAction: () -> Unit = {}) {
     Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(title, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Colors.Title, modifier = Modifier.weight(1f))
+        Text(title, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = VibeColors.Title, modifier = Modifier.weight(1f))
         if (action != null) {
             TextButton(onClick = onAction) {
-                Text(action, color = Colors.Green, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                Text(action, color = VibeColors.Green, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
             }
         }
     }
@@ -126,10 +126,10 @@ fun SectionTitle(title: String, modifier: Modifier = Modifier, action: String? =
 
 @Composable
 fun CategoryChips(selected: Category?, onSelect: (Category?) -> Unit) {
-    val colors = FilterChipDefaults.filterChipColors(
+    val chipColors = FilterChipDefaults.filterChipColors(
         containerColor = Color.White,
-        labelColor = Colors.Label,
-        selectedContainerColor = Colors.Green,
+        labelColor = VibeColors.Label,
+        selectedContainerColor = VibeColors.Green,
         selectedLabelColor = Color.White,
     )
     LazyRow(
@@ -139,13 +139,13 @@ fun CategoryChips(selected: Category?, onSelect: (Category?) -> Unit) {
         item {
             FilterChip(
                 selected = selected == null, onClick = { onSelect(null) },
-                label = { Text("Todos") }, colors = colors, shape = RoundedCornerShape(50),
+                label = { Text("Todos") }, colors = chipColors, shape = RoundedCornerShape(50),
             )
         }
         items(Category.entries) { c ->
             FilterChip(
                 selected = selected == c, onClick = { onSelect(c) },
-                label = { Text("${c.emoji} ${c.label}") }, colors = colors, shape = RoundedCornerShape(50),
+                label = { Text("${c.emoji} ${c.label}") }, colors = chipColors, shape = RoundedCornerShape(50),
             )
         }
     }
@@ -154,10 +154,10 @@ fun CategoryChips(selected: Category?, onSelect: (Category?) -> Unit) {
 /** Círculo de marcação (check) dos desafios. */
 @Composable
 fun CheckCircle(checked: Boolean, modifier: Modifier = Modifier) {
-    val bg by animateColorAsState(if (checked) Colors.Success else Color.White, label = "check")
+    val bg by animateColorAsState(if (checked) VibeColors.Success else Color.White, label = "check")
     Box(
         modifier.size(28.dp).clip(CircleShape).background(bg)
-            .border(2.dp, if (checked) Colors.Success else Colors.Border, CircleShape),
+            .border(2.dp, if (checked) VibeColors.Success else VibeColors.Border, CircleShape),
         contentAlignment = Alignment.Center,
     ) {
         if (checked) Text("✓", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)

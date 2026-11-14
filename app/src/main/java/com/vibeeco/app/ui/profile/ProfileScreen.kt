@@ -26,7 +26,7 @@ import com.vibeeco.app.data.Progress
 import com.vibeeco.app.data.User
 import com.vibeeco.app.data.formatCo2
 import com.vibeeco.app.ui.components.*
-import com.vibeeco.app.ui.theme.Colors
+import com.vibeeco.app.ui.theme.VibeColors
 
 private data class Badge(val emoji: String, val title: String, val unlocked: Boolean)
 
@@ -34,7 +34,7 @@ private data class Badge(val emoji: String, val title: String, val unlocked: Boo
 private fun SettingRow(
     icon: ImageVector,
     title: String,
-    tint: Color = Colors.Green,
+    tint: Color = VibeColors.Green,
     onClick: (() -> Unit)? = null,
     trailing: @Composable () -> Unit = {},
 ) {
@@ -47,7 +47,7 @@ private fun SettingRow(
         Icon(icon, null, tint = tint)
         Spacer(Modifier.width(14.dp))
         Text(title, Modifier.weight(1f), fontSize = 15.sp, fontWeight = FontWeight.Medium,
-            color = if (tint == Colors.Error) Colors.Error else Colors.Title)
+            color = if (tint == VibeColors.Error) VibeColors.Error else VibeColors.Title)
         trailing()
     }
 }
@@ -76,7 +76,7 @@ fun ProfileScreen(
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         GradientHeader {
             Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                Avatar(user.name, 84.dp, background = Color.White, textColor = Colors.GreenDark)
+                Avatar(user.name, 84.dp, background = Color.White, textColor = VibeColors.GreenDark)
                 Spacer(Modifier.height(12.dp))
                 Text(user.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 22.sp, textAlign = TextAlign.Center)
                 Text(user.email, color = Color.White.copy(alpha = 0.85f), fontSize = 13.sp)
@@ -112,7 +112,7 @@ fun ProfileScreen(
                                 Spacer(Modifier.height(4.dp))
                                 Text(b.title, fontSize = 12.sp, textAlign = TextAlign.Center,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = if (b.unlocked) Colors.Title else Colors.Muted)
+                                    color = if (b.unlocked) VibeColors.Title else VibeColors.Muted)
                             }
                         }
                     }
@@ -124,16 +124,16 @@ fun ProfileScreen(
                 SettingRow(Icons.Filled.Notifications, "Lembretes diários") {
                     Switch(
                         checked = notifications, onCheckedChange = onNotificationsChange,
-                        colors = SwitchDefaults.colors(checkedTrackColor = Colors.Green),
+                        colors = SwitchDefaults.colors(checkedTrackColor = VibeColors.Green),
                     )
                 }
-                HorizontalDivider(color = Colors.GreenSoft)
+                HorizontalDivider(color = VibeColors.GreenSoft)
                 SettingRow(Icons.Filled.Lock, "Alterar senha", onClick = onChangePassword)
-                HorizontalDivider(color = Colors.GreenSoft)
+                HorizontalDivider(color = VibeColors.GreenSoft)
                 SettingRow(Icons.Filled.Info, "Sobre o VibeEco", onClick = { showAbout = true })
-                HorizontalDivider(color = Colors.GreenSoft)
+                HorizontalDivider(color = VibeColors.GreenSoft)
                 SettingRow(Icons.AutoMirrored.Filled.ExitToApp, "Sair da conta",
-                    tint = Colors.Error, onClick = { confirmLogout = true })
+                    tint = VibeColors.Error, onClick = { confirmLogout = true })
             }
             Spacer(Modifier.height(8.dp))
         }
@@ -146,7 +146,7 @@ fun ProfileScreen(
             text = { Text("Você precisará entrar novamente para continuar sua jornada.") },
             confirmButton = {
                 TextButton(onClick = { confirmLogout = false; onLogout() }) {
-                    Text("Sair", color = Colors.Error, fontWeight = FontWeight.Bold)
+                    Text("Sair", color = VibeColors.Error, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = { TextButton(onClick = { confirmLogout = false }) { Text("Cancelar") } },

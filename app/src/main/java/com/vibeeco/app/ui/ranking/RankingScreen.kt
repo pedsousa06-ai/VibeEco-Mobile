@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vibeeco.app.data.RankEntry
 import com.vibeeco.app.ui.components.*
-import com.vibeeco.app.ui.theme.Colors
+import com.vibeeco.app.ui.theme.VibeColors
 
 @Composable
 private fun PodiumSpot(entry: RankEntry, position: Int, barHeight: Dp, modifier: Modifier = Modifier) {
@@ -26,8 +26,8 @@ private fun PodiumSpot(entry: RankEntry, position: Int, barHeight: Dp, modifier:
         Spacer(Modifier.height(4.dp))
         Avatar(
             entry.name, if (position == 1) 64.dp else 54.dp,
-            background = if (entry.isMe) Colors.GreenBright else Color.White,
-            textColor = Colors.GreenDark,
+            background = if (entry.isMe) VibeColors.GreenBright else Color.White,
+            textColor = VibeColors.GreenDark,
         )
         Spacer(Modifier.height(6.dp))
         Text(
@@ -72,11 +72,11 @@ fun RankingScreen(entries: List<RankEntry>) {
         }
         if (myPosition > 0) {
             item {
-                VibeCard(Modifier.padding(horizontal = 16.dp).fillMaxWidth(), containerColor = Colors.GreenSoft) {
+                VibeCard(Modifier.padding(horizontal = 16.dp).fillMaxWidth(), containerColor = VibeColors.GreenSoft) {
                     Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text("📍", fontSize = 22.sp)
                         Spacer(Modifier.width(10.dp))
-                        Text("Sua posição atual: ${myPosition}º lugar", fontWeight = FontWeight.SemiBold, color = Colors.GreenDark)
+                        Text("Sua posição atual: ${myPosition}º lugar", fontWeight = FontWeight.SemiBold, color = VibeColors.GreenDark)
                     }
                 }
             }
@@ -85,19 +85,19 @@ fun RankingScreen(entries: List<RankEntry>) {
             val pos = index + 4
             VibeCard(
                 Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
-                containerColor = if (entry.isMe) Colors.GreenSoft else Color.White,
+                containerColor = if (entry.isMe) VibeColors.GreenSoft else Color.White,
             ) {
                 Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("$pos", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Colors.Muted,
+                    Text("$pos", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = VibeColors.Muted,
                         modifier = Modifier.width(32.dp))
                     Avatar(entry.name, 42.dp)
                     Spacer(Modifier.width(12.dp))
                     Column(Modifier.weight(1f)) {
                         Text(if (entry.isMe) "${entry.name} (você)" else entry.name,
-                            fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = Colors.Title)
-                        Text(entry.course, fontSize = 12.sp, color = Colors.Muted)
+                            fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = VibeColors.Title)
+                        Text(entry.course, fontSize = 12.sp, color = VibeColors.Muted)
                     }
-                    Text("${entry.points} pts", fontWeight = FontWeight.Bold, color = Colors.Green, fontSize = 14.sp)
+                    Text("${entry.points} pts", fontWeight = FontWeight.Bold, color = VibeColors.Green, fontSize = 14.sp)
                 }
             }
         }

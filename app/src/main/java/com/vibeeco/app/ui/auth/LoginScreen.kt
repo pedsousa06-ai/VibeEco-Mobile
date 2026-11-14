@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vibeeco.app.data.AppConfig
 import com.vibeeco.app.ui.components.*
-import com.vibeeco.app.ui.theme.Colors
+import com.vibeeco.app.ui.theme.VibeColors
 
 @Composable
 fun LoginScreen(
@@ -61,18 +61,18 @@ fun LoginScreen(
             Checkbox(
                 checked = rememberMe,
                 onCheckedChange = { rememberMe = it },
-                colors = CheckboxDefaults.colors(checkedColor = Colors.Green),
+                colors = CheckboxDefaults.colors(checkedColor = VibeColors.Green),
             )
             Text(
                 text = "Lembrar de mim",
                 fontSize = 14.sp,
-                color = Colors.Label,
+                color = VibeColors.Label,
                 modifier = Modifier.weight(1f)
             )
             TextButton(onClick = onForgotPassword) {
                 Text(
                     text = "Esqueci minha senha",
-                    color = Colors.Success,
+                    color = VibeColors.Success,
                     fontWeight = FontWeight.Bold,
                     fontSize = 13.sp
                 )
