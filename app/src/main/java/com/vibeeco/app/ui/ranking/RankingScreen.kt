@@ -50,15 +50,11 @@ import com.composables.icons.lucide.Users
 import java.text.NumberFormat
 import java.util.Locale
 
-/* ------------------------------------------------------------------ */
-/*  CORES (equivalentes ao CSS do desktop)                             */
-/*  Troque por cores do seu tema (ui/theme) se já tiver as mesmas.     */
-/* ------------------------------------------------------------------ */
 private object RankColors {
-    val Texto = Color(0xFF12261A)          // var(--texto)
-    val TextoSuave = Color(0xFF5B6E62)     // var(--texto-suave)
-    val Verde600 = Color(0xFF16A34A)       // var(--verde-600)
-    val Borda = Color(0xFFDDE7E0)          // var(--borda)
+    val Texto = Color(0xFF12261A)
+    val TextoSuave = Color(0xFF5B6E62)
+    val Verde600 = Color(0xFF16A34A)
+    val Borda = Color(0xFFDDE7E0)
 
     val AbasFundo = Color(0xFFE6EEE8)
     val LinhaPar = Color(0xFFF3F8F4)
@@ -85,11 +81,6 @@ private object RankColors {
     val AvatarGradiente = listOf(Color(0xFF22C55E), Color(0xFF0F7A3B))
 }
 
-/* ------------------------------------------------------------------ */
-/*  MODELOS                                                            */
-/*  Se já existirem equivalentes em data/Models.kt, use os seus e      */
-/*  apague estes (me mande o Models.kt que eu ligo direto).            */
-/* ------------------------------------------------------------------ */
 enum class EscopoRanking(val nome: String, val sufixo: String, val icone: ImageVector) {
     Geral("Geral", "geral", Lucide.Globe),
     Instituicao("Instituição", "na instituição", Lucide.Building2),
@@ -114,16 +105,13 @@ data class RankingData(
     val percentual: Int,
 )
 
-private const val LIMITE = 7 // posições visíveis antes de "Ver mais"
+private const val LIMITE = 7
 
 private sealed interface Linha {
     data class Usuario(val item: RankingItem) : Linha
     data object Separador : Linha
 }
 
-/* ------------------------------------------------------------------ */
-/*  TELA                                                               */
-/* ------------------------------------------------------------------ */
 @Composable
 fun RankingScreen(
     montarRanking: (EscopoRanking) -> RankingData,
@@ -133,14 +121,14 @@ fun RankingScreen(
     var escopo by rememberSaveable { mutableStateOf(EscopoRanking.Geral) }
     var expandido by rememberSaveable { mutableStateOf(false) }
 
-    // Recalcula ao trocar de aba (e quando o XP mudar, se montarRanking ler de um State)
     val ranking = remember(escopo, montarRanking) { montarRanking(escopo) }
 
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFF7FAF8)),
-        contentPadding = PaddingValues(16.dp),
+            .background(Color(0xFFF7FAF8))
+            .statusBarsPadding(),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 110.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         item {
@@ -171,7 +159,6 @@ fun RankingScreen(
     }
 }
 
-/* ---------- ABAS ---------- */
 @Composable
 private fun AbasEscopo(selecionado: EscopoRanking, onSelecionar: (EscopoRanking) -> Unit) {
     Row(
@@ -214,10 +201,8 @@ private fun AbasEscopo(selecionado: EscopoRanking, onSelecionar: (EscopoRanking)
     }
 }
 
-/* ---------- PÓDIO ---------- */
 @Composable
 private fun Podio(top3: List<RankingItem>) {
-    // Ordem visual: 2º, 1º, 3º
     val ordem = listOfNotNull(top3.getOrNull(1), top3.getOrNull(0), top3.getOrNull(2))
 
     Column(
@@ -261,7 +246,6 @@ private fun ColunaPodio(item: RankingItem, modifier: Modifier = Modifier) {
         else -> 96.dp
     }
 
-    // Bloco "sobe" ao aparecer (equivale à animação `subir` do CSS)
     var visivel by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { visivel = true }
     val altura by animateDpAsState(
@@ -322,7 +306,6 @@ private fun ColunaPodio(item: RankingItem, modifier: Modifier = Modifier) {
     }
 }
 
-/** "1.250 XP" com contagem animada (equivale ao NumeroAnimado.vue). */
 @Composable
 private fun NumeroXp(valor: Int, cor: Color, tamanho: androidx.compose.ui.unit.TextUnit, peso: FontWeight = FontWeight.Normal) {
     val animado by animateIntAsState(targetValue = valor, animationSpec = tween(900), label = "xp")
@@ -331,7 +314,6 @@ private fun NumeroXp(valor: Int, cor: Color, tamanho: androidx.compose.ui.unit.T
 
 private fun formatar(n: Int): String = NumberFormat.getInstance(Locale("pt", "BR")).format(n)
 
-/* ---------- SUA POSIÇÃO ---------- */
 @Composable
 private fun CardVoce(
     eu: RankingItem,
@@ -376,7 +358,6 @@ private fun CardVoce(
                 Icon(Lucide.TrendingUp, null, tint = RankColors.VoceTexto, modifier = Modifier.size(16.dp))
                 Text("Top $percentual% $sufixo", color = RankColors.VoceTexto, fontSize = 14.sp, fontWeight = FontWeight.Medium)
             }
-            // Link para a tela de Recompensas
             Button(
                 onClick = onAbrirRecompensas,
                 modifier = Modifier.height(40.dp),
@@ -392,14 +373,12 @@ private fun CardVoce(
     }
 }
 
-/* ---------- CLASSIFICAÇÃO ---------- */
 @Composable
 private fun Classificacao(ranking: RankingData, expandido: Boolean, onAlternar: () -> Unit) {
     val linhas = remember(ranking, expandido) {
         val visiveis = if (expandido) ranking.lista else ranking.lista.take(LIMITE)
         buildList<Linha> {
             visiveis.forEach { add(Linha.Usuario(it)) }
-            // Se você não está na lista curta, aparece separado no final
             if (visiveis.none { it.voce }) {
                 add(Linha.Separador)
                 add(Linha.Usuario(ranking.eu))
@@ -416,7 +395,6 @@ private fun Classificacao(ranking: RankingData, expandido: Boolean, onAlternar: 
             .border(1.dp, RankColors.Borda, RoundedCornerShape(16.dp))
             .animateContentSize(),
     ) {
-        // Cabeçalho (no celular só # / Usuário / XP, igual ao breakpoint do desktop)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -573,9 +551,6 @@ private fun Avatar(iniciais: String, tamanho: Dp) {
     }
 }
 
-/* ------------------------------------------------------------------ */
-/*  PREVIEW COM DADOS FICTÍCIOS                                        */
-/* ------------------------------------------------------------------ */
 private fun dadosDeExemplo(escopo: EscopoRanking): RankingData {
     val nomes = listOf(
         "Marina Costa", "Lucas Almeida", "Beatriz Souza", "Rafael Lima", "Camila Rocha",
