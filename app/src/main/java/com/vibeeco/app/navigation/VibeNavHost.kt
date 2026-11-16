@@ -2,24 +2,22 @@ package com.vibeeco.app.navigation
 
 import android.net.Uri
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -34,9 +32,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -72,18 +67,18 @@ import com.vibeeco.app.ui.home.HomeScreen
 import com.vibeeco.app.ui.learn.ArticleDetailScreen
 import com.vibeeco.app.ui.learn.LearnScreen
 import com.vibeeco.app.ui.profile.ConfiguracoesScreen
+import com.vibeeco.app.ui.profile.HistoricoScreen
+import com.vibeeco.app.ui.profile.NotificacoesScreen
+import com.vibeeco.app.ui.profile.NotificacoesStore
 import com.vibeeco.app.ui.profile.PerfilStore
 import com.vibeeco.app.ui.profile.ProfileScreen
+import com.vibeeco.app.ui.profile.TipoAtividade
 import com.vibeeco.app.ui.ranking.RankingScreen
 import com.vibeeco.app.ui.recompensas.Recompensa
 import com.vibeeco.app.ui.recompensas.RecompensasScreen
 import com.vibeeco.app.ui.recompensas.Resgate
 import com.vibeeco.app.ui.recompensas.ResultadoResgate
 import com.vibeeco.app.ui.recompensas.TemaRecompensa
-import com.vibeeco.app.ui.theme.BorderLight
-import com.vibeeco.app.ui.theme.GreenBrand
-import com.vibeeco.app.ui.theme.GreenContainer
-import com.vibeeco.app.ui.theme.TextMuted
 import kotlinx.coroutines.delay
 
 object Routes {
@@ -142,7 +137,7 @@ private fun gerarCodigoResgate(): String =
 
 private fun NavHostController.goToTab(route: String) {
     navigate(route) {
-        popUpTo(Routes.HOME) { saveState = true }
+        popUpTo(graph.findStartDestination().id) { saveState = true }
         launchSingleTop = true
         restoreState = true
     }
@@ -151,6 +146,15 @@ private fun NavHostController.goToTab(route: String) {
 private fun NavHostController.goToLogin() {
     navigate(Routes.LOGIN) {
         popUpTo(graph.findStartDestination().id) { inclusive = true }
+    }
+}
+
+private fun NavHostController.irParaTipo(tipo: TipoAtividade) {
+    when (tipo) {
+        TipoAtividade.Missao, TipoAtividade.Desafio -> goToTab(Routes.CHALLENGES)
+        TipoAtividade.Conteudo -> goToTab(Routes.LEARN)
+        TipoAtividade.Conquista -> goToTab(Routes.PROFILE)
+        TipoAtividade.Recompensa -> goToTab(Routes.RANKING)
     }
 }
 
@@ -175,42 +179,38 @@ fun VibeNavHost() {
         containerColor = colorScheme.background,
         contentWindowInsets = WindowInsets(0),
         bottomBar = {
-            AnimatedVisibility(
-                visible = tabs.any { it.route == route },
-                enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
-                exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
-            ) {
+            // ✅ Navbar estática, sempre visível nas rotas de aba
+            if (tabs.any { it.route == route }) {
                 NavigationBar(
                     containerColor = Color.White,
                     tonalElevation = 0.dp,
-                    modifier = Modifier.drawBehind {
-                        drawLine(
-                            color = BorderLight,
-                            start = Offset(0f, 0f),
-                            end = Offset(size.width, 0f),
-                            strokeWidth = 1.dp.toPx()
-                        )
-                    }
+                    modifier = Modifier.navigationBarsPadding(),
                 ) {
                     tabs.forEach { tab ->
-                        val isSelected = route == tab.route
+                        val selecionado = route == tab.route
                         NavigationBarItem(
-                            selected = isSelected,
-                            onClick = { if (route != tab.route) nav.goToTab(tab.route) },
-                            icon = { Icon(tab.icon, contentDescription = tab.label) },
+                            selected = selecionado,
+                            onClick = { if (!selecionado) nav.goToTab(tab.route) },
+                            icon = {
+                                Icon(
+                                    imageVector = tab.icon,
+                                    contentDescription = tab.label,
+                                    modifier = Modifier.size(22.dp),
+                                )
+                            },
                             label = {
                                 Text(
-                                    tab.label,
-                                    fontSize = 11.sp,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                    text = tab.label,
+                                    fontSize = 10.5.sp,
+                                    fontWeight = if (selecionado) FontWeight.Bold else FontWeight.Normal,
                                 )
                             },
                             colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = GreenBrand,
-                                selectedTextColor = GreenBrand,
-                                indicatorColor = GreenContainer,
-                                unselectedIconColor = TextMuted,
-                                unselectedTextColor = TextMuted,
+                                selectedIconColor = Color(0xFF0F6B34),
+                                selectedTextColor = Color(0xFF0F6B34),
+                                indicatorColor = Color(0xFFDCFCE7),
+                                unselectedIconColor = Color(0xFF8A9A90),
+                                unselectedTextColor = Color(0xFF8A9A90),
                             ),
                         )
                     }
@@ -221,7 +221,7 @@ fun VibeNavHost() {
         NavHost(
             navController = nav,
             startDestination = Routes.SPLASH,
-            modifier = Modifier.padding(bottom = inner.calculateBottomPadding()),
+            modifier = Modifier.padding(inner),
         ) {
 
             composable(Routes.SPLASH) {
@@ -352,6 +352,8 @@ fun VibeNavHost() {
                     onSeeAll = { nav.goToTab(Routes.CHALLENGES) },
                     onOpenProfile = { nav.goToTab(Routes.PROFILE) },
                     onOpenLearn = { nav.goToTab(Routes.LEARN) },
+                    onOpenNotifications = { nav.navigate(Routes.NOTIFICACOES) },
+                    unreadNotifications = NotificacoesStore.naoLidas,
                 )
             }
 
@@ -500,67 +502,18 @@ fun VibeNavHost() {
             }
 
             composable(Routes.HISTORICO) {
-                TelaEmBreve(
-                    titulo = "Histórico",
+                HistoricoScreen(
                     onVoltar = { nav.popBackStack() },
+                    onIrPara = { tipo -> nav.irParaTipo(tipo) },
                 )
             }
 
             composable(Routes.NOTIFICACOES) {
-                TelaEmBreve(
-                    titulo = "Notificações",
+                NotificacoesScreen(
                     onVoltar = { nav.popBackStack() },
+                    onIrPara = { tipo -> nav.irParaTipo(tipo) },
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun TelaEmBreve(titulo: String, onVoltar: () -> Unit) {
-    Column(
-        Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-    ) {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 8.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Box(
-                Modifier
-                    .size(44.dp)
-                    .clip(CircleShape)
-                    .clickable(onClick = onVoltar),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    "‹",
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground,
-                )
-            }
-            Text(
-                titulo,
-                color = MaterialTheme.colorScheme.onBackground,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.ExtraBold,
-            )
-        }
-        Box(
-            Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                "Em breve",
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 16.sp,
-            )
         }
     }
 }
