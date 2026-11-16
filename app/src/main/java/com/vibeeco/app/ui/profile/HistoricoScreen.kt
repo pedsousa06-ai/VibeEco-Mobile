@@ -59,11 +59,7 @@ private fun dataDe(diasAtras: Int): LocalDate = LocalDate.now().minusDays(diasAt
 private fun rotuloDia(diasAtras: Int): String {
     val d = dataDe(diasAtras)
     val base = "${d.dayOfMonth.toString().padStart(2, '0')} ${MESES[d.monthValue - 1]} ${d.year}"
-    return when (diasAtras) {
-        0 -> "HOJE, $base"
-        1 -> "ONTEM, $base"
-        else -> base
-    }
+    return when (diasAtras) { 0 -> "HOJE, $base"; 1 -> "ONTEM, $base"; else -> base }
 }
 
 private fun quandoDe(a: Atividade): String {
@@ -75,11 +71,7 @@ private fun quandoDe(a: Atividade): String {
 private fun sinal(v: Int) = if (v > 0) "+$v" else "$v"
 
 @Composable
-fun HistoricoScreen(
-    onVoltar: () -> Unit,
-    onIrPara: (TipoAtividade) -> Unit,
-    modifier: Modifier = Modifier,
-) {
+fun HistoricoScreen(onVoltar: () -> Unit, onIrPara: (TipoAtividade) -> Unit, modifier: Modifier = Modifier) {
     var filtro by rememberSaveable { mutableStateOf("todos") }
     var aberta by remember { mutableStateOf<Atividade?>(null) }
 
@@ -96,15 +88,11 @@ fun HistoricoScreen(
 
         LazyColumn(
             modifier = Modifier.weight(1f),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 110.dp),
         ) {
             item { Resumo(Modifier.padding(bottom = 16.dp)) }
-
             item {
-                Row(
-                    Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(bottom = 18.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
+                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(bottom = 18.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FILTROS.forEach { (id, rotulo) ->
                         val ativo = filtro == id
                         Text(
@@ -123,27 +111,16 @@ fun HistoricoScreen(
                     }
                 }
             }
-
             grupos.forEach { g ->
                 item(key = "dia-${g.dias}") {
-                    Text(
-                        g.rotulo,
-                        modifier = Modifier.padding(top = 6.dp, bottom = 10.dp),
-                        color = Color(0xFF4B5D52),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 0.5.sp,
-                    )
+                    Text(g.rotulo, modifier = Modifier.padding(top = 6.dp, bottom = 10.dp), color = Color(0xFF4B5D52), fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
                 }
                 itemsIndexed(g.itens, key = { _, a -> a.id }) { i, a ->
                     ItemLinha(a, ultimo = i == g.itens.lastIndex) { aberta = a }
                 }
             }
-
             if (grupos.isEmpty()) {
-                item {
-                    EstadoVazio(Lucide.History, "Nenhuma atividade encontrada", "Tente outro filtro para ver mais do seu histórico.")
-                }
+                item { EstadoVazio(Lucide.History, "Nenhuma atividade encontrada", "Tente outro filtro para ver mais do seu histórico.") }
             }
         }
     }
@@ -157,10 +134,7 @@ fun HistoricoScreen(
             onFechar = { aberta = null },
             acoes = {
                 BotaoGradiente("Fechar", Modifier.weight(1f), suave = true) { aberta = null }
-                BotaoGradiente(a.tipo.destinoRotulo, Modifier.weight(1f)) {
-                    aberta = null
-                    onIrPara(a.tipo)
-                }
+                BotaoGradiente(a.tipo.destinoRotulo, Modifier.weight(1f)) { aberta = null; onIrPara(a.tipo) }
             },
         ) {
             if (a.xp != 0 || a.mc != 0) {
@@ -177,7 +151,6 @@ fun HistoricoScreen(
                     }
                 }
             }
-
             a.progresso?.let { p ->
                 Column {
                     Row(Modifier.fillMaxWidth().padding(bottom = 6.dp), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -189,14 +162,12 @@ fun HistoricoScreen(
                     }
                 }
             }
-
             Text(a.descricao, color = Color(0xFF3D4F44), fontSize = 15.sp, lineHeight = 23.sp)
             ListaDetalhes(a.detalhes)
         }
     }
 }
 
-/* ---------- RESUMO ---------- */
 @Composable
 private fun Resumo(modifier: Modifier = Modifier) {
     val itens = listOf(
@@ -227,28 +198,15 @@ private fun Resumo(modifier: Modifier = Modifier) {
     }
 }
 
-/* ---------- ITEM DA LINHA DO TEMPO ---------- */
 @Composable
 private fun ItemLinha(a: Atividade, ultimo: Boolean, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        // ícone + fio que liga ao próximo
+    Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         Column(Modifier.width(40.dp).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally) {
             IconeTipo(a.tipo, 40.dp)
             if (!ultimo) {
-                Box(
-                    Modifier
-                        .padding(top = 4.dp)
-                        .width(2.dp)
-                        .weight(1f)
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(Color(0xFFCFE6D6)),
-                )
+                Box(Modifier.padding(top = 4.dp).width(2.dp).weight(1f).clip(RoundedCornerShape(2.dp)).background(Color(0xFFCFE6D6)))
             }
         }
-
         Box(Modifier.weight(1f).padding(bottom = 12.dp)) {
             Cartao(Modifier.clickable(role = Role.Button, onClick = onClick)) {
                 Row(
@@ -271,12 +229,7 @@ private fun ItemLinha(a: Atividade, ultimo: Boolean, onClick: () -> Unit) {
                             if (a.mc != 0) {
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                     Icon(Lucide.Coins, null, tint = COR_MOEDA, modifier = Modifier.size(15.dp))
-                                    Text(
-                                        sinal(a.mc),
-                                        color = if (a.mc < 0) Color(0xFFDC2626) else PC.Verde600,
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Bold,
-                                    )
+                                    Text(sinal(a.mc), color = if (a.mc < 0) Color(0xFFDC2626) else PC.Verde600, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -288,15 +241,7 @@ private fun ItemLinha(a: Atividade, ultimo: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-private fun Ganho(
-    icone: androidx.compose.ui.graphics.vector.ImageVector,
-    valor: String,
-    legenda: String,
-    fundo: Color,
-    cor: Color,
-    corIcone: Color,
-    modifier: Modifier = Modifier,
-) {
+private fun Ganho(icone: androidx.compose.ui.graphics.vector.ImageVector, valor: String, legenda: String, fundo: Color, cor: Color, corIcone: Color, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier.clip(RoundedCornerShape(14.dp)).background(fundo).padding(horizontal = 10.dp, vertical = 14.dp),
         horizontalAlignment = Alignment.CenterHorizontally,

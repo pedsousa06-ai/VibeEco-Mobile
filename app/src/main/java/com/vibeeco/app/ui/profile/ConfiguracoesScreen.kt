@@ -54,10 +54,9 @@ fun ConfiguracoesScreen(
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
-                .padding(bottom = 24.dp),
+                .padding(bottom = 110.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // ---------- CONTA ----------
             Cartao {
                 CabecalhoCartao(Lucide.User, "Conta")
                 LinhaDado("Nome", perfil.nome.ifBlank { "-" })
@@ -68,8 +67,6 @@ fun ConfiguracoesScreen(
                     SeletorIdioma(cfg.idioma) { cfg.idioma = it }
                 }
             }
-
-            // ---------- ACESSIBILIDADE ----------
             Cartao {
                 CabecalhoCartao(Lucide.Accessibility, "Acessibilidade")
                 LinhaConfig {
@@ -105,15 +102,12 @@ fun ConfiguracoesScreen(
                     Interruptor(cfg.animacoes) { cfg.animacoes = it }
                 }
             }
-
-            // ---------- SEGURANÇA ----------
             Cartao {
                 CabecalhoCartao(Lucide.Shield, "Segurança")
                 LinhaConfig(onClick = onAlterarSenha) {
                     TextoLinha("Alterar senha", "Última alteração: 30 dias atrás", Modifier.weight(1f))
                     Icon(Lucide.ChevronRight, null, tint = PC.TextoSuave, modifier = Modifier.size(18.dp))
                 }
-                // TODO: trocar os textos fixos por dados da API
                 listOf(
                     "Autenticação em dois fatores" to "Adicione uma camada extra de segurança",
                     "Sessões ativas" to "2 sessões ativas no momento",
@@ -124,8 +118,6 @@ fun ConfiguracoesScreen(
                     }
                 }
             }
-
-            // ---------- PRIVACIDADE ----------
             Cartao {
                 CabecalhoCartao(Lucide.Eye, "Privacidade")
                 LinhaConfig {
@@ -141,8 +133,6 @@ fun ConfiguracoesScreen(
                     Interruptor(cfg.perfilPublico) { cfg.perfilPublico = it }
                 }
             }
-
-            // ---------- SAIR ----------
             val forma = RoundedCornerShape(12.dp)
             Row(
                 modifier = Modifier
@@ -162,12 +152,8 @@ fun ConfiguracoesScreen(
     }
 }
 
-/* ---------- COMPONENTES LOCAIS ---------- */
 @Composable
-private fun LinhaConfig(
-    onClick: (() -> Unit)? = null,
-    conteudo: @Composable RowScope.() -> Unit,
-) {
+private fun LinhaConfig(onClick: (() -> Unit)? = null, conteudo: @Composable RowScope.() -> Unit) {
     Column {
         DivisorLinha()
         Row(
@@ -188,10 +174,7 @@ private fun LinhaConfigColuna(conteudo: @Composable ColumnScope.() -> Unit) {
     Column {
         DivisorLinha()
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 56.dp)
-                .padding(horizontal = 20.dp, vertical = 10.dp),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(horizontal = 20.dp, vertical = 10.dp),
             verticalArrangement = Arrangement.Center,
             content = conteudo,
         )
@@ -234,10 +217,7 @@ private fun SeletorIdioma(atual: String, onEscolher: (String) -> Unit) {
                 DropdownMenuItem(
                     text = { Text(rotulo) },
                     enabled = habilitado,
-                    onClick = {
-                        onEscolher(valor)
-                        aberto = false
-                    },
+                    onClick = { onEscolher(valor); aberto = false },
                 )
             }
         }

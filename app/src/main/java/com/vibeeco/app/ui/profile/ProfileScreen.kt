@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -39,6 +40,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -46,6 +48,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -55,11 +58,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -73,7 +78,6 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.semantics
@@ -93,7 +97,6 @@ import com.composables.icons.lucide.Coins
 import com.composables.icons.lucide.Eye
 import com.composables.icons.lucide.GraduationCap
 import com.composables.icons.lucide.History
-import com.composables.icons.lucide.Info
 import com.composables.icons.lucide.KeyRound
 import com.composables.icons.lucide.Lock
 import com.composables.icons.lucide.LogOut
@@ -165,6 +168,13 @@ fun ProfileScreen(
     val alterado = form != FormPerfil.de(perfil)
     val valido = form.nome.isNotBlank()
 
+    // Adia o trabalho pesado 1 frame para o clique responder na hora
+    var pronto by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        withFrameNanos { }
+        pronto = true
+    }
+
     LaunchedEffect(salvo) {
         if (salvo) {
             delay(3000)
@@ -173,101 +183,96 @@ fun ProfileScreen(
     }
 
     Column(Modifier.fillMaxSize().background(PC.Pagina)) {
-        // ---------- TOPO COM ATALHOS (engrenagem, histórico, notificações) ----------
         BarraTopo(
             titulo = "Meu perfil",
             onVoltar = onVoltar,
             acoes = {
-                BotaoIcone(
-                    icone = Lucide.Settings,
-                    descricao = "Configurações",
-                    onClick = onAbrirConfiguracoes,
-                    contorno = true,
-                )
+                BotaoIcone(Lucide.Settings, "Configurações", onAbrirConfiguracoes, contorno = true)
+                Spacer(Modifier.width(6.dp))
+                BotaoIcone(Lucide.History, "Histórico", onAbrirHistorico, contorno = true)
                 Spacer(Modifier.width(6.dp))
                 BotaoIcone(
-                    icone = Lucide.History,
-                    descricao = "Histórico",
-                    onClick = onAbrirHistorico,
-                    contorno = true,
-                )
-                Spacer(Modifier.width(6.dp))
-                BotaoIcone(
-                    icone = Lucide.Bell,
-                    descricao = "Notificações",
-                    onClick = onAbrirNotificacoes,
-                    contorno = true,
-                    badge = NotificacoesStore.naoLidas,
+                    Lucide.Bell, "Notificações", onAbrirNotificacoes,
+                    contorno = true, badge = NotificacoesStore.naoLidas,
                 )
             },
         )
 
-        Column(
+        if (!pronto) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = PC.Verde600)
+            }
+            return@Column
+        }
+
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
                 .imePadding()
-                .padding(horizontal = 16.dp)
-                .padding(top = 4.dp, bottom = 24.dp)
                 .navigationBarsPadding(),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
-            Revelar(0) { CabecalhoPagina() }
+            item { Revelar(0) { CabecalhoPagina() } }
 
-            Revelar(80) { CartaoIdentidade(perfil) }
+            item { Revelar(80) { CartaoIdentidade(perfil) } }
 
-            Revelar(0) {
-                CartaoEdicao(
-                    form = form,
-                    perfil = perfil,
-                    alterado = alterado,
-                    valido = valido,
-                    salvo = salvo,
-                    onForm = { form = it },
-                    onCancelar = { form = FormPerfil.de(perfil) },
-                    onSalvar = {
-                        if (valido) {
-                            PerfilStore.atualizar(form)
-                            salvo = true
-                        }
-                    },
-                )
-            }
-
-            Revelar(0) { CartaoVisibilidade() }
-
-            Revelar(0) {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    TituloSecao("Desempenho e conquistas", "Sua jornada sustentável em números")
-                    Segmentos(PERIODOS, periodo, { periodo = it })
+            item {
+                Revelar(0) {
+                    CartaoEdicao(
+                        form = form,
+                        perfil = perfil,
+                        alterado = alterado,
+                        valido = valido,
+                        salvo = salvo,
+                        onForm = { form = it },
+                        onCancelar = { form = FormPerfil.de(perfil) },
+                        onSalvar = {
+                            if (valido) {
+                                PerfilStore.atualizar(form)
+                                salvo = true
+                            }
+                        },
+                    )
                 }
             }
 
-            Crossfade(targetState = periodo, animationSpec = tween(350), label = "periodo") { p ->
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    val rotulo = PERIODOS.firstOrNull { it.first == p }?.second.orEmpty()
-                    obterDesempenho(p).chunked(2).forEach { par ->
-                        Row(
-                            Modifier.fillMaxWidth().height(IntrinsicSize.Max),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            par.forEach { c ->
-                                CartaoDesempenhoView(c, rotulo, Modifier.weight(1f).fillMaxHeight())
+            item { Revelar(0) { CartaoVisibilidade() } }
+
+            item {
+                Revelar(0) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        TituloSecao("Desempenho e conquistas", "Sua jornada sustentável em números")
+                        Segmentos(PERIODOS, periodo, { periodo = it })
+                    }
+                }
+            }
+
+            item {
+                Crossfade(targetState = periodo, animationSpec = tween(350), label = "periodo") { p ->
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        val rotulo = PERIODOS.firstOrNull { it.first == p }?.second.orEmpty()
+                        obterDesempenho(p).chunked(2).forEach { par ->
+                            Row(
+                                Modifier.fillMaxWidth().height(IntrinsicSize.Max),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            ) {
+                                par.forEach { c ->
+                                    CartaoDesempenhoView(c, rotulo, Modifier.weight(1f).fillMaxHeight())
+                                }
                             }
                         }
                     }
                 }
             }
 
-            Revelar(0) { ativo -> GraficoXp(ativo) }
+            item { Revelar(0) { ativo -> GraficoXp(ativo) } }
 
-            CartaoConquistas()
+            item { CartaoConquistas() }
 
-            Revelar(0) {
-                SecaoMissoes(aba, { aba = it }, onAbrirMissao)
-            }
+            item { Revelar(0) { SecaoMissoes(aba, { aba = it }, onAbrirMissao) } }
 
-            Revelar(0) { CartaoConta(acaoSenha, acaoSair) }
+            item { Revelar(0) { CartaoConta(acaoSenha, acaoSair) } }
         }
     }
 }
@@ -707,7 +712,7 @@ private fun GraficoXp(ativo: Boolean) {
                 EVOLUCAO_XP.forEachIndexed { i, s ->
                     val fracao by animateFloatAsState(
                         targetValue = if (ativo) s.altura(maximo) else 0f,
-                        animationSpec = tween(750, delayMillis = 60 * i, easing = FastOutSlowInEasing),
+                        animationSpec = tween(600, delayMillis = 20 * i, easing = FastOutSlowInEasing),
                         label = "barra$i",
                     )
                     val cor by animateColorAsState(
@@ -877,7 +882,7 @@ private fun SecaoMissoes(aba: String, onAba: (String) -> Unit, onAbrirMissao: (S
                         EstadoVazio(Lucide.Target, "Nenhuma missão nesta aba", "Quando houver missões aqui, elas aparecem nesta lista.")
                     } else {
                         lista.forEachIndexed { i, m ->
-                            Revelar(atraso = 50 * i) { ativo -> CartaoMissao(m, ativo, onAbrirMissao) }
+                            Revelar(atraso = 30 * i) { ativo -> CartaoMissao(m, ativo, onAbrirMissao) }
                         }
                     }
                 }
@@ -895,7 +900,7 @@ private fun CartaoMissao(m: Missao, ativo: Boolean, onAbrir: (String) -> Unit) {
     }
     val fracao by animateFloatAsState(
         targetValue = if (ativo) m.progresso / 100f else 0f,
-        animationSpec = tween(950, delayMillis = 150, easing = FastOutSlowInEasing),
+        animationSpec = tween(800, delayMillis = 100, easing = FastOutSlowInEasing),
         label = "progMissao",
     )
 

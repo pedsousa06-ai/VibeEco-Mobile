@@ -40,11 +40,7 @@ private fun daAba(id: String, todas: List<Notificacao>): List<Notificacao> =
     if (id == "todas") todas else todas.filter { it.tipo.name.lowercase() == id }
 
 @Composable
-fun NotificacoesScreen(
-    onVoltar: () -> Unit,
-    onIrPara: (TipoAtividade) -> Unit,
-    modifier: Modifier = Modifier,
-) {
+fun NotificacoesScreen(onVoltar: () -> Unit, onIrPara: (TipoAtividade) -> Unit, modifier: Modifier = Modifier) {
     var aba by rememberSaveable { mutableStateOf("todas") }
     var abertaId by rememberSaveable { mutableStateOf<String?>(null) }
 
@@ -52,19 +48,14 @@ fun NotificacoesScreen(
     val naoLidas = NotificacoesStore.naoLidas
     val visiveis = daAba(aba, todas)
     val contagens = ABAS.associate { (id, _) -> id to daAba(id, todas).count { !it.lida } }
-    // `atual` vem sempre da store, então o painel reflete o estado "lida"
     val atual = abertaId?.let { id -> todas.firstOrNull { it.id == id } }
 
     Column(modifier.fillMaxSize().background(PC.Pagina)) {
         BarraTopo("Notificações", onVoltar)
 
-        Column(
-            Modifier.padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
+        Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Segmentos(ABAS, aba, { aba = it }, contagens = contagens, contagemDestaque = true)
 
-            // Marcar todas como lidas
             val habilitado = naoLidas > 0
             Row(
                 modifier = Modifier
@@ -89,19 +80,14 @@ fun NotificacoesScreen(
 
         LazyColumn(
             modifier = Modifier.weight(1f),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 24.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 110.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             items(visiveis, key = { it.id }) { n ->
-                ItemNotificacao(n) {
-                    abertaId = n.id
-                    NotificacoesStore.marcarComoLida(n.id)
-                }
+                ItemNotificacao(n) { abertaId = n.id; NotificacoesStore.marcarComoLida(n.id) }
             }
             if (visiveis.isEmpty()) {
-                item {
-                    EstadoVazio(Lucide.Bell, "Nada por aqui", "Quando houver novidades nesta categoria, elas aparecem aqui.")
-                }
+                item { EstadoVazio(Lucide.Bell, "Nada por aqui", "Quando houver novidades nesta categoria, elas aparecem aqui.") }
             }
         }
     }
@@ -115,10 +101,7 @@ fun NotificacoesScreen(
             onFechar = { abertaId = null },
             acoes = {
                 BotaoGradiente("Fechar", Modifier.weight(1f), suave = true) { abertaId = null }
-                BotaoGradiente(n.tipo.destinoRotulo, Modifier.weight(1f)) {
-                    abertaId = null
-                    onIrPara(n.tipo)
-                }
+                BotaoGradiente(n.tipo.destinoRotulo, Modifier.weight(1f)) { abertaId = null; onIrPara(n.tipo) }
             },
         ) {
             Text(n.texto, color = Color(0xFF3D4F44), fontSize = 15.sp, lineHeight = 23.sp)
@@ -142,7 +125,6 @@ private fun ItemNotificacao(n: Notificacao, onClick: () -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         IconeTipo(n.tipo, 44.dp)
-
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(n.titulo, color = PC.Texto, fontSize = 15.sp, fontWeight = FontWeight.Bold)
             Text(n.texto, color = Color(0xFF4B5D52), fontSize = 14.sp, lineHeight = 19.sp)
