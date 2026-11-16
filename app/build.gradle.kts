@@ -35,6 +35,7 @@ android {
 }
 
 dependencies {
+    // BOM primeiro — define as versões de todas as libs do Compose
     val composeBom = platform("androidx.compose:compose-bom:2024.10.01")
     implementation(composeBom)
 
@@ -43,6 +44,7 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.9.3")
     implementation("androidx.navigation:navigation-compose:2.8.4")
 
+    // Compose — sem versão, o BOM resolve
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
@@ -52,7 +54,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation("io.coil-kt:coil-compose:2.7.0")
 
-    // Ícones Lucide (mesmo conjunto usado no front web)
+    // Ícones Lucide
     implementation("com.composables:icons-lucide:1.0.0")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
