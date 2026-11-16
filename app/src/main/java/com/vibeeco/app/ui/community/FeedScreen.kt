@@ -181,13 +181,18 @@ fun FeedContent(
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .background(FC.Pagina),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
+            .background(FC.Pagina)
+            .statusBarsPadding(),                 // ⬅️ ADICIONADO
+        contentPadding = PaddingValues(
+            start = 16.dp,
+            end = 16.dp,
+            bottom = 110.dp,                      // ⬅️ era 16.dp
+        ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
             Row(
-                modifier = Modifier.statusBarsPadding().padding(top = 12.dp),
+                modifier = Modifier.padding(top = 12.dp),   // ⬅️ REMOVIDO statusBarsPadding() daqui
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
