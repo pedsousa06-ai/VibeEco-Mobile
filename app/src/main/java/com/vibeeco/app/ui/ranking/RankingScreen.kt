@@ -4,14 +4,11 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,7 +21,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -46,6 +42,7 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Medal
 import com.composables.icons.lucide.Star
 import com.composables.icons.lucide.TrendingUp
+import com.composables.icons.lucide.Trophy
 import com.composables.icons.lucide.Users
 import java.text.NumberFormat
 import java.util.Locale
@@ -126,19 +123,34 @@ fun RankingScreen(
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFF7FAF8))
-            .statusBarsPadding(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 110.dp),
+            .background(Color(0xFFF7FAF8)),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
+        // Cabeçalho + abas (abaixo da barra de status, com respiro no topo)
         item {
-            AbasEscopo(
-                selecionado = escopo,
-                onSelecionar = {
-                    escopo = it
-                    expandido = false
-                },
-            )
+            Column(
+                modifier = Modifier.statusBarsPadding().padding(top = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Icon(Lucide.Trophy, null, tint = RankColors.Verde600, modifier = Modifier.size(26.dp))
+                    Column {
+                        Text("Ranking", color = RankColors.Texto, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold)
+                        Text("Veja como você está entre a comunidade", color = RankColors.TextoSuave, fontSize = 13.sp)
+                    }
+                }
+                AbasEscopo(
+                    selecionado = escopo,
+                    onSelecionar = {
+                        escopo = it
+                        expandido = false
+                    },
+                )
+            }
         }
         item(key = "podio-${escopo.name}") { Podio(ranking.lista.take(3)) }
         item {
@@ -163,25 +175,24 @@ fun RankingScreen(
 private fun AbasEscopo(selecionado: EscopoRanking, onSelecionar: (EscopoRanking) -> Unit) {
     Row(
         modifier = Modifier
-            .clip(RoundedCornerShape(12.dp))
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
             .background(RankColors.AbasFundo)
-            .padding(4.dp)
-            .horizontalScroll(rememberScrollState()),
+            .padding(4.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         EscopoRanking.entries.forEach { aba ->
             val ativa = aba == selecionado
             Row(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(9.dp))
-                    .then(
-                        if (ativa) Modifier.shadow(1.dp, RoundedCornerShape(9.dp)).background(Color.White)
-                        else Modifier
-                    )
+                    .weight(1f)
+                    .height(42.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .then(if (ativa) Modifier.background(Color.White) else Modifier)
                     .selectable(selected = ativa, role = Role.Tab, onClick = { onSelecionar(aba) })
-                    .padding(horizontal = 18.dp, vertical = 10.dp),
+                    .padding(horizontal = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
             ) {
                 Icon(
                     imageVector = aba.icone,
@@ -191,10 +202,11 @@ private fun AbasEscopo(selecionado: EscopoRanking, onSelecionar: (EscopoRanking)
                 )
                 Text(
                     text = aba.nome,
-                    fontSize = 14.5.sp,
-                    fontWeight = if (ativa) FontWeight.SemiBold else FontWeight.Medium,
+                    fontSize = 13.5.sp,
+                    fontWeight = if (ativa) FontWeight.Bold else FontWeight.Medium,
                     color = if (ativa) RankColors.Texto else RankColors.TextoSuave,
                     maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }

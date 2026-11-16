@@ -53,8 +53,11 @@ fun HomeScreen(
     dailyGoal: Int,
     featured: List<Challenge>,
     tip: String,
+    missoes: List<MissaoUi>,
     onToggle: (Challenge) -> Unit,
     onSeeAll: () -> Unit,
+    onSeeAllMissions: () -> Unit,
+    onOpenMission: (String) -> Unit,
     onOpenProfile: () -> Unit,
     onOpenLearn: () -> Unit,
     onOpenNotifications: () -> Unit,
@@ -66,6 +69,9 @@ fun HomeScreen(
     val doneToday = doneIds.size
     val mcMoedas = (points / 5).coerceAtLeast(12)
     val myRankPosition = 4
+
+    val emAndamento = missoes.filter { it.status == StatusMissao.Andamento }
+    val concluidas = missoes.count { it.status == StatusMissao.Concluida }
 
     LazyColumn(
         modifier = Modifier
@@ -99,6 +105,7 @@ fun HomeScreen(
                             Spacer(Modifier.height(2.dp))
                             Text("Você está em uma ofensiva de $streak dias. Continue assim!", color = Color.White.copy(alpha = 0.9f), fontSize = 13.sp)
                         }
+
                         Box {
                             Box(
                                 modifier = Modifier
@@ -163,8 +170,14 @@ fun HomeScreen(
         item {
             Column(modifier = Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    ResumoCard(Lucide.Target, Color(0xFF16A34A), Color(0xFFDCF5E5), "3", "Missões em Andamento", modifier = Modifier.weight(1f))
-                    ResumoCard(Lucide.Medal, Color(0xFFD97706), Color(0xFFFEF3C7), "14", "Missões Concluídas", modifier = Modifier.weight(1f))
+                    ResumoCard(
+                        Lucide.Target, Color(0xFF16A34A), Color(0xFFDCF5E5), "${emAndamento.size}", "Missões em Andamento",
+                        modifier = Modifier.weight(1f).clickable { onSeeAllMissions() }
+                    )
+                    ResumoCard(
+                        Lucide.Medal, Color(0xFFD97706), Color(0xFFFEF3C7), "$concluidas", "Missões Concluídas",
+                        modifier = Modifier.weight(1f).clickable { onSeeAllMissions() }
+                    )
                 }
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     ResumoCard(Lucide.Zap, Color(0xFF7C3AED), Color(0xFFEDE9FE), "${featured.size}", "Desafios Ativos", modifier = Modifier.weight(1f))
@@ -173,11 +186,33 @@ fun HomeScreen(
             }
         }
         item { StreakCard(streak = streak, modifier = Modifier.padding(horizontal = 16.dp)) }
-        item { SectionTitle("Desafios em Andamento", Modifier.padding(horizontal = 16.dp), "Ver todas", onSeeAll) }
-        items(Content.missions, key = { it.id }) { mission ->
-            MissionCard(mission = mission, modifier = Modifier.padding(horizontal = 16.dp))
+
+        item { SectionTitle("Missões em Andamento", Modifier.padding(horizontal = 16.dp), "Ver todas", onSeeAllMissions) }
+
+        if (emAndamento.isEmpty()) {
+            item {
+                VibeCard(
+                    modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
+                    onClick = onSeeAllMissions,
+                ) {
+                    Text(
+                        "Nenhuma missão em andamento. Toque para escolher uma!",
+                        modifier = Modifier.padding(18.dp), fontSize = 13.sp, color = TextMuted,
+                    )
+                }
+            }
+        } else {
+            items(emAndamento.take(3), key = { it.missao.id }) { ui ->
+                MissionCard(
+                    ui = ui,
+                    onClick = { onOpenMission(ui.missao.id) },
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                )
+            }
         }
+
         item { SectionTitle("Desafios de Hoje", Modifier.padding(horizontal = 16.dp), "Ver todos", onSeeAll) }
+
         items(featured, key = { it.id }) { challenge ->
             ChallengeCard(challenge = challenge, done = challenge.id in doneIds, onToggle = { onToggle(challenge) }, modifier = Modifier.padding(horizontal = 16.dp))
         }
@@ -301,13 +336,14 @@ private fun ResumoCard(icon: ImageVector, iconTint: Color, iconBg: Color, value:
 }
 
 @Composable
-private fun MissionCard(mission: Mission, modifier: Modifier = Modifier) {
+private fun MissionCard(ui: MissaoUi, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val mission = ui.missao
     val difColor = when (mission.difficulty.lowercase()) {
         "fácil", "facil" -> Color(0xFF16A34A)
         "médio", "medio" -> Color(0xFFD97706)
         else -> Color(0xFFDC2626)
     }
-    VibeCard(modifier = modifier.fillMaxWidth()) {
+    VibeCard(modifier = modifier.fillMaxWidth(), onClick = onClick) {
         Column(Modifier.padding(14.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -331,10 +367,10 @@ private fun MissionCard(mission: Mission, modifier: Modifier = Modifier) {
             Spacer(Modifier.height(10.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text("Progresso", fontSize = 11.5.sp, color = TextMuted)
-                Text("${mission.progress}%", fontSize = 11.5.sp, fontWeight = FontWeight.SemiBold, color = TextMain)
+                Text("${ui.progresso}%", fontSize = 11.5.sp, fontWeight = FontWeight.SemiBold, color = TextMain)
             }
             Spacer(Modifier.height(5.dp))
-            val prog = (mission.progress / 100f).coerceIn(0f, 1f)
+            val prog = (ui.progresso / 100f).coerceIn(0f, 1f)
             Box(Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(50)).background(Color(0xFFD6EADB))) {
                 Box(Modifier.fillMaxHeight().fillMaxWidth(prog).clip(RoundedCornerShape(50)).background(Brush.horizontalGradient(listOf(Color(0xFF16A34A), Color(0xFF4ADE80)))))
             }

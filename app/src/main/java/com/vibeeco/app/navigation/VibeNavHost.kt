@@ -29,7 +29,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -59,13 +61,17 @@ import com.vibeeco.app.data.Challenge
 import com.vibeeco.app.data.Content
 import com.vibeeco.app.data.DesafiosViewModel
 import com.vibeeco.app.data.LoginResult
+import com.vibeeco.app.data.MissoesViewModel
 import com.vibeeco.app.ui.auth.*
 import com.vibeeco.app.ui.challenges.DesafioDetalheScreen
 import com.vibeeco.app.ui.challenges.DesafiosScreen
 import com.vibeeco.app.ui.community.FeedScreen
+import com.vibeeco.app.ui.components.ConfirmarAbandonoDialog
 import com.vibeeco.app.ui.home.HomeScreen
 import com.vibeeco.app.ui.learn.ArticleDetailScreen
 import com.vibeeco.app.ui.learn.LearnScreen
+import com.vibeeco.app.ui.missions.MissaoDetalheScreen
+import com.vibeeco.app.ui.missions.MissoesScreen
 import com.vibeeco.app.ui.profile.ConfiguracoesScreen
 import com.vibeeco.app.ui.profile.HistoricoScreen
 import com.vibeeco.app.ui.profile.NotificacoesScreen
@@ -102,6 +108,7 @@ object Routes {
     const val CONFIGURACOES = "configuracoes"
     const val HISTORICO = "historico"
     const val NOTIFICACOES = "notificacoes"
+    const val MISSOES = "missoes"
     const val MISSAO_DETALHE = "missao/{id}"
 
     fun verify(email: String) = "verify/${Uri.encode(email)}"
@@ -151,7 +158,8 @@ private fun NavHostController.goToLogin() {
 
 private fun NavHostController.irParaTipo(tipo: TipoAtividade) {
     when (tipo) {
-        TipoAtividade.Missao, TipoAtividade.Desafio -> goToTab(Routes.CHALLENGES)
+        TipoAtividade.Missao -> goToTab(Routes.MISSOES)
+        TipoAtividade.Desafio -> goToTab(Routes.CHALLENGES)
         TipoAtividade.Conteudo -> goToTab(Routes.LEARN)
         TipoAtividade.Conquista -> goToTab(Routes.PROFILE)
         TipoAtividade.Recompensa -> goToTab(Routes.RANKING)
@@ -162,10 +170,13 @@ private fun NavHostController.irParaTipo(tipo: TipoAtividade) {
 fun VibeNavHost() {
     val vm: AppViewModel = viewModel()
     val desafiosVm: DesafiosViewModel = viewModel()
+    val missoesVm: MissoesViewModel = viewModel()
     val nav = rememberNavController()
     val context = LocalContext.current
     val entry by nav.currentBackStackEntryAsState()
     val route = entry?.destination?.route
+
+    var desafioParaAbandonar by remember { mutableStateOf<String?>(null) }
 
     fun toast(msg: String) = Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
 
@@ -179,7 +190,6 @@ fun VibeNavHost() {
         containerColor = colorScheme.background,
         contentWindowInsets = WindowInsets(0),
         bottomBar = {
-            // ✅ Navbar estática, sempre visível nas rotas de aba
             if (tabs.any { it.route == route }) {
                 NavigationBar(
                     containerColor = Color.White,
@@ -348,8 +358,11 @@ fun VibeNavHost() {
                     dailyGoal = DAILY_GOAL,
                     featured = Content.challenges.take(3),
                     tip = Content.tips.random(),
+                    missoes = missoesVm.cartoes,
                     onToggle = onToggleChallenge,
                     onSeeAll = { nav.goToTab(Routes.CHALLENGES) },
+                    onSeeAllMissions = { nav.navigate(Routes.MISSOES) },
+                    onOpenMission = { id -> nav.navigate(Routes.missao(id)) },
                     onOpenProfile = { nav.goToTab(Routes.PROFILE) },
                     onOpenLearn = { nav.goToTab(Routes.LEARN) },
                     onOpenNotifications = { nav.navigate(Routes.NOTIFICACOES) },
@@ -365,7 +378,7 @@ fun VibeNavHost() {
                         desafiosVm.participar(it.id)
                         nav.navigate(Routes.desafio(it.id))
                     },
-                    onAbandonar = { desafiosVm.abandonar(it.id) },
+                    onAbandonar = { desafioParaAbandonar = it.id },
                 )
             }
 
@@ -380,8 +393,42 @@ fun VibeNavHost() {
                         desafio = desafio,
                         onBack = { nav.popBackStack() },
                         onParticipar = { desafiosVm.participar(id) },
-                        onAbandonar = { desafiosVm.abandonar(id) },
+                        onAbandonar = { desafioParaAbandonar = id },
                         onToggleTarefa = { desafiosVm.alternarTarefa(id, it.id) },
+                    )
+                }
+            }
+
+            composable(Routes.MISSOES) {
+                MissoesScreen(
+                    cartoes = missoesVm.cartoes,
+                    onVoltar = { nav.popBackStack() },
+                    onAbrirMissao = { id -> nav.navigate(Routes.missao(id)) },
+                    onParticipar = { id ->
+                        missoesVm.participar(id)
+                        nav.navigate(Routes.missao(id))
+                    },
+                )
+            }
+
+            composable(
+                Routes.MISSAO_DETALHE,
+                arguments = listOf(navArgument("id") { type = NavType.StringType }),
+            ) { backStackEntry ->
+                val id = backStackEntry.arguments?.getString("id").orEmpty()
+                val ui = missoesVm.buscar(id)
+                if (ui != null) {
+                    MissaoDetalheScreen(
+                        ui = ui,
+                        onVoltar = { nav.popBackStack() },
+                        onParticipar = {
+                            missoesVm.participar(id)
+                            toast("Você entrou na missão!")
+                        },
+                        onAvancar = {
+                            val concluida = missoesVm.avancar(id, passo = 25)
+                            if (concluida) toast("Missão concluída! Você ganhou XP.")
+                        },
                     )
                 }
             }
@@ -479,7 +526,7 @@ fun VibeNavHost() {
                         onAbrirConfiguracoes = { nav.navigate(Routes.CONFIGURACOES) },
                         onAbrirHistorico = { nav.navigate(Routes.HISTORICO) },
                         onAbrirNotificacoes = { nav.navigate(Routes.NOTIFICACOES) },
-                        onAbrirMissao = { _ -> nav.goToTab(Routes.CHALLENGES) },
+                        onAbrirMissao = { _ -> nav.goToTab(Routes.MISSOES) },
                         onAlterarSenha = { nav.navigate(Routes.CHANGE_PASSWORD) },
                         onSair = {
                             vm.logout()
@@ -515,5 +562,15 @@ fun VibeNavHost() {
                 )
             }
         }
+    }
+
+    desafioParaAbandonar?.let { id ->
+        ConfirmarAbandonoDialog(
+            onConfirmar = {
+                desafiosVm.abandonar(id)
+                desafioParaAbandonar = null
+            },
+            onCancelar = { desafioParaAbandonar = null },
+        )
     }
 }

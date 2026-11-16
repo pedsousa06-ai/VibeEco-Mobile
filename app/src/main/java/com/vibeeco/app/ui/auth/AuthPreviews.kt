@@ -81,8 +81,14 @@ private fun HomePreview() = VibeTheme {
         userName = sampleUser.name, points = sampleProgress.points, streak = sampleProgress.streak,
         co2Grams = sampleProgress.co2Grams, doneIds = sampleProgress.doneIds, dailyGoal = 3,
         featured = Content.challenges.take(3), tip = Content.tips.first(),
-        onToggle = {}, onSeeAll = {}, onOpenProfile = {}, onOpenLearn = {},
-        onOpenNotifications = {},   // ← linha adicionada
+        missoes = emptyList(),  // ⬅️ CORRIGIDO: usado emptyList() para evitar erro de tipo
+        onToggle = {},
+        onSeeAll = {},
+        onSeeAllMissions = {},
+        onOpenMission = {},
+        onOpenProfile = {},
+        onOpenLearn = {},
+        onOpenNotifications = {},
     )
 }
 
