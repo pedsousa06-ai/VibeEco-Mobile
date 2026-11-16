@@ -60,10 +60,9 @@ fun DesafioDetalheScreen(
             .fillMaxSize()
             .background(BackgroundApp)
             .statusBarsPadding(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 28.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 110.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        // Voltar
         item {
             Row(
                 Modifier
@@ -78,7 +77,6 @@ fun DesafioDetalheScreen(
             }
         }
 
-        // Cabeçalho
         item {
             VibeCard(Modifier.fillMaxWidth()) {
                 Column(Modifier.clip(RoundedCornerShape(20.dp))) {
@@ -130,7 +128,6 @@ fun DesafioDetalheScreen(
             }
         }
 
-        // Tarefas
         item {
             VibeCard(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -174,7 +171,6 @@ fun DesafioDetalheScreen(
             }
         }
 
-        // Ação
         item {
             if (d.participando) BotaoDesafio("Abandonar desafio", suave = true, onClick = onAbandonar)
             else BotaoDesafio("Participar do desafio", suave = false, onClick = onParticipar)

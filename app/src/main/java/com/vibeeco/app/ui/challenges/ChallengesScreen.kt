@@ -22,7 +22,6 @@ import com.vibeeco.app.data.formatCo2
 import com.vibeeco.app.ui.components.*
 import com.vibeeco.app.ui.theme.VibeColors
 
-/** Cor do ícone de cada categoria. */
 private fun Category.tint(): Color = when (this) {
     Category.AGUA -> Color(0xFF2563EB)
     Category.ENERGIA -> Color(0xFFD97706)
@@ -31,7 +30,6 @@ private fun Category.tint(): Color = when (this) {
     Category.ALIMENTACAO -> Color(0xFFEA580C)
 }
 
-/** Fundo suave de cada categoria. */
 private fun Category.softBackground(): Color = when (this) {
     Category.AGUA -> Color(0xFFDBEAFE)
     Category.ENERGIA -> Color(0xFFFEF3C7)
@@ -49,32 +47,15 @@ fun ChallengeCard(
 ) {
     VibeCard(modifier.fillMaxWidth(), onClick = onToggle) {
         Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                Modifier.size(46.dp).background(
-                    if (done) VibeColors.GreenSoft else challenge.category.softBackground(),
-                    RoundedCornerShape(14.dp)
-                ),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = challenge.category.icon,
-                    contentDescription = challenge.category.label,
-                    tint = if (done) VibeColors.Green else challenge.category.tint(),
-                    modifier = Modifier.size(24.dp),
-                )
+            Box(Modifier.size(46.dp).background(if (done) VibeColors.GreenSoft else challenge.category.softBackground(), RoundedCornerShape(14.dp)), contentAlignment = Alignment.Center) {
+                Icon(challenge.category.icon, challenge.category.label, tint = if (done) VibeColors.Green else challenge.category.tint(), modifier = Modifier.size(24.dp))
             }
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
-                Text(
-                    challenge.title, fontWeight = FontWeight.SemiBold, fontSize = 15.sp,
-                    color = if (done) VibeColors.Muted else VibeColors.Title,
-                    textDecoration = if (done) TextDecoration.LineThrough else null,
-                )
-                Text(challenge.description, fontSize = 12.sp, color = VibeColors.Muted,
-                    maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(challenge.title, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = if (done) VibeColors.Muted else VibeColors.Title, textDecoration = if (done) TextDecoration.LineThrough else null)
+                Text(challenge.description, fontSize = 12.sp, color = VibeColors.Muted, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Spacer(Modifier.height(4.dp))
-                Text("+${challenge.points} pts · ${formatCo2(challenge.co2Grams)} de CO₂",
-                    fontSize = 12.sp, color = VibeColors.Green, fontWeight = FontWeight.Medium)
+                Text("+${challenge.points} pts · ${formatCo2(challenge.co2Grams)} de CO₂", fontSize = 12.sp, color = VibeColors.Green, fontWeight = FontWeight.Medium)
             }
             Spacer(Modifier.width(8.dp))
             CheckCircle(done)
@@ -94,20 +75,22 @@ fun ChallengesScreen(
 
     LazyColumn(
         Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 24.dp),
+        contentPadding = PaddingValues(bottom = 110.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
             GradientHeader {
-                Text("Desafios", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 26.sp)
-                Text("Complete ações sustentáveis e ganhe pontos.", color = Color.White.copy(alpha = 0.8f), fontSize = 14.sp)
-                Spacer(Modifier.height(18.dp))
-                Row(Modifier.fillMaxWidth()) {
-                    Text("Hoje", color = Color.White, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-                    Text("$doneCount de ${challenges.size} concluídos", color = Color.White.copy(alpha = 0.9f), fontSize = 13.sp)
+                Column(Modifier.statusBarsPadding()) {
+                    Text("Desafios", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 26.sp)
+                    Text("Complete ações sustentáveis e ganhe pontos.", color = Color.White.copy(alpha = 0.8f), fontSize = 14.sp)
+                    Spacer(Modifier.height(18.dp))
+                    Row(Modifier.fillMaxWidth()) {
+                        Text("Hoje", color = Color.White, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                        Text("$doneCount de ${challenges.size} concluídos", color = Color.White.copy(alpha = 0.9f), fontSize = 13.sp)
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    VibeProgressBar(doneCount / challenges.size.toFloat())
                 }
-                Spacer(Modifier.height(8.dp))
-                VibeProgressBar(doneCount / challenges.size.toFloat())
             }
         }
         item { CategoryChips(selected) { selected = it } }

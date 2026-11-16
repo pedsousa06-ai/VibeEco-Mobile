@@ -71,7 +71,7 @@ private val sampleUser = User(
     email = "ana.beatriz@ufmg.br",
     matricula = "2023001234",
     mustChangePassword = false,
-    registration = "2023001234" // Preenchendo o registration também
+    registration = "2023001234"
 )
 
 @Preview(name = "8 Início", device = SPEC)
@@ -82,6 +82,7 @@ private fun HomePreview() = VibeTheme {
         co2Grams = sampleProgress.co2Grams, doneIds = sampleProgress.doneIds, dailyGoal = 3,
         featured = Content.challenges.take(3), tip = Content.tips.first(),
         onToggle = {}, onSeeAll = {}, onOpenProfile = {}, onOpenLearn = {},
+        onOpenNotifications = {},   // ← linha adicionada
     )
 }
 

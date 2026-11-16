@@ -53,24 +53,26 @@ fun DesafiosScreen(
 
     LazyColumn(
         Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 24.dp),
+        contentPadding = PaddingValues(bottom = 110.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item {
             GradientHeader {
-                Text("Desafios", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 26.sp)
-                Text(
-                    "Complete ações sustentáveis e ganhe pontos.",
-                    color = Color.White.copy(alpha = 0.8f),
-                    fontSize = 14.sp,
-                )
-                Spacer(Modifier.height(14.dp))
-                Text(
-                    text = "$participando " + if (participando == 1) "desafio em andamento" else "desafios em andamento",
-                    color = Color.White.copy(alpha = 0.92f),
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 13.sp,
-                )
+                Column(Modifier.statusBarsPadding()) {
+                    Text("Desafios", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 26.sp)
+                    Text(
+                        "Complete ações sustentáveis e ganhe pontos.",
+                        color = Color.White.copy(alpha = 0.8f),
+                        fontSize = 14.sp,
+                    )
+                    Spacer(Modifier.height(14.dp))
+                    Text(
+                        text = "$participando " + if (participando == 1) "desafio em andamento" else "desafios em andamento",
+                        color = Color.White.copy(alpha = 0.92f),
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 13.sp,
+                    )
+                }
             }
         }
 
@@ -161,7 +163,6 @@ private fun DesafioCard(
 ) {
     VibeCard(modifier.fillMaxWidth(), onClick = onOpen) {
         Column(Modifier.clip(RoundedCornerShape(20.dp))) {
-            // faixa de cor da categoria
             Box(Modifier.fillMaxWidth().height(6.dp).background(d.category.cor()))
 
             Column(
@@ -196,7 +197,6 @@ private fun DesafioCard(
                     )
                 }
 
-                // recompensas
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Lucide.Star, null, tint = Color(0xFFF59E0B), modifier = Modifier.size(14.dp))
