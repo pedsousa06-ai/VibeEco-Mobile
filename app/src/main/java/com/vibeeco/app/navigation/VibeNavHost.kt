@@ -384,7 +384,11 @@ fun VibeNavHost() {
                         onBack = { nav.popBackStack() },
                         onParticipar = { desafiosVm.participar(id) },
                         onAbandonar = { desafioParaAbandonar = id },
-                        onToggleTarefa = { desafiosVm.alternarTarefa(id, it.id) },
+                        onConcluir = {
+                            // TODO: Troque pelo método real do ViewModel quando ele for criado
+                            // desafiosVm.concluir(id)
+                            toast("Desafio concluído com sucesso!")
+                        },
                     )
                 }
             }
@@ -496,7 +500,6 @@ fun VibeNavHost() {
                 }
             }
 
-            // ALTERADO: agora o Feed recebe onAbrirPost e navega para o detalhe.
             composable(Routes.COMMUNITY) {
                 FeedScreen(
                     usuarioNome = vm.user?.name ?: "Visitante",
