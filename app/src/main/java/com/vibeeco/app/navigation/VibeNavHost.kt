@@ -1,3 +1,4 @@
+
 package com.vibeeco.app.navigation
 
 import android.net.Uri
@@ -55,7 +56,7 @@ import com.vibeeco.app.ui.challenges.DesafiosScreen
 import com.vibeeco.app.ui.community.FeedScreen
 import com.vibeeco.app.ui.community.PostDetalheScreen
 import com.vibeeco.app.ui.components.ConfirmarAbandonoDialog
-import com.vibeeco.app.ui.home.HomeScreen
+import com.vibeeco.app.ui.home.HomeRoute
 import com.vibeeco.app.ui.learn.ArticleDetailScreen
 import com.vibeeco.app.ui.learn.LearnScreen
 import com.vibeeco.app.ui.missions.MissaoDetalheScreen
@@ -63,7 +64,6 @@ import com.vibeeco.app.ui.missions.MissoesScreen
 import com.vibeeco.app.ui.profile.ConfiguracoesScreen
 import com.vibeeco.app.ui.profile.HistoricoScreen
 import com.vibeeco.app.ui.profile.NotificacoesScreen
-import com.vibeeco.app.ui.profile.NotificacoesStore
 import com.vibeeco.app.ui.profile.PerfilStore
 import com.vibeeco.app.ui.profile.ProfileScreen
 import com.vibeeco.app.ui.profile.TipoAtividade
@@ -107,7 +107,11 @@ object Routes {
     fun post(id: String) = "post/${Uri.encode(id)}"
 }
 
-private data class Tab(val route: String, val label: String, val icon: ImageVector)
+private data class Tab(
+    val route: String,
+    val label: String,
+    val icon: ImageVector
+)
 
 private val tabs = listOf(
     Tab(Routes.HOME, "Início", Lucide.House),
@@ -118,13 +122,37 @@ private val tabs = listOf(
     Tab(Routes.PROFILE, "Perfil", Lucide.User),
 )
 
-private const val DAILY_GOAL = 3
-
 private val catalogoRecompensas = listOf(
     Recompensa("r1", "Muda de árvore nativa", "Físico", 120, 1, emoji = "🌱"),
-    Recompensa("r2", "Ecobag VibeEco", "Físico", 300, 3, estoque = 5, emoji = "👜", tema = TemaRecompensa.Laranja),
-    Recompensa("r3", "Curso de compostagem", "Digital", 500, 8, emoji = "📚", tema = TemaRecompensa.Azul),
-    Recompensa("r4", "Garrafa reutilizável", "Físico", 250, 2, estoque = 0, emoji = "🥤", tema = TemaRecompensa.Terra),
+    Recompensa(
+        "r2",
+        "Ecobag VibeEco",
+        "Físico",
+        300,
+        3,
+        estoque = 5,
+        emoji = "👜",
+        tema = TemaRecompensa.Laranja
+    ),
+    Recompensa(
+        "r3",
+        "Curso de compostagem",
+        "Digital",
+        500,
+        8,
+        emoji = "📚",
+        tema = TemaRecompensa.Azul
+    ),
+    Recompensa(
+        "r4",
+        "Garrafa reutilizável",
+        "Físico",
+        250,
+        2,
+        estoque = 0,
+        emoji = "🥤",
+        tema = TemaRecompensa.Terra
+    ),
 )
 
 private const val ALFABETO_CODIGO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
@@ -134,7 +162,9 @@ private fun gerarCodigoResgate(): String =
 
 private fun NavHostController.goToTab(route: String) {
     navigate(route) {
-        popUpTo(graph.findStartDestination().id) { saveState = true }
+        popUpTo(graph.findStartDestination().id) {
+            saveState = true
+        }
         launchSingleTop = true
         restoreState = true
     }
@@ -142,7 +172,9 @@ private fun NavHostController.goToTab(route: String) {
 
 private fun NavHostController.goToLogin() {
     navigate(Routes.LOGIN) {
-        popUpTo(graph.findStartDestination().id) { inclusive = true }
+        popUpTo(graph.findStartDestination().id) {
+            inclusive = true
+        }
     }
 }
 
@@ -158,20 +190,29 @@ private fun NavHostController.irParaTipo(tipo: TipoAtividade) {
 
 @Composable
 fun VibeNavHost() {
+
     val vm: AppViewModel = viewModel()
     val desafiosVm: DesafiosViewModel = viewModel()
     val missoesVm: MissoesViewModel = viewModel()
+
     val nav = rememberNavController()
     val context = LocalContext.current
+
     val entry by nav.currentBackStackEntryAsState()
     val route = entry?.destination?.route
 
-    var desafioParaAbandonar by remember { mutableStateOf<String?>(null) }
+    var desafioParaAbandonar by remember {
+        mutableStateOf<String?>(null)
+    }
 
-    fun toast(msg: String) = Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+    fun toast(msg: String) {
+        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+    }
 
     val onToggleChallenge: (Challenge) -> Unit = { c ->
-        if (vm.toggleChallenge(c)) toast("+${c.points} pontos!")
+        if (vm.toggleChallenge(c)) {
+            toast("+${c.points} pontos!")
+        }
     }
 
     val colorScheme = MaterialTheme.colorScheme
@@ -187,10 +228,16 @@ fun VibeNavHost() {
                     modifier = Modifier.navigationBarsPadding(),
                 ) {
                     tabs.forEach { tab ->
+
                         val selecionado = route == tab.route
+
                         NavigationBarItem(
                             selected = selecionado,
-                            onClick = { if (!selecionado) nav.goToTab(tab.route) },
+                            onClick = {
+                                if (!selecionado) {
+                                    nav.goToTab(tab.route)
+                                }
+                            },
                             icon = {
                                 Icon(
                                     imageVector = tab.icon,
@@ -202,7 +249,11 @@ fun VibeNavHost() {
                                 Text(
                                     text = tab.label,
                                     fontSize = 10.5.sp,
-                                    fontWeight = if (selecionado) FontWeight.Bold else FontWeight.Normal,
+                                    fontWeight = if (selecionado) {
+                                        FontWeight.Bold
+                                    } else {
+                                        FontWeight.Normal
+                                    },
                                 )
                             },
                             colors = NavigationBarItemDefaults.colors(
@@ -218,6 +269,7 @@ fun VibeNavHost() {
             }
         },
     ) { inner ->
+
         NavHost(
             navController = nav,
             startDestination = Routes.SPLASH,
@@ -225,42 +277,70 @@ fun VibeNavHost() {
         ) {
 
             composable(Routes.SPLASH) {
-                SplashScreen(onFinished = {
-                    val u = vm.user
-                    val dest = when {
-                        !vm.onboardingSeen -> Routes.ONBOARDING
-                        u != null && !u.mustChangePassword -> Routes.HOME
-                        else -> Routes.LOGIN
+                SplashScreen(
+                    onFinished = {
+                        val u = vm.user
+
+                        val dest = when {
+                            !vm.onboardingSeen -> Routes.ONBOARDING
+                            u != null && !u.mustChangePassword -> Routes.HOME
+                            else -> Routes.LOGIN
+                        }
+
+                        nav.navigate(dest) {
+                            popUpTo(Routes.SPLASH) {
+                                inclusive = true
+                            }
+                        }
                     }
-                    nav.navigate(dest) { popUpTo(Routes.SPLASH) { inclusive = true } }
-                })
+                )
             }
 
             composable(Routes.ONBOARDING) {
-                OnboardingScreen(onFinish = {
-                    vm.finishOnboarding()
-                    nav.navigate(Routes.LOGIN) { popUpTo(Routes.ONBOARDING) { inclusive = true } }
-                })
+                OnboardingScreen(
+                    onFinish = {
+                        vm.finishOnboarding()
+
+                        nav.navigate(Routes.LOGIN) {
+                            popUpTo(Routes.ONBOARDING) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                )
             }
 
             composable(Routes.LOGIN) {
                 LoginScreen(
                     onLogin = { id, password, remember ->
+
                         delay(600)
+
                         when (val result = vm.login(id, password, remember)) {
+
                             LoginResult.Success -> {
-                                nav.navigate(Routes.HOME) { popUpTo(Routes.LOGIN) { inclusive = true } }
+                                nav.navigate(Routes.HOME) {
+                                    popUpTo(Routes.LOGIN) {
+                                        inclusive = true
+                                    }
+                                }
                                 null
                             }
+
                             LoginResult.FirstAccess -> {
                                 nav.navigate(Routes.FIRST_ACCESS)
                                 null
                             }
+
                             is LoginResult.Error -> result.message
                         }
                     },
-                    onForgotPassword = { nav.navigate(Routes.FORGOT) },
-                    onFirstAccess = { nav.navigate(Routes.FIRST_ACCESS) },
+                    onForgotPassword = {
+                        nav.navigate(Routes.FORGOT)
+                    },
+                    onFirstAccess = {
+                        nav.navigate(Routes.FIRST_ACCESS)
+                    },
                 )
             }
 
@@ -268,26 +348,50 @@ fun VibeNavHost() {
                 ForgotPasswordScreen(
                     onSendLink = { email ->
                         delay(900)
-                        if (vm.startRecovery(email)) null else "E-mail não encontrado na instituição."
+                        if (vm.startRecovery(email)) {
+                            null
+                        } else {
+                            "E-mail não encontrado na instituição."
+                        }
                     },
-                    onContinueToCode = { email -> nav.navigate(Routes.verify(email)) },
-                    onBackToLogin = { nav.popBackStack(Routes.LOGIN, false) },
+                    onContinueToCode = { email ->
+                        nav.navigate(Routes.verify(email))
+                    },
+                    onBackToLogin = {
+                        nav.popBackStack(Routes.LOGIN, false)
+                    },
                 )
             }
 
             composable(
                 Routes.VERIFY,
-                arguments = listOf(navArgument("email") { type = NavType.StringType }),
+                arguments = listOf(
+                    navArgument("email") {
+                        type = NavType.StringType
+                    }
+                ),
             ) { backStackEntry ->
+
                 VerifyCodeScreen(
                     email = backStackEntry.arguments?.getString("email").orEmpty(),
                     demoCode = vm.pendingCode,
-                    onVerify = { _, code -> delay(600); vm.verifyCode(code) },
-                    onResend = { vm.resendCode() },
-                    onVerified = {
-                        nav.navigate(Routes.RESET) { popUpTo(Routes.FORGOT) { inclusive = true } }
+                    onVerify = { _, code ->
+                        delay(600)
+                        vm.verifyCode(code)
                     },
-                    onBack = { nav.popBackStack() },
+                    onResend = {
+                        vm.resendCode()
+                    },
+                    onVerified = {
+                        nav.navigate(Routes.RESET) {
+                            popUpTo(Routes.FORGOT) {
+                                inclusive = true
+                            }
+                        }
+                    },
+                    onBack = {
+                        nav.popBackStack()
+                    },
                 )
             }
 
@@ -296,7 +400,11 @@ fun VibeNavHost() {
                     mode = PasswordMode.Reset,
                     onSave = { _, new ->
                         delay(700)
-                        if (vm.resetPassword(new)) null else "Sessão expirada. Refaça a recuperação."
+                        if (vm.resetPassword(new)) {
+                            null
+                        } else {
+                            "Sessão expirada. Refaça a recuperação."
+                        }
                     },
                     onSaved = {
                         toast("Senha redefinida! Faça login com a nova senha.")
@@ -318,75 +426,110 @@ fun VibeNavHost() {
                     },
                     onSuccess = {
                         toast("Senha criada! Bem-vindo ao VibeEco")
+
                         nav.navigate(Routes.HOME) {
-                            popUpTo(nav.graph.findStartDestination().id) { inclusive = true }
+                            popUpTo(nav.graph.findStartDestination().id) {
+                                inclusive = true
+                            }
                         }
                     },
-                    onBackToLogin = { nav.popBackStack(Routes.LOGIN, false) },
+                    onBackToLogin = {
+                        nav.popBackStack(Routes.LOGIN, false)
+                    },
                 )
             }
 
             composable(Routes.CHANGE_PASSWORD) {
                 NewPasswordScreen(
                     mode = PasswordMode.Change,
-                    onSave = { current, new -> delay(700); vm.changePassword(current, new) },
+                    onSave = { current, new ->
+                        delay(700)
+                        vm.changePassword(current, new)
+                    },
                     onSaved = {
                         toast("Senha alterada com sucesso!")
                         nav.popBackStack()
                     },
-                    onBack = { nav.popBackStack() },
+                    onBack = {
+                        nav.popBackStack()
+                    },
                 )
             }
 
+            // HOME: dados carregados pelo HomeViewModel através da API
             composable(Routes.HOME) {
-                HomeScreen(
-                    userName = vm.user?.name ?: "Visitante",
-                    points = vm.progress.points,
-                    streak = vm.progress.streak,
-                    co2Grams = vm.progress.co2Grams,
-                    doneIds = vm.progress.doneIds,
-                    dailyGoal = DAILY_GOAL,
-                    featured = Content.challenges.take(3),
-                    tip = Content.tips.random(),
-                    missoes = missoesVm.cartoes,
-                    onToggle = onToggleChallenge,
-                    onSeeAll = { nav.goToTab(Routes.CHALLENGES) },
-                    onSeeAllMissions = { nav.navigate(Routes.MISSOES) },
-                    onOpenMission = { id -> nav.navigate(Routes.missao(id)) },
-                    onOpenProfile = { nav.goToTab(Routes.PROFILE) },
-                    onOpenLearn = { nav.goToTab(Routes.LEARN) },
-                    onOpenNotifications = { nav.navigate(Routes.NOTIFICACOES) },
-                    unreadNotifications = NotificacoesStore.naoLidas,
+                HomeRoute(
+                    userId = 2,
+
+                    onToggleChallenge = onToggleChallenge,
+
+                    onSeeAllChallenges = {
+                        nav.goToTab(Routes.CHALLENGES)
+                    },
+
+                    onSeeAllMissions = {
+                        nav.navigate(Routes.MISSOES)
+                    },
+
+                    onOpenMission = { id ->
+                        nav.navigate(Routes.missao(id))
+                    },
+
+                    onOpenProfile = {
+                        nav.goToTab(Routes.PROFILE)
+                    },
+
+                    onOpenLearn = {
+                        nav.goToTab(Routes.LEARN)
+                    },
+
+                    onOpenNotifications = {
+                        nav.navigate(Routes.NOTIFICACOES)
+                    }
                 )
             }
 
             composable(Routes.CHALLENGES) {
                 DesafiosScreen(
                     desafios = desafiosVm.desafios,
-                    onOpen = { nav.navigate(Routes.desafio(it.id)) },
+                    onOpen = {
+                        nav.navigate(Routes.desafio(it.id))
+                    },
                     onParticipar = {
                         desafiosVm.participar(it.id)
                         nav.navigate(Routes.desafio(it.id))
                     },
-                    onAbandonar = { desafioParaAbandonar = it.id },
+                    onAbandonar = {
+                        desafioParaAbandonar = it.id
+                    },
                 )
             }
 
             composable(
                 Routes.DESAFIO,
-                arguments = listOf(navArgument("id") { type = NavType.StringType }),
+                arguments = listOf(
+                    navArgument("id") {
+                        type = NavType.StringType
+                    }
+                ),
             ) { backStackEntry ->
+
                 val id = backStackEntry.arguments?.getString("id").orEmpty()
                 val desafio = desafiosVm.buscar(id)
+
                 if (desafio != null) {
                     DesafioDetalheScreen(
                         desafio = desafio,
-                        onBack = { nav.popBackStack() },
-                        onParticipar = { desafiosVm.participar(id) },
-                        onAbandonar = { desafioParaAbandonar = id },
+                        onBack = {
+                            nav.popBackStack()
+                        },
+                        onParticipar = {
+                            desafiosVm.participar(id)
+                        },
+                        onAbandonar = {
+                            desafioParaAbandonar = id
+                        },
                         onConcluir = {
-                            // TODO: Troque pelo método real do ViewModel quando ele for criado
-                            // desafiosVm.concluir(id)
                             toast("Desafio concluído com sucesso!")
                         },
                     )
@@ -396,8 +539,12 @@ fun VibeNavHost() {
             composable(Routes.MISSOES) {
                 MissoesScreen(
                     cartoes = missoesVm.cartoes,
-                    onVoltar = { nav.popBackStack() },
-                    onAbrirMissao = { id -> nav.navigate(Routes.missao(id)) },
+                    onVoltar = {
+                        nav.popBackStack()
+                    },
+                    onAbrirMissao = { id ->
+                        nav.navigate(Routes.missao(id))
+                    },
                     onParticipar = { id ->
                         missoesVm.participar(id)
                         nav.navigate(Routes.missao(id))
@@ -407,21 +554,31 @@ fun VibeNavHost() {
 
             composable(
                 Routes.MISSAO_DETALHE,
-                arguments = listOf(navArgument("id") { type = NavType.StringType }),
+                arguments = listOf(
+                    navArgument("id") {
+                        type = NavType.StringType
+                    }
+                ),
             ) { backStackEntry ->
+
                 val id = backStackEntry.arguments?.getString("id").orEmpty()
                 val ui = missoesVm.buscar(id)
+
                 if (ui != null) {
                     MissaoDetalheScreen(
                         ui = ui,
-                        onVoltar = { nav.popBackStack() },
+                        onVoltar = {
+                            nav.popBackStack()
+                        },
                         onParticipar = {
                             missoesVm.participar(id)
                             toast("Você entrou na missão!")
                         },
                         onAvancar = {
                             val concluida = missoesVm.avancar(id, passo = 25)
-                            if (concluida) toast("Missão concluída! Você ganhou XP.")
+                            if (concluida) {
+                                toast("Missão concluída! Você ganhou XP.")
+                            }
                         },
                     )
                 }
@@ -431,12 +588,18 @@ fun VibeNavHost() {
                 RankingScreen(
                     entries = vm.ranking(),
                     meuNome = vm.user?.name,
-                    onAbrirRecompensas = { nav.navigate(Routes.RECOMPENSAS) },
+                    onAbrirRecompensas = {
+                        nav.navigate(Routes.RECOMPENSAS)
+                    },
                 )
             }
 
             composable(Routes.RECOMPENSAS) {
-                val resgates = remember { mutableStateListOf<Resgate>() }
+
+                val resgates = remember {
+                    mutableStateListOf<Resgate>()
+                }
+
                 val gasto = resgates.sumOf { it.preco }
                 val saldo = (vm.progress.points - gasto).coerceAtLeast(0)
                 val nivel = vm.progress.points / 100 + 1
@@ -448,13 +611,25 @@ fun VibeNavHost() {
                     recompensas = catalogoRecompensas,
                     resgates = resgates,
                     onVoltar = {
-                        if (!nav.popBackStack(Routes.RANKING, false)) nav.goToTab(Routes.RANKING)
+                        if (!nav.popBackStack(Routes.RANKING, false)) {
+                            nav.goToTab(Routes.RANKING)
+                        }
                     },
                     onResgatar = { id ->
-                        val r = catalogoRecompensas.firstOrNull { it.id == id }
+
+                        val r = catalogoRecompensas.firstOrNull {
+                            it.id == id
+                        }
+
                         when {
-                            r == null -> ResultadoResgate.Erro("Recompensa não encontrada.")
-                            saldo < r.preco -> ResultadoResgate.Erro("Saldo insuficiente.")
+                            r == null -> {
+                                ResultadoResgate.Erro("Recompensa não encontrada.")
+                            }
+
+                            saldo < r.preco -> {
+                                ResultadoResgate.Erro("Saldo insuficiente.")
+                            }
+
                             else -> {
                                 val novo = Resgate(
                                     id = "res-${System.currentTimeMillis()}",
@@ -466,6 +641,7 @@ fun VibeNavHost() {
                                     emoji = r.emoji,
                                     tema = r.tema,
                                 )
+
                                 resgates.add(0, novo)
                                 ResultadoResgate.Ok(novo)
                             }
@@ -478,23 +654,37 @@ fun VibeNavHost() {
                 LearnScreen(
                     articles = Content.articles,
                     readIds = vm.progress.readArticles,
-                    onOpen = { nav.navigate(Routes.article(it.id)) },
+                    onOpen = {
+                        nav.navigate(Routes.article(it.id))
+                    },
                 )
             }
 
             composable(
                 Routes.ARTICLE,
-                arguments = listOf(navArgument("id") { type = NavType.StringType }),
+                arguments = listOf(
+                    navArgument("id") {
+                        type = NavType.StringType
+                    }
+                ),
             ) { backStackEntry ->
+
                 val id = backStackEntry.arguments?.getString("id")
-                val article = Content.articles.firstOrNull { it.id == id }
+                val article = Content.articles.firstOrNull {
+                    it.id == id
+                }
+
                 if (article != null) {
                     ArticleDetailScreen(
                         article = article,
                         isRead = article.id in vm.progress.readArticles,
-                        onBack = { nav.popBackStack() },
+                        onBack = {
+                            nav.popBackStack()
+                        },
                         onMarkRead = {
-                            if (vm.markArticleRead(article)) toast("+${article.points} pontos por aprender!")
+                            if (vm.markArticleRead(article)) {
+                                toast("+${article.points} pontos por aprender!")
+                            }
                         },
                     )
                 }
@@ -504,25 +694,37 @@ fun VibeNavHost() {
                 FeedScreen(
                     usuarioNome = vm.user?.name ?: "Visitante",
                     usuarioNivel = "Nível ${vm.progress.points / 100 + 1}",
-                    onAbrirPost = { id -> nav.navigate(Routes.post(id)) },
+                    onAbrirPost = { id ->
+                        nav.navigate(Routes.post(id))
+                    },
                 )
             }
 
             composable(
                 Routes.POST_DETALHE,
-                arguments = listOf(navArgument("id") { type = NavType.StringType }),
+                arguments = listOf(
+                    navArgument("id") {
+                        type = NavType.StringType
+                    }
+                ),
             ) { backStackEntry ->
+
                 val id = backStackEntry.arguments?.getString("id").orEmpty()
 
                 PostDetalheScreen(
                     postId = id,
-                    onVoltar = { nav.popBackStack() },
+                    onVoltar = {
+                        nav.popBackStack()
+                    },
                 )
             }
 
             composable(Routes.PROFILE) {
+
                 val u = vm.user
+
                 if (u != null) {
+
                     val nivel = "Nível ${vm.progress.points / 100 + 1}"
 
                     LaunchedEffect(u.name, u.email, nivel) {
@@ -530,11 +732,21 @@ fun VibeNavHost() {
                     }
 
                     ProfileScreen(
-                        onAbrirConfiguracoes = { nav.navigate(Routes.CONFIGURACOES) },
-                        onAbrirHistorico = { nav.navigate(Routes.HISTORICO) },
-                        onAbrirNotificacoes = { nav.navigate(Routes.NOTIFICACOES) },
-                        onAbrirMissao = { _ -> nav.goToTab(Routes.MISSOES) },
-                        onAlterarSenha = { nav.navigate(Routes.CHANGE_PASSWORD) },
+                        onAbrirConfiguracoes = {
+                            nav.navigate(Routes.CONFIGURACOES)
+                        },
+                        onAbrirHistorico = {
+                            nav.navigate(Routes.HISTORICO)
+                        },
+                        onAbrirNotificacoes = {
+                            nav.navigate(Routes.NOTIFICACOES)
+                        },
+                        onAbrirMissao = { _ ->
+                            nav.goToTab(Routes.MISSOES)
+                        },
+                        onAlterarSenha = {
+                            nav.navigate(Routes.CHANGE_PASSWORD)
+                        },
                         onSair = {
                             vm.logout()
                             nav.goToLogin()
@@ -545,9 +757,15 @@ fun VibeNavHost() {
 
             composable(Routes.CONFIGURACOES) {
                 ConfiguracoesScreen(
-                    onVoltar = { nav.popBackStack() },
-                    onAlterarSenha = { nav.navigate(Routes.CHANGE_PASSWORD) },
-                    onAviso = { msg -> toast(msg) },
+                    onVoltar = {
+                        nav.popBackStack()
+                    },
+                    onAlterarSenha = {
+                        nav.navigate(Routes.CHANGE_PASSWORD)
+                    },
+                    onAviso = { msg ->
+                        toast(msg)
+                    },
                     onSair = {
                         vm.logout()
                         nav.goToLogin()
@@ -557,15 +775,23 @@ fun VibeNavHost() {
 
             composable(Routes.HISTORICO) {
                 HistoricoScreen(
-                    onVoltar = { nav.popBackStack() },
-                    onIrPara = { tipo -> nav.irParaTipo(tipo) },
+                    onVoltar = {
+                        nav.popBackStack()
+                    },
+                    onIrPara = { tipo ->
+                        nav.irParaTipo(tipo)
+                    },
                 )
             }
 
             composable(Routes.NOTIFICACOES) {
                 NotificacoesScreen(
-                    onVoltar = { nav.popBackStack() },
-                    onIrPara = { tipo -> nav.irParaTipo(tipo) },
+                    onVoltar = {
+                        nav.popBackStack()
+                    },
+                    onIrPara = { tipo ->
+                        nav.irParaTipo(tipo)
+                    },
                 )
             }
         }
@@ -577,7 +803,9 @@ fun VibeNavHost() {
                 desafiosVm.abandonar(id)
                 desafioParaAbandonar = null
             },
-            onCancelar = { desafioParaAbandonar = null },
+            onCancelar = {
+                desafioParaAbandonar = null
+            },
         )
     }
 }
