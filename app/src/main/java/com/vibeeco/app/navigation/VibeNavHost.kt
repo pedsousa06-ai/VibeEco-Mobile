@@ -1,3 +1,4 @@
+```
 package com.vibeeco.app.navigation
 
 import android.net.Uri
@@ -66,6 +67,7 @@ import com.vibeeco.app.ui.auth.*
 import com.vibeeco.app.ui.challenges.DesafioDetalheScreen
 import com.vibeeco.app.ui.challenges.DesafiosScreen
 import com.vibeeco.app.ui.community.FeedScreen
+import com.vibeeco.app.ui.community.PostDetalheScreen
 import com.vibeeco.app.ui.components.ConfirmarAbandonoDialog
 import com.vibeeco.app.ui.home.HomeScreen
 import com.vibeeco.app.ui.learn.ArticleDetailScreen
@@ -105,6 +107,7 @@ object Routes {
     const val ARTICLE = "article/{id}"
     const val PROFILE = "profile"
     const val COMMUNITY = "community"
+    const val POST_DETALHE = "post/{id}"
     const val CONFIGURACOES = "configuracoes"
     const val HISTORICO = "historico"
     const val NOTIFICACOES = "notificacoes"
@@ -115,6 +118,7 @@ object Routes {
     fun article(id: String) = "article/$id"
     fun desafio(id: String) = "desafio/$id"
     fun missao(id: String) = "missao/$id"
+    fun post(id: String) = "post/${Uri.encode(id)}"
 }
 
 private data class Tab(val route: String, val label: String, val icon: ImageVector)
@@ -513,6 +517,18 @@ fun VibeNavHost() {
                 )
             }
 
+            composable(
+                Routes.POST_DETALHE,
+                arguments = listOf(navArgument("id") { type = NavType.StringType }),
+            ) { backStackEntry ->
+                val id = backStackEntry.arguments?.getString("id").orEmpty()
+
+                PostDetalheScreen(
+                    postId = id,
+                    onVoltar = { nav.popBackStack() },
+                )
+            }
+
             composable(Routes.PROFILE) {
                 val u = vm.user
                 if (u != null) {
@@ -574,3 +590,4 @@ fun VibeNavHost() {
         )
     }
 }
+```
