@@ -57,5 +57,11 @@ dependencies {
     // Ícones Lucide
     implementation("com.composables:icons-lucide:1.0.0")
 
+    // Retrofit & OkHttp (Integração com VibeEco-Back-End-Users)
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
     debugImplementation("androidx.compose.ui:ui-tooling")
 }

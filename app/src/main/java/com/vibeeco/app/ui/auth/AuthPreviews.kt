@@ -1,3 +1,4 @@
+
 package com.vibeeco.app.ui.auth
 
 import androidx.compose.runtime.Composable
@@ -6,6 +7,11 @@ import com.vibeeco.app.data.Content
 import com.vibeeco.app.data.Progress
 import com.vibeeco.app.data.RankEntry
 import com.vibeeco.app.data.User
+import com.vibeeco.app.data.Challenge
+import com.vibeeco.app.data.MissaoUi
+import com.vibeeco.app.data.api.model.UsuarioInicioDto
+import com.vibeeco.app.data.api.model.ConteudoInicioDto
+import com.vibeeco.app.data.api.model.ConquistaInicioDto
 import com.vibeeco.app.ui.challenges.ChallengesScreen
 import com.vibeeco.app.ui.home.HomeScreen
 import com.vibeeco.app.ui.learn.LearnScreen
@@ -17,37 +23,56 @@ private const val SPEC = "spec:width=390dp,height=844dp,dpi=420"
 
 @Preview(name = "1 Splash", device = SPEC)
 @Composable
-private fun SplashPreview() = VibeTheme { SplashScreen(onFinished = {}) }
+private fun SplashPreview() = VibeTheme {
+    SplashScreen(onFinished = {})
+}
 
 @Preview(name = "2 Onboarding", device = SPEC)
 @Composable
-private fun OnboardingPreview() = VibeTheme { OnboardingScreen(onFinish = {}) }
+private fun OnboardingPreview() = VibeTheme {
+    OnboardingScreen(onFinish = {})
+}
 
 @Preview(name = "3 Login", device = SPEC)
 @Composable
 private fun LoginPreview() = VibeTheme {
-    LoginScreen(onLogin = { _, _, _ -> null }, onForgotPassword = {})
+    LoginScreen(
+        onLogin = { _, _, _ -> null },
+        onForgotPassword = {}
+    )
 }
 
 @Preview(name = "4 Esqueceu a senha", device = SPEC)
 @Composable
 private fun ForgotPreview() = VibeTheme {
-    ForgotPasswordScreen(onSendLink = { null }, onContinueToCode = {}, onBackToLogin = {})
+    ForgotPasswordScreen(
+        onSendLink = { null },
+        onContinueToCode = {},
+        onBackToLogin = {}
+    )
 }
 
 @Preview(name = "5 Verificar código", device = SPEC)
 @Composable
 private fun VerifyPreview() = VibeTheme {
     VerifyCodeScreen(
-        email = "ana.beatriz@ufmg.br", demoCode = null,
-        onVerify = { _, _ -> true }, onResend = {}, onVerified = {}, onBack = {},
+        email = "ana.beatriz@ufmg.br",
+        demoCode = null,
+        onVerify = { _, _ -> true },
+        onResend = {},
+        onVerified = {},
+        onBack = {}
     )
 }
 
 @Preview(name = "6 Redefinir senha", device = SPEC)
 @Composable
 private fun ResetPreview() = VibeTheme {
-    NewPasswordScreen(PasswordMode.Reset, onSave = { _, _ -> null }, onSaved = {})
+    NewPasswordScreen(
+        mode = PasswordMode.Reset,
+        onSave = { _, _ -> null },
+        onSaved = {}
+    )
 }
 
 @Preview(name = "7 Primeiro acesso", device = SPEC)
@@ -63,9 +88,14 @@ private fun FirstAccessPreview() = VibeTheme {
 }
 
 private val sampleProgress = Progress(
-    points = 230, co2Grams = 18400, actions = 14, streak = 3,
-    doneIds = setOf("c1"), readArticles = setOf("a1", "a2"),
+    points = 230,
+    co2Grams = 18400,
+    actions = 14,
+    streak = 3,
+    doneIds = setOf("c1"),
+    readArticles = setOf("a1", "a2")
 )
+
 private val sampleUser = User(
     name = "Ana Beatriz Souza",
     email = "ana.beatriz@ufmg.br",
@@ -78,40 +108,63 @@ private val sampleUser = User(
 @Composable
 private fun HomePreview() = VibeTheme {
     HomeScreen(
-        userName = sampleUser.name, points = sampleProgress.points, streak = sampleProgress.streak,
-        co2Grams = sampleProgress.co2Grams, doneIds = sampleProgress.doneIds, dailyGoal = 3,
-        featured = Content.challenges.take(3), tip = Content.tips.first(),
-        missoes = emptyList(),  // ⬅️ CORRIGIDO: usado emptyList() para evitar erro de tipo
-        onToggle = {},
+        usuario = null,
+        streak = 0,
+        desafios = emptyList<Challenge>(),
+        missoes = emptyList<MissaoUi>(),
+        conteudos = emptyList<ConteudoInicioDto>(),
+        conquistas = emptyList<ConquistaInicioDto>(),
         onSeeAll = {},
         onSeeAllMissions = {},
         onOpenMission = {},
         onOpenProfile = {},
         onOpenLearn = {},
-        onOpenNotifications = {},
+        onOpenNotifications = {}
     )
 }
 
 @Preview(name = "9 Desafios", device = SPEC)
 @Composable
 private fun ChallengesPreview() = VibeTheme {
-    ChallengesScreen(Content.challenges, sampleProgress.doneIds, onToggle = {})
+    ChallengesScreen(
+        Content.challenges,
+        sampleProgress.doneIds,
+        onToggle = {}
+    )
 }
 
 @Preview(name = "10 Ranking", device = SPEC)
 @Composable
 private fun RankingPreview() = VibeTheme {
-    RankingScreen(Content.rivals + RankEntry(sampleUser.name, "UFMG", sampleProgress.points, true))
+    RankingScreen(
+        Content.rivals + RankEntry(
+            sampleUser.name,
+            "UFMG",
+            sampleProgress.points,
+            true
+        )
+    )
 }
 
 @Preview(name = "11 Aprender", device = SPEC)
 @Composable
 private fun LearnPreview() = VibeTheme {
-    LearnScreen(Content.articles, sampleProgress.readArticles, onOpen = {})
+    LearnScreen(
+        Content.articles,
+        sampleProgress.readArticles,
+        onOpen = {}
+    )
 }
 
 @Preview(name = "12 Perfil", device = SPEC)
 @Composable
 private fun ProfilePreview() = VibeTheme {
-    ProfileScreen(sampleUser, sampleProgress, true, {}, {}, {})
+    ProfileScreen(
+        sampleUser,
+        sampleProgress,
+        true,
+        {},
+        {},
+        {}
+    )
 }

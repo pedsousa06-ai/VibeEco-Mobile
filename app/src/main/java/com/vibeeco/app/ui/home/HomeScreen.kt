@@ -31,40 +31,44 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.composables.icons.lucide.Award
-import com.composables.icons.lucide.Bell
-import com.composables.icons.lucide.Check
-import com.composables.icons.lucide.Clock
-import com.composables.icons.lucide.Coins
-import com.composables.icons.lucide.Droplets
-import com.composables.icons.lucide.Flame
-import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.Medal
-import com.composables.icons.lucide.Recycle
-import com.composables.icons.lucide.Sprout
-import com.composables.icons.lucide.Star
-import com.composables.icons.lucide.Target
-import com.composables.icons.lucide.Trophy
-import com.composables.icons.lucide.Zap
+import com.composables.icons.lucide.*
 import com.vibeeco.app.data.*
-import com.vibeeco.app.ui.challenges.ChallengeCard
+import com.vibeeco.app.data.api.model.ConquistaInicioDto
+import com.vibeeco.app.data.api.model.ConteudoInicioDto
+import com.vibeeco.app.data.api.model.UsuarioInicioDto
 import com.vibeeco.app.ui.components.*
 import com.vibeeco.app.ui.theme.*
+import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.Locale
+
+private val VerdeEscuro = Color(0xFF0C4A25)
+private val VerdeClaro = Color(0xFF16A34A)
+private val VerdeSuave = Color(0xFFDCF5E5)
+private val Laranja = Color(0xFFEA580C)
+private val LaranjaClaro = Color(0xFFFB923C)
+private val Dourado = Color(0xFFD97706)
+private val DouradoSuave = Color(0xFFFEF3C7)
+private val Roxo = Color(0xFF7C3AED)
+private val RoxoSuave = Color(0xFFEDE9FE)
+
+private val formatoNumero: NumberFormat = NumberFormat.getIntegerInstance(Locale("pt", "BR"))
+
+private fun formatarNumero(valor: Any?): String = when (valor) {
+    is Number -> formatoNumero.format(valor)
+    null -> "0"
+    else -> valor.toString()
+}
 
 @Composable
 fun HomeScreen(
-    userName: String,
-    points: Int,
+    usuario: UsuarioInicioDto?,
     streak: Int,
-    co2Grams: Int,
-    doneIds: Set<String>,
-    dailyGoal: Int,
-    featured: List<Challenge>,
-    tip: String, // Mantido na assinatura para não quebrar chamadas, mas ignorado na UI
+    desafios: List<Challenge>,
     missoes: List<MissaoUi>,
-    onToggle: (Challenge) -> Unit,
+    conteudos: List<ConteudoInicioDto>,
+    conquistas: List<ConquistaInicioDto>,
     onSeeAll: () -> Unit,
     onSeeAllMissions: () -> Unit,
     onOpenMission: (String) -> Unit,
@@ -72,18 +76,26 @@ fun HomeScreen(
     onOpenLearn: () -> Unit,
     onOpenNotifications: () -> Unit,
     unreadNotifications: Int = 0,
-    rankPosition: Int? = null,
-    rankPercentile: String? = null,
 ) {
     val hour = LocalTime.now().hour
-    val saudacao = when { hour < 12 -> "Bom dia," ; hour < 18 -> "Boa tarde," ; else -> "Boa noite," }
-    val firstName = userName.trim().split(" ").firstOrNull().orEmpty()
-    val doneToday = doneIds.size
-    val mcMoedas = points / 5
-    val myRankPosition = rankPosition
+    val saudacao = when {
+        hour < 12 -> "Bom dia,"
+        hour < 18 -> "Boa tarde,"
+        else -> "Boa noite,"
+    }
+
+    val nome = usuario?.nomeExibicao.orEmpty()
+    val primeiroNome = nome.trim().split(" ").firstOrNull().orEmpty()
+    val xp = usuario?.xpExibicao ?: 0
+    val moedas = usuario?.coinsExibicao ?: 0
 
     val emAndamento = missoes.filter { it.status == StatusMissao.Andamento }
-    val concluidas = missoes.count { it.status == StatusMissao.Concluida }
+
+    val percentual = usuario?.progressoPercentual
+        ?.toString()
+        ?.replace(",", ".")
+        ?.toFloatOrNull()
+        ?.coerceIn(0f, 100f) ?: 0f
 
     LazyColumn(
         modifier = Modifier
@@ -92,110 +104,45 @@ fun HomeScreen(
         contentPadding = PaddingValues(bottom = 110.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp),
     ) {
-        item {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        Brush.horizontalGradient(
-                            listOf(Color(0xFF0C4A25), Color(0xFF117A3D), Color(0xFF1FA856))
-                        ),
-                        RoundedCornerShape(bottomStart = 26.dp, bottomEnd = 26.dp)
-                    )
-                    .statusBarsPadding()
-                    .padding(horizontal = 20.dp, vertical = 20.dp)
-            ) {
-                Column {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(saudacao, color = Color.White.copy(alpha = 0.85f), fontSize = 13.5.sp)
-                            Spacer(Modifier.height(2.dp))
-                            Text("$firstName!", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 24.sp, letterSpacing = (-0.4).sp)
-                            Spacer(Modifier.height(2.dp))
-                            Text("Você está em uma ofensiva de $streak dias. Continue assim!", color = Color.White.copy(alpha = 0.9f), fontSize = 13.sp)
-                        }
-
-                        Box {
-                            Box(
-                                modifier = Modifier
-                                    .size(44.dp)
-                                    .clip(CircleShape)
-                                    .background(Color.White.copy(alpha = 0.16f))
-                                    .border(1.dp, Color.White.copy(alpha = 0.25f), CircleShape)
-                                    .clickable(onClick = onOpenNotifications),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(Lucide.Bell, "Notificações", tint = Color.White, modifier = Modifier.size(22.dp))
-                            }
-                            if (unreadNotifications > 0) {
-                                Box(
-                                    modifier = Modifier
-                                        .align(Alignment.TopEnd)
-                                        .offset(x = 4.dp, y = (-4).dp)
-                                        .size(18.dp)
-                                        .clip(CircleShape)
-                                        .background(Color(0xFFDC2626))
-                                        .border(1.5.dp, Color(0xFF0C4A25), CircleShape),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(if (unreadNotifications > 9) "9+" else "$unreadNotifications", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                }
-                            }
-                        }
-                        Spacer(Modifier.width(10.dp))
-                        Avatar(
-                            name = userName,
-                            size = 52.dp,
-                            modifier = Modifier
-                                .clickable(onClick = onOpenProfile)
-                                .border(2.dp, Color.White.copy(alpha = 0.5f), CircleShape)
-                        )
-                    }
-                    Spacer(Modifier.height(14.dp))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        BannerStatChip(icon = Lucide.Star, iconColor = Color(0xFFFDE68A), label = "$points XP")
-                        BannerStatChip(icon = Lucide.Coins, iconColor = Color(0xFFA7F3D0), label = "$mcMoedas MC")
-                        BannerStatChip(icon = Lucide.Flame, iconColor = Color(0xFFFDBA74), label = "$streak dias")
-                    }
-                    Spacer(Modifier.height(14.dp))
-                    Surface(shape = RoundedCornerShape(16.dp), color = Color.White.copy(alpha = 0.14f), modifier = Modifier.fillMaxWidth()) {
-                        Column(Modifier.padding(14.dp)) {
-                            val level = Levels.level(points)
-                            val levelName = Levels.name(points)
-                            val prog = Levels.progress(points).coerceIn(0f, 1f)
-                            val xpForNext = 100
-                            val xpInLevel = (prog * xpForNext).toInt()
-
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Levels.icon(points), null, tint = Color.White, modifier = Modifier.size(24.dp))
-                                    Spacer(Modifier.width(8.dp))
-                                    Text("Nível $level - $levelName", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                                }
-                                Text("$xpInLevel / $xpForNext XP", color = Color.White.copy(alpha = 0.85f), fontSize = 12.sp, fontWeight = FontWeight.Medium)
-                            }
-                            Spacer(Modifier.height(8.dp))
-                            Box(Modifier.fillMaxWidth().height(7.dp).clip(RoundedCornerShape(50)).background(Color.White.copy(alpha = 0.25f))) {
-                                Box(Modifier.fillMaxHeight().fillMaxWidth(prog).clip(RoundedCornerShape(50)).background(Brush.horizontalGradient(listOf(Color(0xFF86EFAC), Color.White))))
-                            }
-                        }
-                    }
-                }
-            }
+        // ---------- CABEÇALHO ----------
+        item(key = "header") {
+            HomeHeader(
+                saudacao = saudacao,
+                nome = nome,
+                primeiroNome = primeiroNome,
+                streak = streak,
+                xp = xp,
+                moedas = moedas,
+                nivel = usuario?.nivelAtual,
+                nomeNivel = usuario?.nomeLevel.orEmpty(),
+                proximoNivel = usuario?.nomeProximoLevel.orEmpty(),
+                percentual = percentual,
+                xpFaltante = usuario?.xpFaltante,
+                unreadNotifications = unreadNotifications,
+                onOpenNotifications = onOpenNotifications,
+                onOpenProfile = onOpenProfile,
+            )
         }
-        item {
-            Column(modifier = Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+
+        // ---------- RESUMO ----------
+        item(key = "resumo") {
+            Column(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
                     ResumoCard(
-                        Lucide.Target, Color(0xFF16A34A), Color(0xFFDCF5E5), "${emAndamento.size}", "Missões em Andamento",
-                        modifier = Modifier.weight(1f).clickable { onSeeAllMissions() }
+                        Lucide.Target, VerdeClaro, VerdeSuave,
+                        "${usuario?.qtdMissoesAndamento ?: emAndamento.size}", "Missões em andamento",
+                        modifier = Modifier.weight(1f).fillMaxHeight().clickable { onSeeAllMissions() }
                     )
                     ResumoCard(
-                        Lucide.Medal, Color(0xFFD97706), Color(0xFFFEF3C7), "$concluidas", "Missões Concluídas",
-                        modifier = Modifier.weight(1f).clickable { onSeeAllMissions() }
+                        Lucide.Medal, Dourado, DouradoSuave,
+                        "${usuario?.qtdMissoesConcluidas ?: 0}", "Missões concluídas",
+                        modifier = Modifier.weight(1f).fillMaxHeight().clickable { onSeeAllMissions() }
                     )
                 }
                 Row(
@@ -203,34 +150,33 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     ResumoCard(
-                        Lucide.Zap, Color(0xFF7C3AED), Color(0xFFEDE9FE), "${featured.size}", "Desafios Ativos",
-                        modifier = Modifier.weight(1f).fillMaxHeight()
+                        Lucide.Zap, Roxo, RoxoSuave,
+                        "${usuario?.qtdDesafiosAtivos ?: desafios.size}", "Desafios ativos",
+                        modifier = Modifier.weight(1f).fillMaxHeight().clickable { onSeeAll() }
                     )
                     ResumoCard(
-                        Lucide.Trophy, Color(0xFFEA580C), Color(0xFFFFEDD5),
-                        if (myRankPosition != null) "#$myRankPosition" else "—",
-                        "Posição no Ranking",
-                        detail = rankPercentile,
+                        Lucide.Trophy, Laranja, Color(0xFFFFEDD5),
+                        usuario?.posicaoRanking?.let { "#$it" } ?: "—",
+                        "Posição no ranking",
+                        detail = usuario?.rankingTopPercentual?.let { "Top $it%" },
                         modifier = Modifier.weight(1f).fillMaxHeight()
                     )
                 }
             }
         }
 
-        item {
-            DailyGoalCard(
-                done = doneToday,
-                goal = dailyGoal,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
+        // ---------- OFENSIVA ----------
+        item(key = "streak") {
+            StreakCard(streak = streak, modifier = Modifier.padding(horizontal = 16.dp))
         }
 
-        item { StreakCard(streak = streak, modifier = Modifier.padding(horizontal = 16.dp)) }
-
-        item { SectionTitle("Missões em Andamento", Modifier.padding(horizontal = 16.dp), "Ver todas", onSeeAllMissions) }
+        // ---------- MISSÕES ----------
+        item(key = "missoes_titulo") {
+            SectionTitle("Missões em andamento", Modifier.padding(horizontal = 16.dp), "Ver todas", onSeeAllMissions)
+        }
 
         if (emAndamento.isEmpty()) {
-            item {
+            item(key = "missoes_vazio") {
                 VibeCard(
                     modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
                     onClick = onSeeAllMissions,
@@ -242,7 +188,7 @@ fun HomeScreen(
                 }
             }
         } else {
-            items(emAndamento.take(3), key = { it.missao.id }) { ui ->
+            items(emAndamento.take(3), key = { "missao_${it.missao.id}" }) { ui ->
                 MissionCard(
                     ui = ui,
                     onClick = { onOpenMission(ui.missao.id) },
@@ -251,68 +197,148 @@ fun HomeScreen(
             }
         }
 
-        item { SectionTitle("Desafios de Hoje", Modifier.padding(horizontal = 16.dp), "Ver todos", onSeeAll) }
+        // ---------- DESAFIOS ----------
+        item(key = "desafios_titulo") {
+            SectionTitle("Desafios em destaque", Modifier.padding(horizontal = 16.dp), "Ver todos", onSeeAll)
+        }
 
-        if (featured.isEmpty()) {
-            item {
+        if (desafios.isEmpty()) {
+            item(key = "desafios_vazio") {
                 VibeCard(
                     modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
                     onClick = onSeeAll,
                 ) {
                     Text(
-                        "Nenhum desafio disponível hoje. Volte mais tarde ou explore outros conteúdos!",
+                        "Nenhum desafio disponível agora. Volte mais tarde!",
                         modifier = Modifier.padding(18.dp), fontSize = 13.sp, color = TextMuted,
                     )
                 }
             }
         } else {
-            items(featured, key = { it.id }) { challenge ->
-                ChallengeCard(challenge = challenge, done = challenge.id in doneIds, onToggle = { onToggle(challenge) }, modifier = Modifier.padding(horizontal = 16.dp))
+            items(desafios.take(3), key = { "desafio_${it.id}" }) { desafio ->
+                DesafioCard(
+                    desafio = desafio,
+                    onClick = onSeeAll,
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                )
             }
         }
 
-        item { SectionTitle("Conteúdos Recomendados", Modifier.padding(horizontal = 16.dp), "Ver todos", onOpenLearn) }
-        item {
-            LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                items(Content.articles.take(3), key = { it.id }) { article ->
-                    VibeCard(modifier = Modifier.width(240.dp).clickable(onClick = onOpenLearn)) {
-                        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                Surface(shape = RoundedCornerShape(50), color = GreenContainer) {
-                                    Text(article.category.label, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = GreenOnContainer, modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp))
+        // ---------- CONTEÚDOS ----------
+        item(key = "conteudos_titulo") {
+            SectionTitle("Conteúdos recomendados", Modifier.padding(horizontal = 16.dp), "Ver todos", onOpenLearn)
+        }
+
+        if (conteudos.isEmpty()) {
+            item(key = "conteudos_vazio") {
+                VibeCard(
+                    modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
+                    onClick = onOpenLearn,
+                ) {
+                    Text(
+                        "Nenhum conteúdo recomendado ainda. Toque para explorar!",
+                        modifier = Modifier.padding(18.dp), fontSize = 13.sp, color = TextMuted,
+                    )
+                }
+            }
+        } else {
+            item(key = "conteudos_lista") {
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(conteudos, key = { "conteudo_${it.id}" }) { conteudo ->
+                        VibeCard(
+                            modifier = Modifier
+                                .width(244.dp)
+                                .height(136.dp)
+                                .clickable(onClick = onOpenLearn)
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxSize().padding(14.dp),
+                                verticalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Surface(shape = RoundedCornerShape(50), color = GreenContainer) {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(Lucide.BookOpen, null, tint = GreenOnContainer, modifier = Modifier.size(12.dp))
+                                            Spacer(Modifier.width(4.dp))
+                                            Text("Aprender", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = GreenOnContainer)
+                                        }
+                                    }
+                                    conteudo.qtdeXp?.let {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Icon(Lucide.Star, null, tint = GoldXP, modifier = Modifier.size(13.dp))
+                                            Spacer(Modifier.width(3.dp))
+                                            Text("$it XP", fontSize = 11.5.sp, fontWeight = FontWeight.Bold, color = GoldXPText)
+                                        }
+                                    }
                                 }
+
+                                Text(
+                                    conteudo.nome.orEmpty(),
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    lineHeight = 19.sp,
+                                    color = TextMain,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Lucide.Star, null, tint = GoldXP, modifier = Modifier.size(13.dp))
-                                    Spacer(Modifier.width(3.dp))
-                                    Text("${article.points} XP", fontSize = 11.5.sp, fontWeight = FontWeight.Bold, color = GoldXPText)
+                                    conteudo.duracaoLeitura?.let {
+                                        Icon(Lucide.Clock, null, tint = TextMuted, modifier = Modifier.size(13.dp))
+                                        Spacer(Modifier.width(4.dp))
+                                        Text("$it min de leitura", fontSize = 11.5.sp, color = TextMuted)
+                                    }
                                 }
-                            }
-                            Text(article.title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextMain, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Lucide.Clock, null, tint = TextMuted, modifier = Modifier.size(13.dp))
-                                Spacer(Modifier.width(4.dp))
-                                Text("${article.minutes} min de leitura", fontSize = 11.5.sp, color = TextMuted)
                             }
                         }
                     }
                 }
             }
         }
-        item {
+
+        // ---------- CONQUISTAS ----------
+        item(key = "conquistas") {
             VibeCard(modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth()) {
                 Column(Modifier.padding(18.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Lucide.Award, null, tint = Color(0xFFD97706), modifier = Modifier.size(22.dp))
+                        Icon(Lucide.Award, null, tint = Dourado, modifier = Modifier.size(22.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Conquistas Recentes", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = TextMain)
+                        Text("Conquistas recentes", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = TextMain)
                     }
                     Spacer(Modifier.height(14.dp))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Content.achievements.take(2).forEach { badge -> AchievementItem(badge = badge, modifier = Modifier.weight(1f)) }
-                    }
-                    Spacer(Modifier.height(10.dp))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Content.achievements.drop(2).take(2).forEach { badge -> AchievementItem(badge = badge, modifier = Modifier.weight(1f)) }
+
+                    if (conquistas.isEmpty()) {
+                        Text(
+                            "Complete missões e desafios para desbloquear suas primeiras conquistas.",
+                            fontSize = 13.sp, color = TextMuted, lineHeight = 18.sp
+                        )
+                    } else {
+                        conquistas.take(6).chunked(2).forEachIndexed { linha, par ->
+                            if (linha > 0) Spacer(Modifier.height(10.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                par.forEachIndexed { coluna, conquista ->
+                                    AchievementItem(
+                                        conquista = conquista,
+                                        indice = linha * 2 + coluna,
+                                        modifier = Modifier.weight(1f).fillMaxHeight()
+                                    )
+                                }
+                                if (par.size == 1) Spacer(Modifier.weight(1f))
+                            }
+                        }
                     }
                 }
             }
@@ -320,13 +346,200 @@ fun HomeScreen(
     }
 }
 
+// =====================================================================
+// Cabeçalho
+// =====================================================================
+
+@Composable
+private fun HomeHeader(
+    saudacao: String,
+    nome: String,
+    primeiroNome: String,
+    streak: Int,
+    xp: Any,
+    moedas: Any,
+    nivel: Any?,
+    nomeNivel: String,
+    proximoNivel: String,
+    percentual: Float,
+    xpFaltante: Any?,
+    unreadNotifications: Int,
+    onOpenNotifications: () -> Unit,
+    onOpenProfile: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                Brush.horizontalGradient(listOf(VerdeEscuro, Color(0xFF117A3D), Color(0xFF1FA856))),
+                RoundedCornerShape(bottomStart = 26.dp, bottomEnd = 26.dp)
+            )
+            .statusBarsPadding()
+            .padding(horizontal = 20.dp, vertical = 20.dp)
+    ) {
+        Column {
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(saudacao, color = Color.White.copy(alpha = 0.85f), fontSize = 13.5.sp)
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        if (primeiroNome.isNotBlank()) "$primeiroNome!" else "Visitante",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 24.sp,
+                        letterSpacing = (-0.4).sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        if (streak > 0) "Você está em uma ofensiva de $streak ${if (streak == 1) "dia" else "dias"}. Continue assim!"
+                        else "Continue sua jornada sustentável!",
+                        color = Color.White.copy(alpha = 0.9f),
+                        fontSize = 13.sp
+                    )
+                }
+
+                Box {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(Color.White.copy(alpha = 0.16f))
+                            .border(1.dp, Color.White.copy(alpha = 0.25f), CircleShape)
+                            .clickable(onClick = onOpenNotifications),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Lucide.Bell, "Notificações", tint = Color.White, modifier = Modifier.size(22.dp))
+                    }
+                    if (unreadNotifications > 0) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .offset(x = 4.dp, y = (-4).dp)
+                                .size(18.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFDC2626))
+                                .border(1.5.dp, VerdeEscuro, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                if (unreadNotifications > 9) "9+" else "$unreadNotifications",
+                                color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+                Spacer(Modifier.width(10.dp))
+                Avatar(
+                    name = nome,
+                    size = 52.dp,
+                    modifier = Modifier
+                        .clickable(onClick = onOpenProfile)
+                        .border(2.dp, Color.White.copy(alpha = 0.5f), CircleShape)
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                BannerStatChip(Lucide.Star, Color(0xFFFDE68A), "${formatarNumero(xp)} XP", Modifier.weight(1f))
+                BannerStatChip(Lucide.Coins, Color(0xFFA7F3D0), "${formatarNumero(moedas)} MC", Modifier.weight(1f))
+                BannerStatChip(Lucide.Flame, Color(0xFFFDBA74), "$streak ${if (streak == 1) "dia" else "dias"}", Modifier.weight(1f))
+            }
+
+            Spacer(Modifier.height(14.dp))
+
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = Color.White.copy(alpha = 0.14f),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(Modifier.padding(14.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Lucide.Award, null, tint = Color.White, modifier = Modifier.size(24.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                if (nivel != null && nomeNivel.isNotBlank()) "Nível $nivel - $nomeNivel" else "Nível não informado",
+                                color = Color.White,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 14.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            "${percentual.toInt()}%",
+                            color = Color.White,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                    }
+
+                    Spacer(Modifier.height(10.dp))
+
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(50))
+                            .background(Color.White.copy(alpha = 0.25f))
+                    ) {
+                        Box(
+                            Modifier
+                                .fillMaxHeight()
+                                .fillMaxWidth(percentual / 100f)
+                                .clip(RoundedCornerShape(50))
+                                .background(Brush.horizontalGradient(listOf(Color(0xFF86EFAC), Color.White)))
+                        )
+                    }
+
+                    if (proximoNivel.isNotBlank() || xpFaltante != null) {
+                        Spacer(Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                if (proximoNivel.isNotBlank()) "Próximo: $proximoNivel" else "",
+                                color = Color.White.copy(alpha = 0.85f),
+                                fontSize = 11.5.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f)
+                            )
+                            xpFaltante?.let {
+                                Text(
+                                    "Faltam ${formatarNumero(it)} XP",
+                                    color = Color.White.copy(alpha = 0.85f),
+                                    fontSize = 11.5.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// =====================================================================
+// Ofensiva
+// =====================================================================
+
 @Composable
 private fun StreakCard(streak: Int, modifier: Modifier = Modifier) {
-    val laranja = Color(0xFFEA580C)
-    val cinzaClaro = Color(0xFFF3F4F6) // Fundo neutro para dias inativos
+    val cinzaClaro = Color(0xFFF3F4F6)
     val dias = listOf("S", "T", "Q", "Q", "S", "S", "D")
     val hojeIdx = LocalDate.now().dayOfWeek.value - 1
-    val diasAtivosNaSemana = (streak.coerceAtMost(hojeIdx + 1))
+    val diasAtivosNaSemana = streak.coerceAtMost(hojeIdx + 1)
 
     VibeCard(modifier = modifier.fillMaxWidth()) {
         Column(Modifier.padding(18.dp)) {
@@ -334,14 +547,14 @@ private fun StreakCard(streak: Int, modifier: Modifier = Modifier) {
                 Box(
                     modifier = Modifier
                         .size(50.dp)
-                        .background(Brush.linearGradient(listOf(Color(0xFFFB923C), laranja)), CircleShape),
+                        .background(Brush.linearGradient(listOf(LaranjaClaro, Laranja)), CircleShape),
                     contentAlignment = Alignment.Center,
                 ) {
                     ChamaOfensiva(tamanho = 26.dp, cor = Color.White, animada = true)
                 }
                 Spacer(Modifier.width(14.dp))
                 Column(Modifier.weight(1f)) {
-                    Text("Ofensiva Diária", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = TextMain)
+                    Text("Ofensiva diária", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = TextMain)
                     Text(
                         if (streak > 0) "Continue assim para manter a sequência"
                         else "Complete um desafio hoje para começar",
@@ -353,7 +566,7 @@ private fun StreakCard(streak: Int, modifier: Modifier = Modifier) {
                         "$streak",
                         fontSize = 32.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = if (streak > 0) laranja else TextMuted,
+                        color = if (streak > 0) Laranja else TextMuted,
                         lineHeight = 32.sp
                     )
                     Text(if (streak == 1) "dia" else "dias", fontSize = 11.5.sp, color = TextMuted)
@@ -371,13 +584,10 @@ private fun StreakCard(streak: Int, modifier: Modifier = Modifier) {
                                 .size(36.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    if (ativo) Brush.linearGradient(listOf(Color(0xFFFB923C), laranja))
+                                    if (ativo) Brush.linearGradient(listOf(LaranjaClaro, Laranja))
                                     else Brush.linearGradient(listOf(cinzaClaro, cinzaClaro))
                                 )
-                                .then(
-                                    if (ehHoje) Modifier.border(2.dp, laranja, CircleShape)
-                                    else Modifier
-                                ),
+                                .then(if (ehHoje) Modifier.border(2.dp, Laranja, CircleShape) else Modifier),
                             contentAlignment = Alignment.Center,
                         ) {
                             if (ativo) ChamaOfensiva(tamanho = 18.dp, cor = Color.White, animada = ehHoje)
@@ -387,7 +597,7 @@ private fun StreakCard(streak: Int, modifier: Modifier = Modifier) {
                             letra,
                             fontSize = 11.5.sp,
                             fontWeight = if (ehHoje) FontWeight.ExtraBold else FontWeight.Medium,
-                            color = if (ehHoje) laranja else TextMuted
+                            color = if (ehHoje) Laranja else TextMuted
                         )
                     }
                 }
@@ -453,18 +663,38 @@ private fun ChamaOfensiva(
     )
 }
 
+// =====================================================================
+// Componentes
+// =====================================================================
+
 @Composable
-private fun BannerStatChip(icon: ImageVector, iconColor: Color, label: String, modifier: Modifier = Modifier) {
+private fun BannerStatChip(
+    icon: ImageVector,
+    iconColor: Color,
+    label: String,
+    modifier: Modifier = Modifier
+) {
     Surface(
         shape = RoundedCornerShape(10.dp),
         color = Color.White.copy(alpha = 0.16f),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.22f)),
         modifier = modifier
     ) {
-        Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
             Icon(icon, null, tint = iconColor, modifier = Modifier.size(15.dp))
             Spacer(Modifier.width(5.dp))
-            Text(label, color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 12.5.sp)
+            Text(
+                label,
+                color = Color.White,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 12.5.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }
@@ -479,53 +709,73 @@ private fun ResumoCard(
     detail: String? = null,
     modifier: Modifier = Modifier
 ) {
-    VibeCard(modifier = modifier.fillMaxHeight()) {
-        Row(modifier = Modifier.padding(14.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Box(modifier = Modifier.size(44.dp).background(iconBg, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
+    VibeCard(modifier = modifier) {
+        Row(
+            modifier = Modifier.padding(14.dp).fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier.size(44.dp).background(iconBg, RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
                 Icon(icon, null, tint = iconTint, modifier = Modifier.size(22.dp))
             }
             Spacer(Modifier.width(12.dp))
             Column {
-                Text(value, fontWeight = FontWeight.ExtraBold, fontSize = 20.sp, color = TextMain, lineHeight = 22.sp)
-                Text(label, fontSize = 11.5.sp, color = TextMuted, lineHeight = 14.sp)
-                if (detail != null) Text(detail, fontSize = 10.sp, color = Color(0xFF16A34A), fontWeight = FontWeight.Medium)
+                Text(value, fontWeight = FontWeight.ExtraBold, fontSize = 20.sp, color = TextMain, lineHeight = 22.sp, maxLines = 1)
+                Text(label, fontSize = 11.5.sp, color = TextMuted, lineHeight = 14.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                if (detail != null) {
+                    Text(detail, fontSize = 10.5.sp, color = VerdeClaro, fontWeight = FontWeight.SemiBold)
+                }
             }
         }
     }
 }
 
 @Composable
-private fun DailyGoalCard(done: Int, goal: Int, modifier: Modifier = Modifier) {
-    val safeGoal = goal.coerceAtLeast(1)
-    val prog = (done.toFloat() / safeGoal).coerceIn(0f, 1f)
-    val atingiu = done >= safeGoal
-    VibeCard(modifier = modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier.size(36.dp).background(if (atingiu) Color(0xFFDCF5E5) else Color(0xFFEDE9FE), RoundedCornerShape(10.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(if (atingiu) Lucide.Check else Lucide.Target, null, tint = if (atingiu) Color(0xFF16A34A) else Color(0xFF7C3AED), modifier = Modifier.size(20.dp))
-                    }
-                    Spacer(Modifier.width(10.dp))
-                    Column {
-                        Text("Meta Diária", fontWeight = FontWeight.Bold, fontSize = 14.5.sp, color = TextMain)
-                        Text(if (atingiu) "Meta concluída! 🎉" else "Complete $safeGoal desafios hoje", fontSize = 11.5.sp, color = TextMuted)
-                    }
-                }
-                Text("$done/$safeGoal", fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = if (atingiu) Color(0xFF16A34A) else TextMain)
+private fun DesafioCard(
+    desafio: Challenge,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    VibeCard(modifier = modifier.fillMaxWidth(), onClick = onClick) {
+        Row(
+            modifier = Modifier.padding(14.dp).fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier.size(44.dp).background(DouradoSuave, RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Lucide.Trophy, null, tint = Dourado, modifier = Modifier.size(22.dp))
             }
-            Spacer(Modifier.height(10.dp))
-            Box(Modifier.fillMaxWidth().height(7.dp).clip(RoundedCornerShape(50)).background(Color(0xFFE5E7EB))) {
-                Box(
-                    Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(prog)
-                        .clip(RoundedCornerShape(50))
-                        .background(Brush.horizontalGradient(listOf(Color(0xFF16A34A), Color(0xFF4ADE80))))
+
+            Spacer(Modifier.width(12.dp))
+
+            Column(Modifier.weight(1f)) {
+                Text(
+                    desafio.title,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.5.sp,
+                    color = TextMain,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
+                Spacer(Modifier.height(3.dp))
+                Text("Toque para ver detalhes", fontSize = 11.5.sp, color = TextMuted)
+            }
+
+            Spacer(Modifier.width(10.dp))
+
+            Surface(shape = RoundedCornerShape(50), color = DouradoSuave) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Lucide.Coins, null, tint = Dourado, modifier = Modifier.size(14.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("+${desafio.points}", color = GoldXPText, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                }
             }
         }
     }
@@ -535,19 +785,28 @@ private fun DailyGoalCard(done: Int, goal: Int, modifier: Modifier = Modifier) {
 private fun MissionCard(ui: MissaoUi, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val mission = ui.missao
     val difColor = when (mission.difficulty.lowercase()) {
-        "fácil", "facil" -> Color(0xFF16A34A)
-        "médio", "medio" -> Color(0xFFD97706)
+        "fácil", "facil" -> VerdeClaro
+        "médio", "medio" -> Dourado
         else -> Color(0xFFDC2626)
     }
+    val progresso = ui.progresso.coerceIn(0, 100)
+
     VibeCard(modifier = modifier.fillMaxWidth(), onClick = onClick) {
         Column(Modifier.padding(14.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Surface(shape = RoundedCornerShape(50), color = GreenContainer) {
-                        Row(modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(mission.category.icon, null, tint = GreenOnContainer, modifier = Modifier.size(12.dp))
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Lucide.Target, null, tint = GreenOnContainer, modifier = Modifier.size(12.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text(mission.category.label, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = GreenOnContainer)
+                            Text("Missão", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = GreenOnContainer)
                         }
                     }
                     Text(mission.difficulty, fontSize = 11.5.sp, fontWeight = FontWeight.Bold, color = difColor)
@@ -558,50 +817,96 @@ private fun MissionCard(ui: MissaoUi, onClick: () -> Unit, modifier: Modifier = 
                     Text("+${mission.xp} XP", color = GoldXPText, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                 }
             }
+
             Spacer(Modifier.height(8.dp))
-            Text(mission.title, fontWeight = FontWeight.Bold, fontSize = 14.5.sp, color = TextMain)
+
+            Text(
+                mission.title,
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.5.sp,
+                color = TextMain,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+
             Spacer(Modifier.height(10.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text("Progresso", fontSize = 11.5.sp, color = TextMuted)
-                Text("${ui.progresso}%", fontSize = 11.5.sp, fontWeight = FontWeight.SemiBold, color = TextMain)
+                Text("$progresso%", fontSize = 11.5.sp, fontWeight = FontWeight.SemiBold, color = TextMain)
             }
+
             Spacer(Modifier.height(5.dp))
-            val prog = (ui.progresso / 100f).coerceIn(0f, 1f)
-            Box(Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(50)).background(Color(0xFFD6EADB))) {
-                Box(Modifier.fillMaxHeight().fillMaxWidth(prog).clip(RoundedCornerShape(50)).background(Brush.horizontalGradient(listOf(Color(0xFF16A34A), Color(0xFF4ADE80)))))
+
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(Color(0xFFD6EADB))
+            ) {
+                Box(
+                    Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(progresso / 100f)
+                        .clip(RoundedCornerShape(50))
+                        .background(Brush.horizontalGradient(listOf(VerdeClaro, Color(0xFF4ADE80))))
+                )
             }
         }
     }
 }
 
 @Composable
-private fun AchievementItem(badge: AchievementBadge, modifier: Modifier = Modifier) {
-    val bgColor = when (badge.color) {
-        "verde" -> Color(0xFFDCF5E5)
-        "amarelo" -> Color(0xFFFEF3C7)
-        "azul" -> Color(0xFFDBEAFE)
-        else -> Color(0xFFEDE9FE)
-    }
-    val tint = when (badge.color) {
-        "verde" -> Color(0xFF16A34A)
-        "amarelo" -> Color(0xFFD97706)
-        "azul" -> Color(0xFF2563EB)
-        else -> Color(0xFF7C3AED)
-    }
-    val vetor = when (badge.id) {
-        "b1" -> Lucide.Sprout
-        "b2" -> Lucide.Recycle
-        "b3" -> Lucide.Droplets
-        "b4" -> Lucide.Zap
-        else -> Lucide.Award
-    }
+private fun AchievementItem(
+    conquista: ConquistaInicioDto,
+    indice: Int,
+    modifier: Modifier = Modifier
+) {
+    val paletas = listOf(
+        VerdeSuave to VerdeClaro,
+        DouradoSuave to Dourado,
+        Color(0xFFDBEAFE) to Color(0xFF2563EB),
+        RoxoSuave to Roxo,
+    )
+    val icones = listOf(Lucide.Sprout, Lucide.Recycle, Lucide.Droplets, Lucide.Zap, Lucide.Award)
+    val (bgColor, tint) = paletas[indice % paletas.size]
+    val vetor = icones[indice % icones.size]
+    val descricao = conquista.descricao
+
     Surface(shape = RoundedCornerShape(12.dp), color = BackgroundApp, modifier = modifier) {
         Row(modifier = Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(modifier = Modifier.size(34.dp).background(bgColor, RoundedCornerShape(8.dp)), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier.size(36.dp).background(bgColor, RoundedCornerShape(10.dp)),
+                contentAlignment = Alignment.Center
+            ) {
                 Icon(vetor, null, tint = tint, modifier = Modifier.size(20.dp))
             }
             Spacer(Modifier.width(8.dp))
-            Text(badge.name, fontWeight = FontWeight.SemiBold, fontSize = 12.sp, color = TextMain, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Column {
+                Text(
+                    conquista.nome.orEmpty(),
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 12.sp,
+                    color = TextMain,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (!descricao.isNullOrBlank()) {
+                    Text(
+                        descricao,
+                        fontSize = 10.5.sp,
+                        lineHeight = 13.sp,
+                        color = TextMuted,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
         }
     }
 }
