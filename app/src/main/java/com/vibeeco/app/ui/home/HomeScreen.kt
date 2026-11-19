@@ -1,5 +1,12 @@
 package com.vibeeco.app.ui.home
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,9 +23,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.composables.icons.lucide.Award
@@ -52,7 +62,7 @@ fun HomeScreen(
     doneIds: Set<String>,
     dailyGoal: Int,
     featured: List<Challenge>,
-    tip: String,
+    tip: String, // Mantido na assinatura para não quebrar chamadas, mas ignorado na UI
     missoes: List<MissaoUi>,
     onToggle: (Challenge) -> Unit,
     onSeeAll: () -> Unit,
@@ -62,13 +72,15 @@ fun HomeScreen(
     onOpenLearn: () -> Unit,
     onOpenNotifications: () -> Unit,
     unreadNotifications: Int = 0,
+    rankPosition: Int? = null,
+    rankPercentile: String? = null,
 ) {
     val hour = LocalTime.now().hour
     val saudacao = when { hour < 12 -> "Bom dia," ; hour < 18 -> "Boa tarde," ; else -> "Boa noite," }
     val firstName = userName.trim().split(" ").firstOrNull().orEmpty()
     val doneToday = doneIds.size
-    val mcMoedas = (points / 5).coerceAtLeast(12)
-    val myRankPosition = 4
+    val mcMoedas = points / 5
+    val myRankPosition = rankPosition
 
     val emAndamento = missoes.filter { it.status == StatusMissao.Andamento }
     val concluidas = missoes.count { it.status == StatusMissao.Concluida }
@@ -122,9 +134,11 @@ fun HomeScreen(
                                 Box(
                                     modifier = Modifier
                                         .align(Alignment.TopEnd)
+                                        .offset(x = 4.dp, y = (-4).dp)
                                         .size(18.dp)
                                         .clip(CircleShape)
-                                        .background(Color(0xFFDC2626)),
+                                        .background(Color(0xFFDC2626))
+                                        .border(1.5.dp, Color(0xFF0C4A25), CircleShape),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(if (unreadNotifications > 9) "9+" else "$unreadNotifications", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
@@ -149,16 +163,21 @@ fun HomeScreen(
                     Spacer(Modifier.height(14.dp))
                     Surface(shape = RoundedCornerShape(16.dp), color = Color.White.copy(alpha = 0.14f), modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(14.dp)) {
+                            val level = Levels.level(points)
+                            val levelName = Levels.name(points)
+                            val prog = Levels.progress(points).coerceIn(0f, 1f)
+                            val xpForNext = 100
+                            val xpInLevel = (prog * xpForNext).toInt()
+
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(Levels.icon(points), null, tint = Color.White, modifier = Modifier.size(24.dp))
                                     Spacer(Modifier.width(8.dp))
-                                    Text("Nível ${Levels.level(points)} - ${Levels.name(points)}", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                                    Text("Nível $level - $levelName", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                                 }
-                                Text("$points / ${(Levels.level(points)) * 100} XP", color = Color.White.copy(alpha = 0.85f), fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                                Text("$xpInLevel / $xpForNext XP", color = Color.White.copy(alpha = 0.85f), fontSize = 12.sp, fontWeight = FontWeight.Medium)
                             }
                             Spacer(Modifier.height(8.dp))
-                            val prog = Levels.progress(points).coerceIn(0f, 1f)
                             Box(Modifier.fillMaxWidth().height(7.dp).clip(RoundedCornerShape(50)).background(Color.White.copy(alpha = 0.25f))) {
                                 Box(Modifier.fillMaxHeight().fillMaxWidth(prog).clip(RoundedCornerShape(50)).background(Brush.horizontalGradient(listOf(Color(0xFF86EFAC), Color.White))))
                             }
@@ -179,12 +198,33 @@ fun HomeScreen(
                         modifier = Modifier.weight(1f).clickable { onSeeAllMissions() }
                     )
                 }
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    ResumoCard(Lucide.Zap, Color(0xFF7C3AED), Color(0xFFEDE9FE), "${featured.size}", "Desafios Ativos", modifier = Modifier.weight(1f))
-                    ResumoCard(Lucide.Trophy, Color(0xFFEA580C), Color(0xFFFFEDD5), "#$myRankPosition", "Posição no Ranking", detail = "Top 10% na instituição", modifier = Modifier.weight(1f))
+                Row(
+                    modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    ResumoCard(
+                        Lucide.Zap, Color(0xFF7C3AED), Color(0xFFEDE9FE), "${featured.size}", "Desafios Ativos",
+                        modifier = Modifier.weight(1f).fillMaxHeight()
+                    )
+                    ResumoCard(
+                        Lucide.Trophy, Color(0xFFEA580C), Color(0xFFFFEDD5),
+                        if (myRankPosition != null) "#$myRankPosition" else "—",
+                        "Posição no Ranking",
+                        detail = rankPercentile,
+                        modifier = Modifier.weight(1f).fillMaxHeight()
+                    )
                 }
             }
         }
+
+        item {
+            DailyGoalCard(
+                done = doneToday,
+                goal = dailyGoal,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+        }
+
         item { StreakCard(streak = streak, modifier = Modifier.padding(horizontal = 16.dp)) }
 
         item { SectionTitle("Missões em Andamento", Modifier.padding(horizontal = 16.dp), "Ver todas", onSeeAllMissions) }
@@ -213,15 +253,30 @@ fun HomeScreen(
 
         item { SectionTitle("Desafios de Hoje", Modifier.padding(horizontal = 16.dp), "Ver todos", onSeeAll) }
 
-        items(featured, key = { it.id }) { challenge ->
-            ChallengeCard(challenge = challenge, done = challenge.id in doneIds, onToggle = { onToggle(challenge) }, modifier = Modifier.padding(horizontal = 16.dp))
+        if (featured.isEmpty()) {
+            item {
+                VibeCard(
+                    modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
+                    onClick = onSeeAll,
+                ) {
+                    Text(
+                        "Nenhum desafio disponível hoje. Volte mais tarde ou explore outros conteúdos!",
+                        modifier = Modifier.padding(18.dp), fontSize = 13.sp, color = TextMuted,
+                    )
+                }
+            }
+        } else {
+            items(featured, key = { it.id }) { challenge ->
+                ChallengeCard(challenge = challenge, done = challenge.id in doneIds, onToggle = { onToggle(challenge) }, modifier = Modifier.padding(horizontal = 16.dp))
+            }
         }
+
         item { SectionTitle("Conteúdos Recomendados", Modifier.padding(horizontal = 16.dp), "Ver todos", onOpenLearn) }
         item {
             LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(Content.articles.take(3), key = { it.id }) { article ->
                     VibeCard(modifier = Modifier.width(240.dp).clickable(onClick = onOpenLearn)) {
-                        Column(Modifier.padding(14.dp).heightIn(min = 120.dp), verticalArrangement = Arrangement.SpaceBetween) {
+                        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                 Surface(shape = RoundedCornerShape(50), color = GreenContainer) {
                                     Text(article.category.label, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = GreenOnContainer, modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp))
@@ -232,9 +287,7 @@ fun HomeScreen(
                                     Text("${article.points} XP", fontSize = 11.5.sp, fontWeight = FontWeight.Bold, color = GoldXPText)
                                 }
                             }
-                            Spacer(Modifier.height(8.dp))
                             Text(article.title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextMain, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                            Spacer(Modifier.height(8.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Lucide.Clock, null, tint = TextMuted, modifier = Modifier.size(13.dp))
                                 Spacer(Modifier.width(4.dp))
@@ -270,22 +323,39 @@ fun HomeScreen(
 @Composable
 private fun StreakCard(streak: Int, modifier: Modifier = Modifier) {
     val laranja = Color(0xFFEA580C)
-    val laranjaClaro = Color(0xFFFFF1E6)
+    val cinzaClaro = Color(0xFFF3F4F6) // Fundo neutro para dias inativos
     val dias = listOf("S", "T", "Q", "Q", "S", "S", "D")
     val hojeIdx = LocalDate.now().dayOfWeek.value - 1
+    val diasAtivosNaSemana = (streak.coerceAtMost(hojeIdx + 1))
+
     VibeCard(modifier = modifier.fillMaxWidth()) {
         Column(Modifier.padding(18.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(modifier = Modifier.size(50.dp).background(Brush.linearGradient(listOf(Color(0xFFFB923C), Color(0xFFEA580C))), CircleShape), contentAlignment = Alignment.Center) {
-                    Icon(Lucide.Flame, null, tint = Color.White, modifier = Modifier.size(26.dp))
+                Box(
+                    modifier = Modifier
+                        .size(50.dp)
+                        .background(Brush.linearGradient(listOf(Color(0xFFFB923C), laranja)), CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    ChamaOfensiva(tamanho = 26.dp, cor = Color.White, animada = true)
                 }
                 Spacer(Modifier.width(14.dp))
                 Column(Modifier.weight(1f)) {
                     Text("Ofensiva Diária", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = TextMain)
-                    Text(if (streak > 0) "Continue assim para manter a sequência" else "Complete um desafio hoje para começar", fontSize = 12.sp, color = TextMuted)
+                    Text(
+                        if (streak > 0) "Continue assim para manter a sequência"
+                        else "Complete um desafio hoje para começar",
+                        fontSize = 12.sp, color = TextMuted
+                    )
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    Text("$streak", fontSize = 32.sp, fontWeight = FontWeight.ExtraBold, color = laranja, lineHeight = 32.sp)
+                    Text(
+                        "$streak",
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = if (streak > 0) laranja else TextMuted,
+                        lineHeight = 32.sp
+                    )
                     Text(if (streak == 1) "dia" else "dias", fontSize = 11.5.sp, color = TextMuted)
                 }
             }
@@ -293,13 +363,32 @@ private fun StreakCard(streak: Int, modifier: Modifier = Modifier) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 dias.forEachIndexed { index, letra ->
                     val ehHoje = index == hojeIdx
-                    val ativo = index <= hojeIdx && index > hojeIdx - streak
+                    val ativo = index <= hojeIdx && index > hojeIdx - diasAtivosNaSemana
+
                     Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Box(modifier = Modifier.size(36.dp).clip(CircleShape).background(if (ativo) Brush.linearGradient(listOf(Color(0xFFFB923C), Color(0xFFEA580C))) else Brush.linearGradient(listOf(laranjaClaro, laranjaClaro))).then(if (ehHoje) Modifier.border(2.dp, laranja, CircleShape) else Modifier), contentAlignment = Alignment.Center) {
-                            if (ativo) Icon(Lucide.Flame, null, tint = Color.White, modifier = Modifier.size(18.dp))
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    if (ativo) Brush.linearGradient(listOf(Color(0xFFFB923C), laranja))
+                                    else Brush.linearGradient(listOf(cinzaClaro, cinzaClaro))
+                                )
+                                .then(
+                                    if (ehHoje) Modifier.border(2.dp, laranja, CircleShape)
+                                    else Modifier
+                                ),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            if (ativo) ChamaOfensiva(tamanho = 18.dp, cor = Color.White, animada = ehHoje)
                         }
                         Spacer(Modifier.height(6.dp))
-                        Text(letra, fontSize = 11.5.sp, fontWeight = if (ehHoje) FontWeight.ExtraBold else FontWeight.Medium, color = if (ehHoje) laranja else TextMuted)
+                        Text(
+                            letra,
+                            fontSize = 11.5.sp,
+                            fontWeight = if (ehHoje) FontWeight.ExtraBold else FontWeight.Medium,
+                            color = if (ehHoje) laranja else TextMuted
+                        )
                     }
                 }
             }
@@ -308,8 +397,70 @@ private fun StreakCard(streak: Int, modifier: Modifier = Modifier) {
 }
 
 @Composable
+private fun ChamaOfensiva(
+    tamanho: Dp,
+    cor: Color,
+    animada: Boolean = false,
+    modifier: Modifier = Modifier,
+) {
+    if (!animada) {
+        Icon(Lucide.Flame, contentDescription = null, tint = cor, modifier = modifier.size(tamanho))
+        return
+    }
+
+    val transicao = rememberInfiniteTransition(label = "chama")
+
+    val escalaY by transicao.animateFloat(
+        initialValue = 0.92f,
+        targetValue = 1.10f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(560, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "escalaY",
+    )
+    val escalaX by transicao.animateFloat(
+        initialValue = 1.05f,
+        targetValue = 0.95f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(560, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "escalaX",
+    )
+    val giro by transicao.animateFloat(
+        initialValue = -5f,
+        targetValue = 5f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(900, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "giro",
+    )
+
+    Icon(
+        Lucide.Flame,
+        contentDescription = null,
+        tint = cor,
+        modifier = modifier
+            .size(tamanho)
+            .graphicsLayer {
+                scaleX = escalaX
+                scaleY = escalaY
+                rotationZ = giro
+                transformOrigin = TransformOrigin(0.5f, 1f)
+            },
+    )
+}
+
+@Composable
 private fun BannerStatChip(icon: ImageVector, iconColor: Color, label: String, modifier: Modifier = Modifier) {
-    Surface(shape = RoundedCornerShape(10.dp), color = Color.White.copy(alpha = 0.16f), border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.22f)), modifier = modifier) {
+    Surface(
+        shape = RoundedCornerShape(10.dp),
+        color = Color.White.copy(alpha = 0.16f),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.22f)),
+        modifier = modifier
+    ) {
         Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(icon, null, tint = iconColor, modifier = Modifier.size(15.dp))
             Spacer(Modifier.width(5.dp))
@@ -319,9 +470,17 @@ private fun BannerStatChip(icon: ImageVector, iconColor: Color, label: String, m
 }
 
 @Composable
-private fun ResumoCard(icon: ImageVector, iconTint: Color, iconBg: Color, value: String, label: String, detail: String? = null, modifier: Modifier = Modifier) {
-    VibeCard(modifier = modifier) {
-        Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+private fun ResumoCard(
+    icon: ImageVector,
+    iconTint: Color,
+    iconBg: Color,
+    value: String,
+    label: String,
+    detail: String? = null,
+    modifier: Modifier = Modifier
+) {
+    VibeCard(modifier = modifier.fillMaxHeight()) {
+        Row(modifier = Modifier.padding(14.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Box(modifier = Modifier.size(44.dp).background(iconBg, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
                 Icon(icon, null, tint = iconTint, modifier = Modifier.size(22.dp))
             }
@@ -329,7 +488,44 @@ private fun ResumoCard(icon: ImageVector, iconTint: Color, iconBg: Color, value:
             Column {
                 Text(value, fontWeight = FontWeight.ExtraBold, fontSize = 20.sp, color = TextMain, lineHeight = 22.sp)
                 Text(label, fontSize = 11.5.sp, color = TextMuted, lineHeight = 14.sp)
-                if (detail != null) Text(detail, fontSize = 10.sp, color = GreenBrand, fontWeight = FontWeight.Medium)
+                if (detail != null) Text(detail, fontSize = 10.sp, color = Color(0xFF16A34A), fontWeight = FontWeight.Medium)
+            }
+        }
+    }
+}
+
+@Composable
+private fun DailyGoalCard(done: Int, goal: Int, modifier: Modifier = Modifier) {
+    val safeGoal = goal.coerceAtLeast(1)
+    val prog = (done.toFloat() / safeGoal).coerceIn(0f, 1f)
+    val atingiu = done >= safeGoal
+    VibeCard(modifier = modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier.size(36.dp).background(if (atingiu) Color(0xFFDCF5E5) else Color(0xFFEDE9FE), RoundedCornerShape(10.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(if (atingiu) Lucide.Check else Lucide.Target, null, tint = if (atingiu) Color(0xFF16A34A) else Color(0xFF7C3AED), modifier = Modifier.size(20.dp))
+                    }
+                    Spacer(Modifier.width(10.dp))
+                    Column {
+                        Text("Meta Diária", fontWeight = FontWeight.Bold, fontSize = 14.5.sp, color = TextMain)
+                        Text(if (atingiu) "Meta concluída! 🎉" else "Complete $safeGoal desafios hoje", fontSize = 11.5.sp, color = TextMuted)
+                    }
+                }
+                Text("$done/$safeGoal", fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = if (atingiu) Color(0xFF16A34A) else TextMain)
+            }
+            Spacer(Modifier.height(10.dp))
+            Box(Modifier.fillMaxWidth().height(7.dp).clip(RoundedCornerShape(50)).background(Color(0xFFE5E7EB))) {
+                Box(
+                    Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(prog)
+                        .clip(RoundedCornerShape(50))
+                        .background(Brush.horizontalGradient(listOf(Color(0xFF16A34A), Color(0xFF4ADE80))))
+                )
             }
         }
     }
@@ -405,7 +601,7 @@ private fun AchievementItem(badge: AchievementBadge, modifier: Modifier = Modifi
                 Icon(vetor, null, tint = tint, modifier = Modifier.size(20.dp))
             }
             Spacer(Modifier.width(8.dp))
-            Text(badge.name, fontWeight = FontWeight.SemiBold, fontSize = 12.sp, color = TextMain, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(badge.name, fontWeight = FontWeight.SemiBold, fontSize = 12.sp, color = TextMain, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
     }
 }
