@@ -52,56 +52,39 @@ interface FeedRepository {
     suspend fun criarPost(texto: String, categoriaId: String?, foto: Uri?)
 }
 
+// Usa o mesmo ComunidadeFakeStore da tela de detalhe,
+// então o que acontece em uma tela aparece na outra.
 class FakeFeedRepository : FeedRepository {
-    private val posts = mutableListOf(
-        Post(
-            id = "p1",
-            autor = "Carlos Mendes",
-            iniciais = "CM",
-            tempo = "há 2 h",
-            categoria = "Conquista",
-            texto = "Completei a Semana sem Carro! Foram 5 dias de bike e transporte público. 🚲",
-            curtidas = 24,
-            comentarios = 6,
-        ),
-        Post(
-            id = "p2",
-            autor = "Fernanda Lima",
-            iniciais = "FL",
-            tempo = "há 5 h",
-            categoria = "Dica",
-            texto = "Dica rápida: separar o lixo orgânico em casa reduz muito o volume que vai pro aterro.",
-            curtidas = 18,
-            comentarios = 3,
-        ),
-        Post(
-            id = "p3",
-            autor = "Rafael Costa",
-            iniciais = "RC",
-            tempo = "ontem",
-            texto = "Alguém tem sugestão de onde descartar óleo de cozinha usado aqui na região?",
-            curtidas = 7,
-            comentarios = 9,
-        ),
-    )
 
     override suspend fun listarPostsRecentes(): List<Post> {
         delay(600)
-        return posts.toList()
+        return ComunidadeFakeStore.todos().map {
+            Post(
+                id = it.id,
+                autor = it.autor,
+                iniciais = it.iniciais,
+                tempo = it.tempo,
+                categoria = it.categoria,
+                texto = it.texto,
+                imagem = it.imagem,
+                curtidas = it.curtidas,
+                comentarios = it.comentarios.size,
+            )
+        }
     }
 
     override suspend fun criarPost(texto: String, categoriaId: String?, foto: Uri?) {
         delay(700)
-        posts.add(
-            0,
-            Post(
+        ComunidadeFakeStore.adicionar(
+            PostDetalhe(
                 id = "p-${System.currentTimeMillis()}",
                 autor = "Você",
                 iniciais = "VC",
                 tempo = "agora",
+                categoria = null,
                 texto = texto,
                 imagem = foto?.toString(),
-            ),
+            )
         )
     }
 }

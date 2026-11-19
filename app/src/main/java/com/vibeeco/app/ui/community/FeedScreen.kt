@@ -5,6 +5,9 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,7 +16,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -54,6 +56,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
@@ -66,6 +70,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.composables.icons.lucide.Heart
@@ -81,14 +87,15 @@ import java.text.NumberFormat
 import java.util.Locale
 
 /* ------------------------------------------------------------------ */
-/*  CORES (equivalentes ao CSS do desktop)                             */
+/*  CORES                                                              */
 /* ------------------------------------------------------------------ */
+
 private object FC {
-    val Fundo = Color(0xFFF4F8F5)          // var(--fundo)
+    val Fundo = Color(0xFFF4F8F5)
     val Pagina = Color(0xFFF7FAF8)
-    val Texto = Color(0xFF12261A)          // var(--texto)
-    val TextoSuave = Color(0xFF5B6E62)     // var(--texto-suave)
-    val Borda = Color(0xFFDDE7E0)          // var(--borda)
+    val Texto = Color(0xFF12261A)
+    val TextoSuave = Color(0xFF5B6E62)
+    val Borda = Color(0xFFDDE7E0)
     val Verde600 = Color(0xFF16A34A)
     val Verde900 = Color(0xFF14603A)
     val Verde100 = Color(0xFFDCFCE7)
@@ -104,7 +111,6 @@ private object FC {
 private const val LIMITE_TEXTO = 500
 private const val LIMITE_FOTO_BYTES = 5L * 1024 * 1024
 
-// TODO: ranking e desafios ainda não têm endpoint no back-end (igual ao Feed.vue)
 private val RANKING_SEMANA = listOf(
     RankingSemanaItem(1, "Carlos Mendes", "CM", 4200, "🥇"),
     RankingSemanaItem(2, "Fernanda Lima", "FL", 3850, "🥈"),
@@ -112,6 +118,7 @@ private val RANKING_SEMANA = listOf(
     RankingSemanaItem(4, "Ana Beatriz", "AB", 3100, "#4"),
     RankingSemanaItem(5, "Lucas Nunes", "LN", 2750, "#5"),
 )
+
 private val DESAFIOS_ATIVOS = listOf(
     DesafioAtivo(1, "Semana sem Carro", "234 participantes · 4 dias"),
     DesafioAtivo(2, "Desafio da Água", "412 participantes · 1 dia"),
@@ -119,17 +126,23 @@ private val DESAFIOS_ATIVOS = listOf(
 )
 
 /* ------------------------------------------------------------------ */
-/*  TELA (com estado)                                                  */
+/*  TELA                                                               */
 /* ------------------------------------------------------------------ */
+
 @Composable
 fun FeedScreen(
     usuarioNome: String,
     usuarioNivel: String,
+    onAbrirPost: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: FeedViewModel = viewModel(),
 ) {
     var modalAberto by rememberSaveable { mutableStateOf(false) }
     val iniciais = remember(usuarioNome) { iniciaisDe(usuarioNome) }
+
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        viewModel.carregar(mostrarCarregando = false)
+    }
 
     FeedContent(
         estado = viewModel.estado,
@@ -141,6 +154,7 @@ fun FeedScreen(
             modalAberto = true
         },
         onTentarNovamente = { viewModel.carregar() },
+        onAbrirPost = onAbrirPost,
         modifier = modifier,
     )
 
@@ -154,7 +168,12 @@ fun FeedScreen(
             erro = viewModel.erroPublicar,
             onFechar = { modalAberto = false },
             onPublicar = { texto, categoriaId, foto ->
-                viewModel.publicar(texto, categoriaId, foto, onSucesso = { modalAberto = false })
+                viewModel.publicar(
+                    texto,
+                    categoriaId,
+                    foto,
+                    onSucesso = { modalAberto = false }
+                )
             },
         )
     }
@@ -166,8 +185,9 @@ private fun iniciaisDe(nome: String): String =
         .ifEmpty { "VC" }
 
 /* ------------------------------------------------------------------ */
-/*  CONTEÚDO (sem estado, bom para preview)                            */
+/*  CONTEÚDO                                                           */
 /* ------------------------------------------------------------------ */
+
 @Composable
 fun FeedContent(
     estado: FeedState,
@@ -176,63 +196,97 @@ fun FeedContent(
     desafios: List<DesafioAtivo>,
     onAbrirModal: () -> Unit,
     onTentarNovamente: () -> Unit,
+    onAbrirPost: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
             .background(FC.Pagina)
-            .statusBarsPadding(),                 // ⬅️ ADICIONADO
+            .statusBarsPadding(),
         contentPadding = PaddingValues(
             start = 16.dp,
             end = 16.dp,
-            bottom = 110.dp,                      // ⬅️ era 16.dp
+            bottom = 110.dp,
         ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
             Row(
-                modifier = Modifier.padding(top = 12.dp),   // ⬅️ REMOVIDO statusBarsPadding() daqui
+                modifier = Modifier.padding(top = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Icon(Lucide.Users, null, tint = FC.Verde600, modifier = Modifier.size(24.dp))
-                Text("Comunidade", color = FC.Texto, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
+                Icon(
+                    Lucide.Users,
+                    null,
+                    tint = FC.Verde600,
+                    modifier = Modifier.size(24.dp)
+                )
+                Text(
+                    "Comunidade",
+                    color = FC.Texto,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.ExtraBold
+                )
             }
         }
 
-        // CAIXA DE NOVA PUBLICAÇÃO
-        item { CaixaCompor(usuarioIniciais, onAbrirModal) }
+        item {
+            CaixaCompor(usuarioIniciais, onAbrirModal)
+        }
 
         when (estado) {
-            is FeedState.Carregando -> item { Aviso("Carregando publicações...") }
+            is FeedState.Carregando -> {
+                item { Aviso("Carregando publicações...") }
+            }
 
-            is FeedState.Erro -> item {
-                Aviso(
-                    texto = estado.mensagem,
-                    erro = true,
-                    acao = { BotaoVerde("Tentar de novo", onClick = onTentarNovamente) },
-                )
+            is FeedState.Erro -> {
+                item {
+                    Aviso(
+                        texto = estado.mensagem,
+                        erro = true,
+                        acao = {
+                            BotaoVerde(
+                                "Tentar de novo",
+                                onClick = onTentarNovamente
+                            )
+                        },
+                    )
+                }
             }
 
             is FeedState.Sucesso -> {
                 if (estado.posts.isEmpty()) {
-                    item { Aviso("Ainda não há publicações. Seja o primeiro a compartilhar!") }
+                    item {
+                        Aviso("Ainda não há publicações. Seja o primeiro a compartilhar!")
+                    }
                 } else {
-                    items(estado.posts, key = { it.id }) { post -> CardPost(post) }
+                    items(estado.posts, key = { it.id }) { post ->
+                        CardPost(
+                            post = post,
+                            onClick = { onAbrirPost(post.id) }
+                        )
+                    }
                 }
             }
         }
 
-        // LATERAL (no celular vem depois dos posts, como no breakpoint do desktop)
         item { BlocoRanking(ranking) }
         item { BlocoDesafios(desafios) }
     }
 }
 
-/* ---------- COMPONENTES BASE ---------- */
+/* ------------------------------------------------------------------ */
+/*  COMPONENTES BASE                                                   */
+/* ------------------------------------------------------------------ */
+
 @Composable
-private fun Avatar(iniciais: String, tamanho: Dp, fonte: Int = 13) {
+private fun Avatar(
+    iniciais: String,
+    tamanho: Dp,
+    fonte: Int = 13,
+) {
     Box(
         modifier = Modifier
             .size(tamanho)
@@ -240,26 +294,50 @@ private fun Avatar(iniciais: String, tamanho: Dp, fonte: Int = 13) {
             .background(Brush.linearGradient(FC.AvatarGradiente)),
         contentAlignment = Alignment.Center,
     ) {
-        Text(iniciais, color = Color.White, fontSize = fonte.sp, fontWeight = FontWeight.Bold)
+        Text(
+            iniciais,
+            color = Color.White,
+            fontSize = fonte.sp,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 
 @Composable
-private fun Card(modifier: Modifier = Modifier, conteudo: @Composable () -> Unit) {
+private fun Card(
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
+    conteudo: @Composable () -> Unit,
+) {
     Box(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(Color.White)
-            .border(1.dp, FC.Borda, RoundedCornerShape(16.dp)),
-    ) { conteudo() }
+            .border(1.dp, FC.Borda, RoundedCornerShape(16.dp))
+            .then(
+                if (onClick != null) {
+                    Modifier.clickable(role = Role.Button, onClick = onClick)
+                } else {
+                    Modifier
+                }
+            ),
+    ) {
+        conteudo()
+    }
 }
 
-private fun Modifier.dashedBorder(cor: Color, raio: Dp): Modifier = drawBehind {
+private fun Modifier.dashedBorder(
+    cor: Color,
+    raio: Dp,
+): Modifier = drawBehind {
     drawRoundRect(
         color = cor,
         cornerRadius = CornerRadius(raio.toPx()),
-        style = Stroke(width = 1.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(12f, 10f))),
+        style = Stroke(
+            width = 1.dp.toPx(),
+            pathEffect = PathEffect.dashPathEffect(floatArrayOf(12f, 10f))
+        ),
     )
 }
 
@@ -277,17 +355,33 @@ private fun BotaoVerde(
             .alpha(if (habilitado) 1f else 0.6f)
             .clip(RoundedCornerShape(10.dp))
             .background(FC.Verde900)
-            .clickable(enabled = habilitado, role = Role.Button, onClick = onClick)
+            .clickable(
+                enabled = habilitado,
+                role = Role.Button,
+                onClick = onClick
+            )
             .padding(horizontal = 20.dp),
         contentAlignment = Alignment.Center,
     ) {
-        Text(texto, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+        Text(
+            texto,
+            color = Color.White,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1
+        )
     }
 }
 
-/* ---------- CAIXA DE PUBLICAÇÃO ---------- */
+/* ------------------------------------------------------------------ */
+/*  CAIXA DE PUBLICAÇÃO                                                */
+/* ------------------------------------------------------------------ */
+
 @Composable
-private fun CaixaCompor(iniciais: String, onAbrirModal: () -> Unit) {
+private fun CaixaCompor(
+    iniciais: String,
+    onAbrirModal: () -> Unit,
+) {
     Card {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
@@ -295,7 +389,7 @@ private fun CaixaCompor(iniciais: String, onAbrirModal: () -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Avatar(iniciais, 38.dp)
-            // No celular o botão "Publicar" some e o campo todo abre o modal (como no CSS)
+
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -303,7 +397,11 @@ private fun CaixaCompor(iniciais: String, onAbrirModal: () -> Unit) {
                     .clip(RoundedCornerShape(10.dp))
                     .background(FC.Fundo)
                     .border(1.dp, FC.Borda, RoundedCornerShape(10.dp))
-                    .clickable(role = Role.Button, onClickLabel = "Nova publicação", onClick = onAbrirModal)
+                    .clickable(
+                        role = Role.Button,
+                        onClickLabel = "Nova publicação",
+                        onClick = onAbrirModal
+                    )
                     .padding(horizontal = 14.dp),
                 contentAlignment = Alignment.CenterStart,
             ) {
@@ -319,7 +417,10 @@ private fun CaixaCompor(iniciais: String, onAbrirModal: () -> Unit) {
     }
 }
 
-/* ---------- AVISOS (carregando / erro / vazio) ---------- */
+/* ------------------------------------------------------------------ */
+/*  AVISOS                                                             */
+/* ------------------------------------------------------------------ */
+
 @Composable
 private fun Aviso(
     texto: String,
@@ -331,7 +432,10 @@ private fun Aviso(
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(Color.White)
-            .dashedBorder(if (erro) FC.ErroBorda else FC.Borda, 16.dp)
+            .dashedBorder(
+                if (erro) FC.ErroBorda else FC.Borda,
+                16.dp
+            )
             .padding(horizontal = 24.dp, vertical = 40.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -342,24 +446,48 @@ private fun Aviso(
             fontSize = 14.sp,
             textAlign = TextAlign.Center,
         )
+
         acao?.invoke()
     }
 }
 
-/* ---------- POST ---------- */
+/* ------------------------------------------------------------------ */
+/*  POST                                                               */
+/* ------------------------------------------------------------------ */
+
 @Composable
-private fun CardPost(post: Post) {
-    Card {
+private fun CardPost(
+    post: Post,
+    onClick: () -> Unit,
+) {
+    Card(onClick = onClick) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 Avatar(post.iniciais, 38.dp)
+
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(post.autor, color = FC.Texto, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text(post.tempo, color = FC.TextoSuave, fontSize = 12.sp)
+                    Text(
+                        post.autor,
+                        color = FC.Texto,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Text(
+                        post.tempo,
+                        color = FC.TextoSuave,
+                        fontSize = 12.sp
+                    )
                 }
+
                 if (!post.categoria.isNullOrBlank()) {
                     Row(
                         modifier = Modifier
@@ -369,13 +497,29 @@ private fun CardPost(post: Post) {
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
-                        Icon(Lucide.Medal, null, tint = FC.SeloTexto, modifier = Modifier.size(13.dp))
-                        Text(post.categoria, color = FC.SeloTexto, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        Icon(
+                            Lucide.Medal,
+                            null,
+                            tint = FC.SeloTexto,
+                            modifier = Modifier.size(13.dp)
+                        )
+
+                        Text(
+                            post.categoria,
+                            color = FC.SeloTexto,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     }
                 }
             }
 
-            Text(post.texto, color = FC.Texto, fontSize = 14.sp, lineHeight = 22.sp)
+            Text(
+                post.texto,
+                color = FC.Texto,
+                fontSize = 14.sp,
+                lineHeight = 22.sp
+            )
 
             if (!post.imagem.isNullOrBlank()) {
                 AsyncImage(
@@ -391,41 +535,182 @@ private fun CardPost(post: Post) {
                 )
             }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
-                Contagem(Lucide.Heart, post.curtidas, "curtidas")
-                Contagem(Lucide.MessageSquare, post.comentarios, "comentários")
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(18.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                CurtidaPost(
+                    postId = post.id,
+                    curtidas = post.curtidas
+                )
+
+                Contagem(
+                    icone = Lucide.MessageSquare,
+                    valor = post.comentarios,
+                    descricao = "comentários"
+                )
             }
         }
     }
 }
 
+/* ------------------------------------------------------------------ */
+/*  CURTIDA COM CORAÇÃO PREENCHIDO E ANIMAÇÃO                          */
+/* ------------------------------------------------------------------ */
+
 @Composable
-private fun Contagem(icone: androidx.compose.ui.graphics.vector.ImageVector, valor: Int, descricao: String) {
+private fun CurtidaPost(
+    postId: String,
+    curtidas: Int,
+) {
+    var curtiu by rememberSaveable(postId) {
+        mutableStateOf(false)
+    }
+
+    val quantidadeCurtidas = curtidas + if (curtiu) 1 else 0
+
+    val escala by animateFloatAsState(
+        targetValue = if (curtiu) 1.25f else 1f,
+        animationSpec = spring(
+            dampingRatio = 0.35f,
+            stiffness = 500f
+        ),
+        label = "escalaCoracao"
+    )
+
+    val corCoracao by animateColorAsState(
+        targetValue = if (curtiu) {
+            Color(0xFFE11D48)
+        } else {
+            FC.TextoSuave
+        },
+        animationSpec = spring(stiffness = 400f),
+        label = "corCoracao"
+    )
+
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .clickable(
+                role = Role.Button,
+                onClick = { curtiu = !curtiu }
+            )
+            .padding(vertical = 4.dp, horizontal = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        // Ícone Lucide com preenchimento simulado
+        Box(
+            modifier = Modifier
+                .size(22.dp)
+                .graphicsLayer {
+                    scaleX = escala
+                    scaleY = escala
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            // Se estiver curtido, desenha um coração levemente preenchido por trás
+            if (curtiu) {
+                Icon(
+                    Lucide.Heart,
+                    contentDescription = null,
+                    tint = Color(0xFFE11D48).copy(alpha = 0.2f),
+                    modifier = Modifier.size(26.dp) // Um pouco maior para dar o efeito de preenchimento
+                )
+            }
+            // O contorno do coração
+            Icon(
+                Lucide.Heart,
+                contentDescription = if (curtiu) "Descurtir" else "Curtir",
+                tint = corCoracao,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+
+        Text(
+            text = "$quantidadeCurtidas",
+            color = if (curtiu) Color(0xFFE11D48) else FC.TextoSuave,
+            fontSize = 13.sp,
+            fontWeight = if (curtiu) FontWeight.Bold else FontWeight.Normal
+        )
+
+        Text(
+            text = "curtidas",
+            color = if (curtiu) Color(0xFFE11D48) else FC.TextoSuave,
+            fontSize = 13.sp
+        )
+    }
+}
+
+@Composable
+private fun Contagem(
+    icone: ImageVector,
+    valor: Int,
+    descricao: String,
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Icon(icone, contentDescription = descricao, tint = FC.TextoSuave, modifier = Modifier.size(16.dp))
-        Text("$valor", color = FC.TextoSuave, fontSize = 13.sp)
+        Icon(
+            icone,
+            contentDescription = descricao,
+            tint = FC.TextoSuave,
+            modifier = Modifier.size(16.dp)
+        )
+
+        Text(
+            "$valor",
+            color = FC.TextoSuave,
+            fontSize = 13.sp
+        )
+
+        Text(
+            descricao,
+            color = FC.TextoSuave,
+            fontSize = 13.sp
+        )
     }
 }
 
-/* ---------- LATERAL: RANKING E DESAFIOS ---------- */
+/* ------------------------------------------------------------------ */
+/*  RANKING                                                            */
+/* ------------------------------------------------------------------ */
+
 @Composable
-private fun BlocoRanking(ranking: List<RankingSemanaItem>) {
+private fun BlocoRanking(
+    ranking: List<RankingSemanaItem>,
+) {
     Card {
         Column(modifier = Modifier.padding(18.dp)) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text("Ranking da Semana", color = FC.Texto, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                Icon(Lucide.Trophy, null, tint = FC.Trofeu, modifier = Modifier.size(16.dp))
+                Text(
+                    "Ranking da Semana",
+                    color = FC.Texto,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Icon(
+                    Lucide.Trophy,
+                    null,
+                    tint = FC.Trofeu,
+                    modifier = Modifier.size(16.dp)
+                )
             }
+
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 ranking.forEach { item ->
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
                         Text(
                             item.medalha,
                             modifier = Modifier.width(22.dp),
@@ -434,9 +719,17 @@ private fun BlocoRanking(ranking: List<RankingSemanaItem>) {
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                         )
+
                         Avatar(item.iniciais, 30.dp, fonte = 11)
+
                         Column {
-                            Text(item.nome, color = FC.Texto, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text(
+                                item.nome,
+                                color = FC.Texto,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+
                             Text(
                                 "${NumberFormat.getInstance(Locale("pt", "BR")).format(item.xp)} XP",
                                 color = FC.TextoSuave,
@@ -450,8 +743,14 @@ private fun BlocoRanking(ranking: List<RankingSemanaItem>) {
     }
 }
 
+/* ------------------------------------------------------------------ */
+/*  DESAFIOS                                                           */
+/* ------------------------------------------------------------------ */
+
 @Composable
-private fun BlocoDesafios(desafios: List<DesafioAtivo>) {
+private fun BlocoDesafios(
+    desafios: List<DesafioAtivo>,
+) {
     Card {
         Column(modifier = Modifier.padding(18.dp)) {
             Text(
@@ -461,6 +760,7 @@ private fun BlocoDesafios(desafios: List<DesafioAtivo>) {
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 12.dp),
             )
+
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 desafios.forEach { d ->
                     Column(
@@ -470,8 +770,18 @@ private fun BlocoDesafios(desafios: List<DesafioAtivo>) {
                             .background(FC.Fundo)
                             .padding(horizontal = 14.dp, vertical = 12.dp),
                     ) {
-                        Text(d.titulo, color = FC.Texto, fontSize = 13.5.sp, fontWeight = FontWeight.Bold)
-                        Text(d.detalhe, color = FC.TextoSuave, fontSize = 12.sp)
+                        Text(
+                            d.titulo,
+                            color = FC.Texto,
+                            fontSize = 13.5.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Text(
+                            d.detalhe,
+                            color = FC.TextoSuave,
+                            fontSize = 12.sp
+                        )
                     }
                 }
             }
@@ -480,8 +790,9 @@ private fun BlocoDesafios(desafios: List<DesafioAtivo>) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  MODAL: NOVA PUBLICAÇÃO (NovaPublicacaoModal.vue)                   */
+/*  MODAL: NOVA PUBLICAÇÃO                                             */
 /* ------------------------------------------------------------------ */
+
 @Composable
 private fun NovaPublicacaoModal(
     usuarioNome: String,
@@ -494,24 +805,41 @@ private fun NovaPublicacaoModal(
     onPublicar: (texto: String, categoriaId: String?, foto: Uri?) -> Unit,
 ) {
     val context = LocalContext.current
+
     var texto by rememberSaveable { mutableStateOf("") }
     var categoriaId by rememberSaveable { mutableStateOf<String?>(null) }
     var foto by rememberSaveable { mutableStateOf<Uri?>(null) }
     var erroLocal by remember { mutableStateOf("") }
     var menuCategoria by remember { mutableStateOf(false) }
+
     val foco = remember { FocusRequester() }
 
-    LaunchedEffect(Unit) { foco.requestFocus() }
+    LaunchedEffect(Unit) {
+        foco.requestFocus()
+    }
 
-    val seletorFoto = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+    val seletorFoto = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri ->
         erroLocal = ""
+
         if (uri == null) return@rememberLauncherForActivityResult
+
         val tipo = context.contentResolver.getType(uri).orEmpty()
         val tamanho = tamanhoDe(context, uri)
+
         when {
-            !tipo.startsWith("image/") -> erroLocal = "Escolha um arquivo de imagem."
-            tamanho > LIMITE_FOTO_BYTES -> erroLocal = "A imagem deve ter no máximo 5 MB"
-            else -> foto = uri
+            !tipo.startsWith("image/") -> {
+                erroLocal = "Escolha um arquivo de imagem."
+            }
+
+            tamanho > LIMITE_FOTO_BYTES -> {
+                erroLocal = "A imagem deve ter no máximo 5 MB"
+            }
+
+            else -> {
+                foto = uri
+            }
         }
     }
 
@@ -520,6 +848,7 @@ private fun NovaPublicacaoModal(
             erroLocal = "Escreva algo antes de publicar."
             return
         }
+
         onPublicar(texto.trim(), categoriaId, foto)
     }
 
@@ -527,7 +856,12 @@ private fun NovaPublicacaoModal(
         onDismissRequest = onFechar,
         properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
-        Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            contentAlignment = Alignment.Center
+        ) {
             Column(
                 modifier = Modifier
                     .widthIn(max = 480.dp)
@@ -538,29 +872,52 @@ private fun NovaPublicacaoModal(
                     .padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                // Topo
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Text("Nova Publicação", color = FC.Texto, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        "Nova Publicação",
+                        color = FC.Texto,
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
                     Box(
                         modifier = Modifier
                             .size(32.dp)
                             .clip(RoundedCornerShape(8.dp))
-                            .clickable(role = Role.Button, onClickLabel = "Fechar", onClick = onFechar),
+                            .clickable(
+                                role = Role.Button,
+                                onClickLabel = "Fechar",
+                                onClick = onFechar
+                            ),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Icon(Lucide.X, contentDescription = "Fechar", tint = FC.TextoSuave, modifier = Modifier.size(18.dp))
+                        Icon(
+                            Lucide.X,
+                            contentDescription = "Fechar",
+                            tint = FC.TextoSuave,
+                            modifier = Modifier.size(18.dp)
+                        )
                     }
                 }
 
-                // Autor
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
                     Avatar(usuarioIniciais, 36.dp)
+
                     Column {
-                        Text(usuarioNome, color = FC.Texto, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            usuarioNome,
+                            color = FC.Texto,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+
                         Text(
                             usuarioNivel,
                             modifier = Modifier
@@ -575,16 +932,23 @@ private fun NovaPublicacaoModal(
                     }
                 }
 
-                // Texto
                 OutlinedTextField(
                     value = texto,
-                    onValueChange = { if (it.length <= LIMITE_TEXTO) texto = it },
-                    modifier = Modifier.fillMaxWidth().focusRequester(foco),
+                    onValueChange = {
+                        if (it.length <= LIMITE_TEXTO) texto = it
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(foco),
                     minLines = 7,
                     maxLines = 12,
                     shape = RoundedCornerShape(12.dp),
                     placeholder = {
-                        Text("Compartilhe sua conquista, experiência ou dica sustentável...", color = FC.TextoSuave, fontSize = 14.sp)
+                        Text(
+                            "Compartilhe sua conquista, experiência ou dica sustentável...",
+                            color = FC.TextoSuave,
+                            fontSize = 14.sp
+                        )
                     },
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = FC.Verde600,
@@ -597,7 +961,6 @@ private fun NovaPublicacaoModal(
                     ),
                 )
 
-                // Prévia da foto
                 foto?.let { uri ->
                     Box {
                         AsyncImage(
@@ -609,6 +972,7 @@ private fun NovaPublicacaoModal(
                                 .height(200.dp)
                                 .clip(RoundedCornerShape(12.dp)),
                         )
+
                         Box(
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
@@ -616,16 +980,26 @@ private fun NovaPublicacaoModal(
                                 .size(26.dp)
                                 .clip(CircleShape)
                                 .background(Color(0xA6000000))
-                                .clickable(role = Role.Button, onClickLabel = "Remover foto") { foto = null },
+                                .clickable(
+                                    role = Role.Button,
+                                    onClickLabel = "Remover foto"
+                                ) {
+                                    foto = null
+                                },
                             contentAlignment = Alignment.Center,
                         ) {
-                            Icon(Lucide.X, contentDescription = "Remover foto", tint = Color.White, modifier = Modifier.size(14.dp))
+                            Icon(
+                                Lucide.X,
+                                contentDescription = "Remover foto",
+                                tint = Color.White,
+                                modifier = Modifier.size(14.dp)
+                            )
                         }
                     }
                 }
 
-                // Erro
                 val mensagemErro = erroLocal.ifEmpty { erro }
+
                 if (mensagemErro.isNotEmpty()) {
                     Text(
                         mensagemErro,
@@ -640,32 +1014,47 @@ private fun NovaPublicacaoModal(
                     )
                 }
 
-                // Rodapé
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Ferramenta(icone = Lucide.Image, texto = "Foto", onClick = { seletorFoto.launch("image/*") })
+                        Ferramenta(
+                            icone = Lucide.Image,
+                            texto = "Foto",
+                            onClick = { seletorFoto.launch("image/*") }
+                        )
 
-                        // Só aparece se houver categorias (igual ao v-if do Vue)
                         if (categorias.isNotEmpty()) {
                             Box {
                                 Ferramenta(
                                     icone = Lucide.Tag,
-                                    texto = categorias.firstOrNull { it.id == categoriaId }?.nome ?: "Categoria",
+                                    texto = categorias.firstOrNull {
+                                        it.id == categoriaId
+                                    }?.nome ?: "Categoria",
                                     onClick = { menuCategoria = true },
                                 )
-                                DropdownMenu(expanded = menuCategoria, onDismissRequest = { menuCategoria = false }) {
+
+                                DropdownMenu(
+                                    expanded = menuCategoria,
+                                    onDismissRequest = { menuCategoria = false }
+                                ) {
                                     DropdownMenuItem(
                                         text = { Text("Categoria") },
-                                        onClick = { categoriaId = null; menuCategoria = false },
+                                        onClick = {
+                                            categoriaId = null
+                                            menuCategoria = false
+                                        },
                                     )
+
                                     categorias.forEach { c ->
                                         DropdownMenuItem(
                                             text = { Text(c.nome) },
-                                            onClick = { categoriaId = c.id; menuCategoria = false },
+                                            onClick = {
+                                                categoriaId = c.id
+                                                menuCategoria = false
+                                            },
                                         )
                                     }
                                 }
@@ -685,9 +1074,13 @@ private fun NovaPublicacaoModal(
     }
 }
 
+/* ------------------------------------------------------------------ */
+/*  FERRAMENTAS                                                        */
+/* ------------------------------------------------------------------ */
+
 @Composable
 private fun Ferramenta(
-    icone: androidx.compose.ui.graphics.vector.ImageVector,
+    icone: ImageVector,
     texto: String,
     onClick: () -> Unit,
 ) {
@@ -702,27 +1095,73 @@ private fun Ferramenta(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Icon(icone, null, tint = FC.Texto, modifier = Modifier.size(16.dp))
-        Text(texto, color = FC.Texto, fontSize = 13.sp, fontWeight = FontWeight.Medium, maxLines = 1)
+        Icon(
+            icone,
+            null,
+            tint = FC.Texto,
+            modifier = Modifier.size(16.dp)
+        )
+
+        Text(
+            texto,
+            color = FC.Texto,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1
+        )
     }
 }
 
-private fun tamanhoDe(context: Context, uri: Uri): Long =
-    context.contentResolver.query(uri, arrayOf(OpenableColumns.SIZE), null, null, null)?.use { c ->
+/* ------------------------------------------------------------------ */
+/*  TAMANHO DA IMAGEM                                                  */
+/* ------------------------------------------------------------------ */
+
+private fun tamanhoDe(
+    context: Context,
+    uri: Uri,
+): Long =
+    context.contentResolver.query(
+        uri,
+        arrayOf(OpenableColumns.SIZE),
+        null,
+        null,
+        null
+    )?.use { c ->
         if (c.moveToFirst() && !c.isNull(0)) c.getLong(0) else -1L
     } ?: -1L
 
 /* ------------------------------------------------------------------ */
 /*  PREVIEW                                                            */
 /* ------------------------------------------------------------------ */
+
 @Preview(showBackground = true, heightDp = 1400)
 @Composable
 private fun FeedPreview() {
     FeedContent(
         estado = FeedState.Sucesso(
             listOf(
-                Post("1", "Carlos Mendes", "CM", "há 2 h", "Conquista", "Completei a Semana sem Carro! 🚲", null, 24, 6),
-                Post("2", "Fernanda Lima", "FL", "há 5 h", null, "Dica rápida: separar o lixo orgânico ajuda muito.", null, 18, 3),
+                Post(
+                    "1",
+                    "Carlos Mendes",
+                    "CM",
+                    "há 2 h",
+                    "Conquista",
+                    "Completei a Semana sem Carro! 🚲",
+                    null,
+                    24,
+                    6
+                ),
+                Post(
+                    "2",
+                    "Fernanda Lima",
+                    "FL",
+                    "há 5 h",
+                    null,
+                    "Dica rápida: separar o lixo orgânico ajuda muito.",
+                    null,
+                    18,
+                    3
+                ),
             )
         ),
         usuarioIniciais = "VC",
@@ -730,5 +1169,6 @@ private fun FeedPreview() {
         desafios = DESAFIOS_ATIVOS,
         onAbrirModal = {},
         onTentarNovamente = {},
+        onAbrirPost = {},
     )
 }
