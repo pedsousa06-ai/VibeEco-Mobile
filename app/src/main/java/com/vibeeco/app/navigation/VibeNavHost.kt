@@ -46,10 +46,11 @@ import com.composables.icons.lucide.User
 import com.composables.icons.lucide.Users
 import com.vibeeco.app.data.AppViewModel
 import com.vibeeco.app.data.Challenge
-import com.vibeeco.app.data.Content
+import com.vibeeco.app.data.ConteudoViewModel
 import com.vibeeco.app.data.DesafiosViewModel
 import com.vibeeco.app.data.LoginResult
 import com.vibeeco.app.data.MissoesViewModel
+import com.vibeeco.app.data.Session
 import com.vibeeco.app.ui.auth.*
 import com.vibeeco.app.ui.challenges.DesafioDetalheScreen
 import com.vibeeco.app.ui.challenges.DesafiosScreen
@@ -62,12 +63,17 @@ import com.vibeeco.app.ui.learn.LearnScreen
 import com.vibeeco.app.ui.missions.MissaoDetalheScreen
 import com.vibeeco.app.ui.missions.MissoesScreen
 import com.vibeeco.app.ui.profile.ConfiguracoesScreen
+import com.vibeeco.app.ui.profile.carregarConfiguracoes
+import com.vibeeco.app.ui.profile.carregarHistorico
+import com.vibeeco.app.ui.profile.carregarNotificacoes
+import com.vibeeco.app.ui.profile.salvarConfiguracoesAoMudar
 import com.vibeeco.app.ui.profile.HistoricoScreen
 import com.vibeeco.app.ui.profile.NotificacoesScreen
 import com.vibeeco.app.ui.profile.PerfilStore
 import com.vibeeco.app.ui.profile.ProfileScreen
 import com.vibeeco.app.ui.profile.TipoAtividade
 import com.vibeeco.app.ui.ranking.RankingScreen
+import com.vibeeco.app.ui.ranking.RankingViewModel
 import com.vibeeco.app.ui.recompensas.Recompensa
 import com.vibeeco.app.ui.recompensas.RecompensasScreen
 import com.vibeeco.app.ui.recompensas.Resgate
@@ -194,6 +200,7 @@ fun VibeNavHost() {
     val vm: AppViewModel = viewModel()
     val desafiosVm: DesafiosViewModel = viewModel()
     val missoesVm: MissoesViewModel = viewModel()
+    val conteudoVm: ConteudoViewModel = viewModel()
 
     val nav = rememberNavController()
     val context = LocalContext.current
@@ -459,7 +466,7 @@ fun VibeNavHost() {
             // HOME: dados carregados pelo HomeViewModel através da API
             composable(Routes.HOME) {
                 HomeRoute(
-                    userId = 2,
+                    userId = Session.userId,
 
                     onToggleChallenge = onToggleChallenge,
 
@@ -537,6 +544,7 @@ fun VibeNavHost() {
             }
 
             composable(Routes.MISSOES) {
+                LaunchedEffect(Unit) { missoesVm.carregar() }
                 MissoesScreen(
                     cartoes = missoesVm.cartoes,
                     onVoltar = {
@@ -546,7 +554,9 @@ fun VibeNavHost() {
                         nav.navigate(Routes.missao(id))
                     },
                     onParticipar = { id ->
-                        missoesVm.participar(id)
+                        missoesVm.participar(id) { erro ->
+                            if (erro != null) toast(erro) else toast("Você entrou na missão!")
+                        }
                         nav.navigate(Routes.missao(id))
                     },
                 )
@@ -562,6 +572,7 @@ fun VibeNavHost() {
             ) { backStackEntry ->
 
                 val id = backStackEntry.arguments?.getString("id").orEmpty()
+                LaunchedEffect(id) { missoesVm.carregarDetalhe(id) }
                 val ui = missoesVm.buscar(id)
 
                 if (ui != null) {
@@ -571,22 +582,29 @@ fun VibeNavHost() {
                             nav.popBackStack()
                         },
                         onParticipar = {
-                            missoesVm.participar(id)
-                            toast("Você entrou na missão!")
-                        },
-                        onAvancar = {
-                            val concluida = missoesVm.avancar(id, passo = 25)
-                            if (concluida) {
-                                toast("Missão concluída! Você ganhou XP.")
+                            missoesVm.participar(id) { erro ->
+                                toast(erro ?: "Você entrou na missão!")
                             }
                         },
+                        onConcluirEtapa = { idEtapa ->
+                            missoesVm.concluirEtapa(id, idEtapa) { r ->
+                                when {
+                                    r.erro != null -> toast(r.erro)
+                                    r.missaoConcluida -> toast("Missão concluída! Você ganhou XP.")
+                                    else -> toast("Etapa concluída!")
+                                }
+                            }
+                        },
+                        concluindo = missoesVm.concluindoEtapa,
                     )
                 }
             }
 
             composable(Routes.RANKING) {
+                val rankingVm: RankingViewModel = viewModel()
+
                 RankingScreen(
-                    entries = vm.ranking(),
+                    entries = rankingVm.entradas,
                     meuNome = vm.user?.name,
                     onAbrirRecompensas = {
                         nav.navigate(Routes.RECOMPENSAS)
@@ -651,9 +669,10 @@ fun VibeNavHost() {
             }
 
             composable(Routes.LEARN) {
+                LaunchedEffect(Unit) { conteudoVm.carregar() }
                 LearnScreen(
-                    articles = Content.articles,
-                    readIds = vm.progress.readArticles,
+                    articles = conteudoVm.artigos,
+                    readIds = conteudoVm.lidos,
                     onOpen = {
                         nav.navigate(Routes.article(it.id))
                     },
@@ -670,20 +689,25 @@ fun VibeNavHost() {
             ) { backStackEntry ->
 
                 val id = backStackEntry.arguments?.getString("id")
-                val article = Content.articles.firstOrNull {
+                val article = conteudoVm.artigos.firstOrNull {
                     it.id == id
                 }
+                LaunchedEffect(id) { conteudoVm.iniciarLeitura() }
 
                 if (article != null) {
                     ArticleDetailScreen(
                         article = article,
-                        isRead = article.id in vm.progress.readArticles,
+                        isRead = article.id in conteudoVm.lidos,
                         onBack = {
                             nav.popBackStack()
                         },
                         onMarkRead = {
-                            if (vm.markArticleRead(article)) {
-                                toast("+${article.points} pontos por aprender!")
+                            conteudoVm.concluir(article) { r ->
+                                when {
+                                    r.erro != null -> toast(r.erro)
+                                    r.jaConcluido -> toast("Você já concluiu este conteúdo.")
+                                    else -> toast("+${r.xpGanho} XP por aprender!")
+                                }
                             }
                         },
                     )
@@ -756,6 +780,10 @@ fun VibeNavHost() {
             }
 
             composable(Routes.CONFIGURACOES) {
+                LaunchedEffect(Unit) {
+                    try { carregarConfiguracoes() } catch (e: Exception) { toast("Não foi possível carregar as configurações.") }
+                    salvarConfiguracoesAoMudar { toast("Não foi possível salvar a configuração.") }
+                }
                 ConfiguracoesScreen(
                     onVoltar = {
                         nav.popBackStack()
@@ -774,6 +802,9 @@ fun VibeNavHost() {
             }
 
             composable(Routes.HISTORICO) {
+                LaunchedEffect(Unit) {
+                    try { carregarHistorico() } catch (e: Exception) { toast("Não foi possível carregar o histórico.") }
+                }
                 HistoricoScreen(
                     onVoltar = {
                         nav.popBackStack()
@@ -785,6 +816,9 @@ fun VibeNavHost() {
             }
 
             composable(Routes.NOTIFICACOES) {
+                LaunchedEffect(Unit) {
+                    try { carregarNotificacoes() } catch (e: Exception) { toast("Não foi possível carregar as notificações.") }
+                }
                 NotificacoesScreen(
                     onVoltar = {
                         nav.popBackStack()

@@ -19,7 +19,7 @@ object AppConfig {
     const val API_BASE_URL = "http://10.0.2.2:8080/v1/senai/vibeEco/"
 
     /** ID de usuário de desenvolvimento/demonstração (igual ao front web). */
-    const val DEV_USER_ID = 2
+    const val DEV_USER_ID = 1
 
     const val NETWORK_TIMEOUT_SECONDS = 15L
 }
