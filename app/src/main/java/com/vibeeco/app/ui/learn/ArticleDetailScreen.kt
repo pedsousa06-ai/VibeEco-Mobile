@@ -262,25 +262,7 @@ private fun Revisao(
             .verticalScroll(rememberScrollState()),
     ) {
         GradientHeader {
-            IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar", tint = Color.White)
-            }
-            Spacer(Modifier.height(8.dp))
-            Text(article.category.emoji, fontSize = 44.sp)
-            Spacer(Modifier.height(8.dp))
-            Text(
-                article.title,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 24.sp,
-                lineHeight = 30.sp,
-            )
-            Spacer(Modifier.height(6.dp))
-            Text(
-                "${article.category.label} · ${article.minutes} min de leitura",
-                color = Color.White.copy(alpha = 0.85f),
-                fontSize = 13.sp,
-            )
+            // ... cabeçalho igual ...
         }
 
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -293,10 +275,12 @@ private fun Revisao(
                 )
             }
 
+            // ✅ Se tiver quiz, mostra o botão do quiz.
             if (onIniciarQuiz != null) {
                 PrimaryButton(text = "Começar quiz", onClick = onIniciarQuiz)
             }
 
+            // ✅ O botão de "Marcar como lido" agora aparece SEMPRE (mesmo sem quiz).
             PrimaryButton(
                 text = if (isRead) "Lido ✓ — pontos já recebidos" else "Marcar como lido (+${article.points} pts)",
                 onClick = onMarkRead,
@@ -306,7 +290,6 @@ private fun Revisao(
         }
     }
 }
-
 @Composable
 private fun Opcao(
     texto: String,

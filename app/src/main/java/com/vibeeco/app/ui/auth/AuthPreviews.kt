@@ -1,15 +1,12 @@
-
 package com.vibeeco.app.ui.auth
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.vibeeco.app.data.Content
 import com.vibeeco.app.data.Progress
-import com.vibeeco.app.data.RankEntry
 import com.vibeeco.app.data.User
 import com.vibeeco.app.data.Challenge
 import com.vibeeco.app.data.MissaoUi
-import com.vibeeco.app.data.api.model.UsuarioInicioDto
 import com.vibeeco.app.data.api.model.ConteudoInicioDto
 import com.vibeeco.app.data.api.model.ConquistaInicioDto
 import com.vibeeco.app.ui.challenges.ChallengesScreen
@@ -133,18 +130,9 @@ private fun ChallengesPreview() = VibeTheme {
     )
 }
 
-@Preview(name = "10 Ranking", device = SPEC)
-@Composable
-private fun RankingPreview() = VibeTheme {
-    RankingScreen(
-        Content.rivals + RankEntry(
-            sampleUser.name,
-            "UFMG",
-            sampleProgress.points,
-            true
-        )
-    )
-}
+// ⚠️ A preview do Ranking foi removida porque a RankingScreen agora usa ViewModel
+// e não pode ser instanciada diretamente sem uma lista de entradas.
+// Se quiser uma preview funcional, precisará de um ViewModel falso.
 
 @Preview(name = "11 Aprender", device = SPEC)
 @Composable

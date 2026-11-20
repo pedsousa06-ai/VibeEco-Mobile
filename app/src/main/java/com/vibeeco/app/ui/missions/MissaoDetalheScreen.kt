@@ -25,13 +25,13 @@ import androidx.compose.ui.unit.sp
 import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.Clock
-import com.composables.icons.lucide.Coins
 import com.composables.icons.lucide.Lightbulb
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Play
 import com.composables.icons.lucide.Star
 import com.vibeeco.app.data.MissaoUi
 import com.vibeeco.app.data.StatusMissao
+import com.vibeeco.app.data.api.model.EtapaMissaoApiDto
 import com.vibeeco.app.ui.components.VibeCard
 import com.vibeeco.app.ui.theme.TextMain
 import com.vibeeco.app.ui.theme.TextMuted
@@ -41,11 +41,16 @@ fun MissaoDetalheScreen(
     ui: MissaoUi,
     onVoltar: () -> Unit,
     onParticipar: () -> Unit,
-    onAvancar: () -> Unit,
+    onAvancar: (EtapaMissaoApiDto) -> Boolean
 ) {
     val m = ui.missao
-    val dif = dificuldadeUi(m.difficulty)
+    val categoriaStr = m.categoria?.firstOrNull()?.nomeCategoria ?: "Geral"
+    val dificuldadeStr = m.nomeDificuldade ?: "Fácil"
+    val dif = dificuldadeUi(dificuldadeStr)
+
     var modalAberto by remember { mutableStateOf(false) }
+
+    val proximaEtapa = m.etapas?.firstOrNull()
 
     Column(
         Modifier
@@ -56,7 +61,6 @@ fun MissaoDetalheScreen(
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        // 1. CABEÇALHO
         Row(
             Modifier.clip(RoundedCornerShape(8.dp)).clickable(onClick = onVoltar).padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -66,28 +70,23 @@ fun MissaoDetalheScreen(
             Text("Voltar para Missões", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextMuted)
         }
 
-        // 2. RESUMO (Card Branco)
         VibeCard(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Tag(m.category.label, Color(0xFFDCFCE7), Color(0xFF0F6B34))
-                    Tag(m.difficulty, dif.fundo, dif.texto)
+                    Tag(categoriaStr, Color(0xFFDCFCE7), Color(0xFF0F6B34))
+                    Tag(dificuldadeStr, dif.fundo, dif.texto)
                 }
 
-                Text(m.title, color = TextMain, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 34.sp)
+                Text(m.nomeMissao ?: "Missão", color = TextMain, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 34.sp)
+                Text(m.descricaoMissao ?: "Sem descrição.", color = TextMuted, fontSize = 15.sp, lineHeight = 22.sp)
 
-                // Texto fixo pois o modelo não tem 'description'
-                Text("Aprenda a separar e descartar resíduos de forma adequada no ambiente escolar.", color = TextMuted, fontSize = 15.sp, lineHeight = 22.sp)
-
-                // Métricas (XP e Prazo) — Moedas removidas
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Metrica(Lucide.Star, "${m.xp}", "XP", Color(0xFFFFF7DE), Color(0xFF8A5A00), Modifier.weight(1f))
-                    Metrica(Lucide.Clock, "3 dias", "Prazo", Color(0xFFF0F4F1), TextMuted, Modifier.weight(1f))
+                    Metrica(Lucide.Star, "${m.xpMissao ?: 0}", "XP", Color(0xFFFFF7DE), Color(0xFF8A5A00), Modifier.weight(1f))
+                    Metrica(Lucide.Clock, "${m.prazoDias ?: 0} dias", "Prazo", Color(0xFFF0F4F1), TextMuted, Modifier.weight(1f))
                 }
 
                 Spacer(Modifier.height(4.dp))
 
-                // Progresso
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("Progresso geral", color = TextMain, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     Text("${ui.progresso}%", color = Color(0xFF15803D), fontSize = 14.sp, fontWeight = FontWeight.Bold)
@@ -95,27 +94,35 @@ fun MissaoDetalheScreen(
                 Box(Modifier.fillMaxWidth().height(10.dp).clip(CircleShape).background(Color(0xFFD6EADB))) {
                     Box(Modifier.fillMaxHeight().fillMaxWidth(ui.progresso / 100f).clip(CircleShape).background(Color(0xFF16A34A)))
                 }
-                Text("3 de 4 etapas concluídas", color = TextMuted, fontSize = 12.sp)
+                Text("${m.etapas?.size ?: 0} etapas no total", color = TextMuted, fontSize = 12.sp)
             }
         }
 
-        // 3. ETAPAS
         VibeCard(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text("Etapas da Missão", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = TextMain)
 
-                // Mock de etapas
-                EtapaItem("Assistir ao vídeo introdutório", 20, true, false)
-                EtapaItem("Separar resíduos por categoria", 40, true, false)
-                EtapaItem("Fotografar o descarte correto", 50, true, false)
-                EtapaItem("Responder quiz sobre reciclagem", 40, false, true) { modalAberto = true }
+                m.etapas?.forEachIndexed { index, etapa ->
+                    val concluida = index < (m.etapas.size * (ui.progresso / 100f)).toInt()
+                    val andamento = index == (m.etapas.size * (ui.progresso / 100f)).toInt()
+
+                    EtapaItem(
+                        titulo = etapa.nomeEtapa ?: "Etapa ${index + 1}",
+                        xp = etapa.qtdeXp ?: 0,
+                        concluida = concluida,
+                        andamento = andamento
+                    ) {
+                        if (andamento) modalAberto = true
+                    }
+                }
 
                 Spacer(Modifier.height(4.dp))
 
-                // Botão Principal
                 Box(
                     Modifier.fillMaxWidth().height(50.dp).clip(RoundedCornerShape(10.dp)).background(Color(0xFF16A34A))
-                        .clickable { modalAberto = true },
+                        .clickable {
+                            if (proximaEtapa != null) modalAberto = true
+                        },
                     contentAlignment = Alignment.Center,
                 ) {
                     Text("Continuar Missão", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
@@ -123,19 +130,16 @@ fun MissaoDetalheScreen(
             }
         }
 
-        // 4. SOBRE A MISSÃO
         VibeCard(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text("Sobre a missão", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextMain)
-                LinhaInfo("Categoria", m.category.label)
-                LinhaInfo("Dificuldade", m.difficulty)
-                LinhaInfo("Prazo", "3 dias restantes")
-                LinhaInfo("Participantes", "124 participantes")
-                LinhaInfo("XP disponível", "${m.xp} XP")
+                LinhaInfo("Categoria", categoriaStr)
+                LinhaInfo("Dificuldade", dificuldadeStr)
+                LinhaInfo("Prazo", "${m.prazoDias ?: 0} dias restantes")
+                LinhaInfo("XP disponível", "${m.xpMissao ?: 0} XP")
             }
         }
 
-        // 5. DICA DA MISSÃO
         VibeCard(Modifier.fillMaxWidth()) {
             Column(
                 Modifier.background(Color(0xFFE6F7EC)).padding(20.dp),
@@ -146,20 +150,23 @@ fun MissaoDetalheScreen(
                     Spacer(Modifier.width(8.dp))
                     Text("Dica da missão", color = Color(0xFF0F5B2D), fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
-                Text("Utilize os pontos de coleta seletiva identificados pelo mapa da plataforma para facilitar o descarte correto dos materiais.", color = Color(0xFF1F5A37), fontSize = 14.sp, lineHeight = 20.sp)
+                Text(m.dicaMissao ?: "Nenhuma dica disponível.", color = Color(0xFF1F5A37), fontSize = 14.sp, lineHeight = 20.sp)
             }
         }
 
         Spacer(Modifier.height(24.dp))
     }
 
-    // MODAL DO QUIZ
-    if (modalAberto) {
-        QuizModal(onFechar = { modalAberto = false }, onEnviar = { modalAberto = false; onAvancar() })
+    if (modalAberto && proximaEtapa != null) {
+        QuizModal(
+            onFechar = { modalAberto = false },
+            onEnviar = {
+                modalAberto = false
+                onAvancar(proximaEtapa)
+            }
+        )
     }
 }
-
-/* ---------- COMPONENTES AUXILIARES ---------- */
 
 @Composable
 private fun Metrica(icone: androidx.compose.ui.graphics.vector.ImageVector, valor: String, rotulo: String, fundo: Color, cor: Color, modifier: Modifier = Modifier) {
@@ -213,3 +220,4 @@ private fun LinhaInfo(rotulo: String, valor: String) {
         Text(valor, color = TextMain, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
     }
 }
+

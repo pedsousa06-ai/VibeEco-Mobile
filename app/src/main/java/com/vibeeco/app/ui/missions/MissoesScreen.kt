@@ -150,7 +150,8 @@ private fun CartaoMissaoView(ui: MissaoUi, onClick: () -> Unit, onAcao: () -> Un
     VibeCard(modifier = Modifier.fillMaxWidth(), onClick = onClick) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Tag(m.category.label, Color(0xFFDCFCE7), Color(0xFF0F6B34))
+                // ✅ CORRIGIDO: m.category.label ➔ m.category.nomeCategoria
+                Tag(m.category.nomeCategoria ?: "Geral", Color(0xFFDCFCE7), Color(0xFF0F6B34))
                 Tag(m.difficulty, dif.fundo, dif.texto)
                 Spacer(Modifier.weight(1f))
                 if (concluida) Tag("Concluída", Color(0xFFDCF5E5), Color(0xFF15803D))
@@ -167,7 +168,6 @@ private fun CartaoMissaoView(ui: MissaoUi, onClick: () -> Unit, onAcao: () -> Un
                         Spacer(Modifier.width(5.dp))
                         Text("${m.xp} XP", color = Color(0xFF8A5A00), fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     }
-                    // ❌ Bloco de Moedas (MC) removido daqui
                 }
                 if (!concluida) {
                     Row(verticalAlignment = Alignment.CenterVertically) {

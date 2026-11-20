@@ -1,47 +1,96 @@
 package com.vibeeco.app.data
 
-import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.vibeeco.app.data.api.RetrofitClient
+import com.vibeeco.app.data.api.mensagemDeErro
+import com.vibeeco.app.data.api.model.MissaoApiDto
+import com.vibeeco.app.data.api.model.UsuarioEtapaRequest
+import com.vibeeco.app.data.api.model.UsuarioMissaoRequest
+import kotlinx.coroutines.launch
 
 enum class StatusMissao { Disponivel, Andamento, Concluida }
 
 data class MissaoUi(
-    val missao: Mission,
+    val missao: MissaoApiDto,
     val progresso: Int,
     val status: StatusMissao,
 )
 
 class MissoesViewModel : ViewModel() {
-    private val progresso = mutableStateMapOf<String, Int>()
 
-    private fun progressoDe(m: Mission) = progresso[m.id] ?: m.progress
+    private val api = RetrofitClient.vibeApi
 
-    private fun statusDe(p: Int) = when {
-        p >= 100 -> StatusMissao.Concluida
-        p > 0 -> StatusMissao.Andamento
-        else -> StatusMissao.Disponivel
+    var cartoes by mutableStateOf<List<MissaoUi>>(emptyList())
+        private set
+
+    var carregando by mutableStateOf(false)
+        private set
+
+    var erro by mutableStateOf<String?>(null)
+        private set
+
+    init {
+        carregar()
     }
 
-    /** Lê o mapa de estado, então a UI recompõe sozinha. */
-    val cartoes: List<MissaoUi>
-        get() = Content.missions.map {
-            val p = progressoDe(it)
-            MissaoUi(it, p, statusDe(p))
+    fun carregar() {
+        viewModelScope.launch {
+            carregando = true
+            try {
+                // Busca todas as missões do usuário
+                val resposta = api.listarTodasMissoes(Session.userId)
+                val lista = resposta.response?.missoes.orEmpty()
+
+                cartoes = lista.map { dto ->
+                    val progresso = dto.progressoMissao ?: 0
+                    val status = when {
+                        dto.statusMissao?.equals("Concluida", ignoreCase = true) == true || progresso >= 100 -> StatusMissao.Concluida
+                        dto.statusMissao?.equals("Andamento", ignoreCase = true) == true || progresso > 0 -> StatusMissao.Andamento
+                        else -> StatusMissao.Disponivel
+                    }
+                    MissaoUi(dto, progresso, status)
+                }
+                erro = null
+            } catch (e: Exception) {
+                erro = mensagemDeErro(e, "Não foi possível carregar as missões.")
+            } finally {
+                carregando = false
+            }
         }
-
-    fun buscar(id: String): MissaoUi? = cartoes.firstOrNull { it.missao.id == id }
-
-    fun participar(id: String) {
-        val ui = buscar(id) ?: return
-        if (ui.progresso == 0) progresso[id] = 10
     }
 
-    /** Retorna true se a missão acabou de ser concluída. */
-    fun avancar(id: String, passo: Int = 25): Boolean {
-        val ui = buscar(id) ?: return false
-        if (ui.status == StatusMissao.Concluida) return false
-        val novo = (ui.progresso + passo).coerceAtMost(100)
-        progresso[id] = novo
-        return novo >= 100
+    fun buscar(id: String): MissaoUi? = cartoes.firstOrNull { it.missao.idMissao.toString() == id }
+
+    fun participar(id: String, onResultado: (String?) -> Unit) {
+        val ui = buscar(id) ?: return
+        val idMissao = ui.missao.idMissao ?: return
+
+        viewModelScope.launch {
+            try {
+                val req = UsuarioMissaoRequest(idUsuario = Session.userId, idMissao = idMissao)
+                api.entrarMissao(req)
+                carregar() // Recarrega a lista após entrar
+                onResultado(null) // null significa sucesso
+            } catch (e: Exception) {
+                onResultado(mensagemDeErro(e, "Erro ao entrar na missão."))
+            }
+        }
+    }
+
+    fun concluirEtapa(id: String, idEtapa: Int, onResultado: (Boolean, String?) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val req = UsuarioEtapaRequest(idUsuario = Session.userId, idEtapa = idEtapa)
+                api.concluirEtapa(req)
+                carregar() // Recarrega para ver o novo progresso
+                onResultado(true, null)
+            } catch (e: Exception) {
+                onResultado(false, mensagemDeErro(e, "Erro ao concluir etapa."))
+            }
+        }
     }
 }

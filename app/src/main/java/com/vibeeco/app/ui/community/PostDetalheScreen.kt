@@ -48,7 +48,6 @@ import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.Heart
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Send
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 private object PD {
@@ -91,7 +90,7 @@ sealed interface PostDetalheState {
 }
 
 /* ------------------------------------------------------------------ */
-/*  REPOSITÓRIO                                                        */
+/*  REPOSITÓRIO (Interface)                                            */
 /* ------------------------------------------------------------------ */
 interface PostDetalheRepository {
     suspend fun buscarPostPorId(id: String): PostDetalhe
@@ -99,47 +98,13 @@ interface PostDetalheRepository {
     suspend fun criarComentario(idPost: String, texto: String)
 }
 
-// Repositório temporário. Usa o mesmo ComunidadeFakeStore do Feed.
-// Substituir pela implementação que consome a API.
-class FakePostDetalheRepository : PostDetalheRepository {
-
-    override suspend fun buscarPostPorId(id: String): PostDetalhe {
-        delay(300)
-        return ComunidadeFakeStore.buscar(id)
-            ?: throw Exception("Publicação não encontrada.")
-    }
-
-    override suspend fun curtirPost(id: String, curtiu: Boolean) {
-        delay(200)
-        ComunidadeFakeStore.atualizar(id) {
-            it.copy(
-                curtiu = curtiu,
-                curtidas = (it.curtidas + if (curtiu) 1 else -1).coerceAtLeast(0),
-            )
-        }
-    }
-
-    override suspend fun criarComentario(idPost: String, texto: String) {
-        delay(300)
-        ComunidadeFakeStore.atualizar(idPost) {
-            it.copy(
-                comentarios = it.comentarios + ComentarioPost(
-                    id = "c-${System.currentTimeMillis()}",
-                    autor = "Você",
-                    iniciais = "VC",
-                    texto = texto,
-                ),
-            )
-        }
-    }
-}
-
 /* ------------------------------------------------------------------ */
 /*  VIEWMODEL                                                          */
 /* ------------------------------------------------------------------ */
 class PostDetalheViewModel : ViewModel() {
 
-    private val repository: PostDetalheRepository = FakePostDetalheRepository()
+    // ✅ Agora usa a API real em vez do Fake
+    private val repository: PostDetalheRepository = ApiPostDetalheRepository()
 
     var estado by mutableStateOf<PostDetalheState>(PostDetalheState.Carregando)
         private set

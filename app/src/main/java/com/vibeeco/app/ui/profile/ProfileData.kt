@@ -17,7 +17,7 @@ import com.composables.icons.lucide.Trophy
 import com.composables.icons.lucide.Zap
 
 /* ------------------------------------------------------------------ */
-/*  TIPOS (services/tipos.js)                                          */
+/*  TIPOS                                                             */
 /* ------------------------------------------------------------------ */
 enum class TipoAtividade(
     val rotulo: String,
@@ -34,7 +34,7 @@ enum class TipoAtividade(
 }
 
 /* ------------------------------------------------------------------ */
-/*  PERFIL (services/usuario.js)                                       */
+/*  PERFIL                                                            */
 /* ------------------------------------------------------------------ */
 data class PerfilUsuario(
     val nome: String = "",
@@ -54,7 +54,6 @@ data class PerfilUsuario(
             .joinToString("") { it.first().uppercase() }.ifEmpty { "VC" }
 }
 
-/** Rascunho do formulário de edição (o que o Perfil.vue chama de `form`). */
 data class FormPerfil(
     val nome: String,
     val nomePublico: String,
@@ -67,7 +66,6 @@ data class FormPerfil(
     }
 }
 
-/** Store em memória, equivalente ao `usuario` reativo do Vue. Troque por ViewModel/Store quando quiser persistir. */
 object PerfilStore {
     var perfil by mutableStateOf(PerfilUsuario())
         private set
@@ -99,13 +97,13 @@ object PerfilStore {
 }
 
 /* ------------------------------------------------------------------ */
-/*  CONFIGURAÇÕES (services/configuracoes.js)                          */
+/*  CONFIGURAÇÕES                                                     */
 /* ------------------------------------------------------------------ */
 class Configuracoes {
     var idioma by mutableStateOf("pt-BR")
-    var tema by mutableStateOf("claro")            // "claro" | "escuro"
+    var tema by mutableStateOf("claro")
     var altoContraste by mutableStateOf(false)
-    var tamanhoFonte by mutableStateOf("medio")    // "pequeno" | "medio" | "grande"
+    var tamanhoFonte by mutableStateOf("medio")
     var animacoes by mutableStateOf(true)
     var perfilPublico by mutableStateOf(true)
     var aparecerNoRanking by mutableStateOf(true)
@@ -115,7 +113,7 @@ class Configuracoes {
 val configuracoes = Configuracoes()
 
 /* ------------------------------------------------------------------ */
-/*  DESEMPENHO (services/perfil.js)                                    */
+/*  DESEMPENHO                                                        */
 /* ------------------------------------------------------------------ */
 val PERIODOS = listOf("7" to "7 dias", "30" to "30 dias", "90" to "90 dias")
 
@@ -177,13 +175,13 @@ val CONQUISTAS = listOf(
 )
 
 /* ------------------------------------------------------------------ */
-/*  MISSÕES (services/missoes.js)                                      */
+/*  MISSÕES                                                           */
 /* ------------------------------------------------------------------ */
 data class Missao(
     val id: String,
     val titulo: String,
     val categoria: String,
-    val dificuldade: String, // Fácil | Médio | Difícil
+    val dificuldade: String,
     val resumo: String,
     val progresso: Int,
     val xp: Int,
@@ -213,7 +211,7 @@ val MISSOES = listOf(
 )
 
 /* ------------------------------------------------------------------ */
-/*  HISTÓRICO (services/historico.js)                                  */
+/*  HISTÓRICO                                                         */
 /* ------------------------------------------------------------------ */
 data class Atividade(
     val id: String,
@@ -229,7 +227,8 @@ data class Atividade(
     val detalhes: List<Pair<String, String>> = emptyList(),
 )
 
-val ATIVIDADES = listOf(
+// ✅ MUDOU AQUI: De 'val ATIVIDADES = listOf(...)' para 'val ATIVIDADES = mutableStateListOf(...)'
+val ATIVIDADES = mutableStateListOf(
     Atividade("a1", TipoAtividade.Missao, "Missão concluída", "Reciclagem em Casa", 0, "14:32", 120, 15, 100,
         "Você separou o lixo reciclável por sete dias seguidos. Ótimo trabalho!",
         listOf("Categoria" to "Resíduos", "Dificuldade" to "Fácil", "Duração" to "7 dias")),
@@ -257,7 +256,7 @@ val ATIVIDADES = listOf(
 )
 
 /* ------------------------------------------------------------------ */
-/*  NOTIFICAÇÕES (services/notificacoes.js)                            */
+/*  NOTIFICAÇÕES                                                      */
 /* ------------------------------------------------------------------ */
 data class Notificacao(
     val id: String,

@@ -1,9 +1,9 @@
 package com.vibeeco.app.ui.ranking
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -32,6 +33,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.composables.icons.lucide.Building2
 import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.ChevronUp
@@ -111,14 +113,66 @@ private sealed interface Linha {
 
 @Composable
 fun RankingScreen(
-    montarRanking: (EscopoRanking) -> RankingData,
     onAbrirRecompensas: () -> Unit,
     modifier: Modifier = Modifier,
+    viewModel: RankingViewModel = viewModel()
 ) {
     var escopo by rememberSaveable { mutableStateOf(EscopoRanking.Geral) }
     var expandido by rememberSaveable { mutableStateOf(false) }
 
-    val ranking = remember(escopo, montarRanking) { montarRanking(escopo) }
+    val listaApi = viewModel.entradas
+
+    val ranking = remember(listaApi, escopo) {
+        if (listaApi.isEmpty()) {
+            return@remember RankingData(
+                lista = emptyList(),
+                eu = RankingItem("0", 0, "Você", "VC", "Escola", 1, 0, voce = true),
+                percentual = 0
+            )
+        }
+
+        val todosItens = listaApi.mapIndexed { index, entry ->
+            RankingItem(
+                id = index.toString(),
+                posicao = index + 1,
+                nome = entry.name,
+                iniciais = entry.name.split(" ").take(2).joinToString("") { it.first().toString().uppercase() }.ifEmpty { "VC" },
+                instituicao = entry.course.split("·").firstOrNull()?.trim() ?: "VibeEco",
+                nivel = entry.points / 100 + 1,    // ✅ Calculado a partir do XP
+                xp = entry.points,
+                conquistas = 0,                    // ✅ Fixo (API não retorna)
+                voce = false
+            )
+        }
+
+        val eu = todosItens.firstOrNull { it.nome == "Ana Silva" }
+            ?: todosItens.lastOrNull()
+            ?: RankingItem("0", 0, "Você", "VC", "Escola", 1, 0, voce = true)
+
+        val listaComVoce = todosItens.map {
+            if (it.id == eu.id) it.copy(voce = true) else it
+        }
+
+        RankingData(
+            lista = listaComVoce,
+            eu = eu.copy(voce = true),
+            percentual = 15
+        )
+    }
+
+    if (viewModel.carregando) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = RankColors.Verde600)
+        }
+        return
+    }
+
+    if (viewModel.erro != null) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("Erro ao carregar ranking: ${viewModel.erro}", color = Color.Red)
+        }
+        return
+    }
 
     LazyColumn(
         modifier = modifier
@@ -127,7 +181,6 @@ fun RankingScreen(
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
-        // Cabeçalho + abas (abaixo da barra de status, com respiro no topo)
         item {
             Column(
                 modifier = Modifier.statusBarsPadding().padding(top = 20.dp),
@@ -563,29 +616,8 @@ private fun Avatar(iniciais: String, tamanho: Dp) {
     }
 }
 
-private fun dadosDeExemplo(escopo: EscopoRanking): RankingData {
-    val nomes = listOf(
-        "Marina Costa", "Lucas Almeida", "Beatriz Souza", "Rafael Lima", "Camila Rocha",
-        "Pedro Nunes", "Julia Martins", "Diego Ferreira", "Ana Paula", "Bruno Carvalho",
-    )
-    val lista = nomes.mapIndexed { i, nome ->
-        RankingItem(
-            id = "u$i",
-            posicao = i + 1,
-            nome = nome,
-            iniciais = nome.split(" ").take(2).joinToString("") { it.first().toString() },
-            instituicao = "Escola Verde",
-            nivel = 12 - i,
-            xp = 3200 - i * 210,
-            conquistas = 20 - i,
-        )
-    }
-    val eu = RankingItem("eu", 12, "Você", "VC", "Escola Verde", 6, 1180, 8, voce = true)
-    return RankingData(lista = lista, eu = eu, percentual = 15)
-}
-
 @Preview(showBackground = true, heightDp = 1200)
 @Composable
 private fun RankingScreenPreview() {
-    RankingScreen(montarRanking = ::dadosDeExemplo, onAbrirRecompensas = {})
+    RankingScreen(onAbrirRecompensas = {})
 }

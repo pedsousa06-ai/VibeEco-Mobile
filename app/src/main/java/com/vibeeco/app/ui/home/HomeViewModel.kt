@@ -1,4 +1,3 @@
-
 package com.vibeeco.app.ui.home
 
 import android.util.Log
@@ -7,10 +6,11 @@ import androidx.lifecycle.viewModelScope
 import com.vibeeco.app.data.AppConfig
 import com.vibeeco.app.data.Category
 import com.vibeeco.app.data.Challenge
-import com.vibeeco.app.data.Mission
 import com.vibeeco.app.data.MissaoUi
 import com.vibeeco.app.data.StatusMissao
 import com.vibeeco.app.data.api.RetrofitClient
+import com.vibeeco.app.data.api.model.MissaoApiDto
+import com.vibeeco.app.data.api.model.MissaoCategoriaApiDto
 import com.vibeeco.app.data.api.model.TelaInicioDto
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,7 +20,6 @@ import kotlinx.coroutines.launch
 class HomeViewModel : ViewModel() {
 
     sealed interface HomeUiState {
-
         data object Loading : HomeUiState
 
         data class Success(
@@ -37,14 +36,10 @@ class HomeViewModel : ViewModel() {
 
     private val api = RetrofitClient.vibeApi
 
-    private val _uiState = MutableStateFlow<HomeUiState>(
-        HomeUiState.Loading
-    )
-
+    private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     fun carregarDados(idUsuario: Int = AppConfig.DEV_USER_ID) {
-
         viewModelScope.launch {
             _uiState.value = HomeUiState.Loading
 
@@ -53,32 +48,20 @@ class HomeViewModel : ViewModel() {
                 Log.d("VIBEECO_API", "ID do usuário: $idUsuario")
 
                 val resposta = api.buscarTelaInicial(idUsuario)
-
                 Log.d("VIBEECO_API", "Resposta recebida: $resposta")
 
                 if (resposta.status == false) {
-                    throw Exception(
-                        resposta.message ?: "A API retornou uma resposta inválida."
-                    )
+                    throw Exception(resposta.message ?: "A API retornou uma resposta inválida.")
                 }
 
                 val dados = resposta.response?.telaInicial
-
                 if (dados == null) {
                     throw Exception("A API não retornou os dados da tela inicial.")
                 }
 
-                Log.d("VIBEECO_API", "Dados da tela inicial encontrados")
-                Log.d("VIBEECO_API", "Usuário: ${dados.usuario?.nomeExibicao}")
-                Log.d("VIBEECO_API", "Desafios: ${dados.desafios?.size ?: 0}")
-                Log.d("VIBEECO_API", "Missões: ${dados.missoes?.size ?: 0}")
-                Log.d("VIBEECO_API", "Conteúdos: ${dados.conteudos?.size ?: 0}")
-
-                // Converter desafios reais da API
+                // Converter desafios
                 val desafios = dados.desafios.orEmpty().mapNotNull { desafio ->
-
                     val id = desafio.id ?: return@mapNotNull null
-
                     Challenge(
                         id = id.toString(),
                         title = desafio.nome ?: "Desafio Sustentável",
@@ -89,12 +72,9 @@ class HomeViewModel : ViewModel() {
                     )
                 }
 
-                // Converter missões reais da API
+                // Converter missões (Usando o MissaoApiDto com os atalhos)
                 val missoes = dados.missoes.orEmpty().mapNotNull { missao ->
-
-                    val id = missao.idMissao ?: missao.id
-                    ?: return@mapNotNull null
-
+                    val id = missao.idMissao ?: missao.id ?: return@mapNotNull null
                     val progresso = missao.progresso ?: 0
 
                     val status = when {
@@ -103,22 +83,23 @@ class HomeViewModel : ViewModel() {
                         else -> StatusMissao.Disponivel
                     }
 
+                    val dto = MissaoApiDto(
+                        idMissao = id,
+                        nomeMissao = missao.nome ?: "Missão Sustentável",
+                        nomeDificuldade = missao.dificuldade ?: "Médio",
+                        xpMissao = missao.qtdeXp ?: 0,
+                        prazoDias = missao.prazoDias ?: 0,
+                        progressoMissao = progresso,
+                        categoria = listOf(MissaoCategoriaApiDto(nomeCategoria = "Geral"))
+                    )
+
                     MissaoUi(
-                        missao = Mission(
-                            id = id.toString(),
-                            title = missao.nome ?: "Missão Sustentável",
-                            category = Category.RESIDUOS,
-                            difficulty = missao.dificuldade ?: "Médio",
-                            xp = missao.qtdeXp ?: 0,
-                            deadline = "${missao.prazoDias ?: 0} dias",
-                            progress = progresso
-                        ),
+                        missao = dto,
                         progresso = progresso,
                         status = status
                     )
                 }
 
-                // Extrair ofensiva da API
                 val streak = extrairStreak(dados)
 
                 _uiState.value = HomeUiState.Success(
@@ -127,17 +108,10 @@ class HomeViewModel : ViewModel() {
                     missoesConvertidas = missoes,
                     streakDias = streak
                 )
-
                 Log.d("VIBEECO_API", "Home carregada com sucesso!")
 
             } catch (e: Exception) {
-
-                Log.e(
-                    "VIBEECO_API",
-                    "Falha na requisição da tela inicial",
-                    e
-                )
-
+                Log.e("VIBEECO_API", "Falha na requisição da tela inicial", e)
                 _uiState.value = HomeUiState.Error(
                     "Falha ao carregar dados: ${e.localizedMessage ?: "Erro desconhecido"}"
                 )
@@ -147,9 +121,6 @@ class HomeViewModel : ViewModel() {
 
     private fun extrairStreak(dados: TelaInicioDto): Int {
         val ofensivas = dados.ofensiva.orEmpty()
-
-        // A API retorna registros de ofensiva, não uma quantidade de dias.
-        // Conta os registros marcados como ativos.
         return ofensivas.count { it.statusOfensiva == 1 }
     }
 }
