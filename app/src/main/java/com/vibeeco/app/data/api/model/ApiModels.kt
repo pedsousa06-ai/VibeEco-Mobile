@@ -387,3 +387,138 @@ data class ConcluirConteudoResposta(
     @SerializedName("xpGanho") val xpGanho: Int? = null,
     @SerializedName("concluido") val concluido: Boolean? = null
 )
+
+/* ------------------------------------------------------------------ */
+/* DESAFIOS                                                           */
+/* ------------------------------------------------------------------ */
+
+data class DesafiosWrapper(
+    @SerializedName("usuario_desafio") val usuarioDesafio: List<DesafioApiDto>? = emptyList()
+)
+
+data class CategoriaDesafioDto(
+    @SerializedName("nome_categoria") val nomeCategoria: String? = null
+)
+
+/**
+ * Uma linha de GET /desafios/todosUsuariosDesafiosIdUsuario/{id}: o desafio + a situação do usuário.
+ * Quem ainda não entrou no desafio vem com id_usuario_desafio e status_desafio nulos.
+ * Os números ficam como Any? porque o MySQL às vezes manda string ou decimal (use paraInt()).
+ */
+data class DesafioApiDto(
+    @SerializedName("id_desafio") val idDesafio: Int? = null,
+    @SerializedName("id_usuario_desafio") val idUsuarioDesafio: Int? = null,
+    @SerializedName("nome_desafio") val nomeDesafio: String? = null,
+    @SerializedName("descricao_desafio") val descricaoDesafio: String? = null,
+    @SerializedName("coins_desafio") val coinsDesafio: Any? = null,
+    @SerializedName("tipo_desafio") val tipoDesafio: String? = null,
+    @SerializedName("nome_dificuldade") val nomeDificuldade: String? = null,
+    @SerializedName("meta_participantes") val metaParticipantes: Any? = null,
+    @SerializedName("qtde_participantes") val qtdeParticipantes: Any? = null,
+    @SerializedName("progresso") val progresso: Any? = null,
+    @SerializedName("status_desafio") val statusDesafio: String? = null,
+    @SerializedName("prazo_dias") val prazoDias: Any? = null,
+    @SerializedName("encerrado") val encerrado: Boolean? = null,
+    @SerializedName("categoria") val categoria: List<CategoriaDesafioDto>? = emptyList()
+)
+
+/** POST /usuarioDesafio (participar; também vale para voltar depois de abandonar) */
+data class UsuarioDesafioRequest(
+    @SerializedName("id_usuario") val idUsuario: Int,
+    @SerializedName("id_desafio") val idDesafio: Int
+)
+
+/** PUT /usuarioDesafio/{id}: "CONCLUIDO" ou "ABANDONADO" */
+data class StatusDesafioRequest(
+    @SerializedName("status") val status: String
+)
+
+/** Resposta do POST (id do vínculo) e do PUT (coins_ganhos só quando conclui) */
+data class UsuarioDesafioResposta(
+    @SerializedName("id") val id: Int? = null,
+    @SerializedName("status") val status: String? = null,
+    @SerializedName("coins_ganhos") val coinsGanhos: Any? = null
+)
+
+
+/* ------------------------------------------------------------------ */
+/* PERFIL                                                             */
+/* ------------------------------------------------------------------ */
+
+data class PerfilWrapper(
+    @SerializedName("perfil") val perfil: PerfilApiDto? = null
+)
+
+/** GET /perfil/{id}: dados, desempenho (7, 30 e todo), ranking, evolução de XP e conquistas. */
+data class PerfilApiDto(
+    @SerializedName("usuario") val usuario: PerfilUsuarioApiDto? = null,
+    @SerializedName("desempenho") val desempenho: Map<String, DesempenhoApiDto>? = emptyMap(),
+    @SerializedName("ranking") val ranking: PerfilRankingApiDto? = null,
+    @SerializedName("evolucao_xp") val evolucaoXp: List<SemanaXpApiDto>? = emptyList(),
+    @SerializedName("conquistas") val conquistas: PerfilConquistasApiDto? = null
+)
+
+data class PerfilUsuarioApiDto(
+    @SerializedName("id") val id: Int? = null,
+    @SerializedName("nome") val nome: String? = null,
+    @SerializedName("nome_publico") val nomePublico: String? = null,
+    @SerializedName("email") val email: String? = null,
+    @SerializedName("matricula") val matricula: String? = null,
+    @SerializedName("curso") val curso: String? = null,
+    @SerializedName("localizacao") val localizacao: String? = null,
+    @SerializedName("bio") val bio: String? = null,
+    @SerializedName("foto") val foto: String? = null,
+    @SerializedName("instituicao") val instituicao: String? = null,
+    @SerializedName("nome_level") val nomeLevel: String? = null,
+    @SerializedName("numero_level") val numeroLevel: Int? = null,
+    @SerializedName("xp") val xp: Int? = null,
+    @SerializedName("coins") val coins: Int? = null,
+    @SerializedName("data_cadastro") val dataCadastro: String? = null
+)
+
+data class DesempenhoApiDto(
+    @SerializedName("xp_ganho") val xpGanho: Int? = null,
+    @SerializedName("mc_ganho") val mcGanho: Int? = null,
+    @SerializedName("missoes_concluidas") val missoesConcluidas: Int? = null
+)
+
+data class PerfilRankingApiDto(
+    @SerializedName("posicao") val posicao: Int? = null,
+    @SerializedName("total") val total: Int? = null,
+    @SerializedName("aparece") val aparece: Boolean? = null
+)
+
+data class SemanaXpApiDto(
+    @SerializedName("semana") val semana: Int? = null,
+    @SerializedName("xp") val xp: Int? = null
+)
+
+data class PerfilConquistasApiDto(
+    @SerializedName("total") val total: Int? = null,
+    @SerializedName("desbloqueadas") val desbloqueadas: Int? = null,
+    @SerializedName("lista") val lista: List<ConquistaPerfilApiDto>? = emptyList()
+)
+
+data class ConquistaPerfilApiDto(
+    @SerializedName("id") val id: Int? = null,
+    @SerializedName("nome") val nome: String? = null,
+    @SerializedName("descricao") val descricao: String? = null,
+    @SerializedName("desbloqueada") val desbloqueada: Boolean? = null
+)
+
+/** PUT /perfil/{id} */
+data class PerfilEdicaoRequest(
+    @SerializedName("nome") val nome: String,
+    @SerializedName("nomePublico") val nomePublico: String,
+    @SerializedName("curso") val curso: String,
+    @SerializedName("localizacao") val localizacao: String,
+    @SerializedName("bio") val bio: String
+)
+
+data class PerfilEdicaoResposta(
+    @SerializedName("nome") val nome: String? = null,
+    @SerializedName("nome_publico") val nomePublico: String? = null,
+    @SerializedName("curso") val curso: String? = null,
+    @SerializedName("localizacao") val localizacao: String? = null,
+    @SerializedName("bio") val bio: String? = null
+)

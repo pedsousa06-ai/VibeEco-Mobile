@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -32,7 +33,6 @@ import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.Clock
 import com.composables.icons.lucide.Coins
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.Star
 import com.composables.icons.lucide.User
 import com.composables.icons.lucide.Users
 import com.vibeeco.app.data.Desafio
@@ -50,6 +50,7 @@ fun DesafioDetalheScreen(
     onParticipar: () -> Unit,
     onAbandonar: () -> Unit,
     onConcluir: () -> Unit,
+    ocupado: Boolean = false,
 ) {
     val d = desafio
 
@@ -115,17 +116,18 @@ fun DesafioDetalheScreen(
                             horizontalArrangement = Arrangement.spacedBy(18.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
-                            Fato(Lucide.Star, "${d.xp} XP", Color(0xFF92400E), Color(0xFFF59E0B), negrito = true)
                             Fato(Lucide.Coins, "${d.mc} MC", Color(0xFF15803D), Color(0xFF64748B), negrito = true)
-                            Fato(Lucide.Clock, "${d.rotuloDias} restantes", TextMuted, TextMuted)
+                            Fato(Lucide.Clock, d.rotuloPrazoCompleto, TextMuted, TextMuted)
                             Fato(
                                 if (d.escopo == Escopo.COLETIVO) Lucide.Users else Lucide.User,
-                                "${d.participantes} de ${d.meta} participantes",
+                                if (d.meta != null) "${d.participantes} de ${d.meta} participantes"
+                                else if (d.participantes == 1) "1 participante"
+                                else "${d.participantes} participantes",
                                 TextMuted, TextMuted,
                             )
                         }
 
-                        Medidor("Participação", "${d.participacao}%", d.participacao / 100f)
+                        if (d.meta != null) Medidor("Participação", "${d.participacao}%", d.participacao / 100f)
                     }
                 }
             }
@@ -179,13 +181,14 @@ fun DesafioDetalheScreen(
                             }
 
                             Text("Desafio concluído!", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF92400E))
-                            Text("Você ganhou ${d.xp} XP e ${d.mc} MC.", fontSize = 14.sp, color = Color(0xFF92400E), textAlign = TextAlign.Center)
+                            Text("Você ganhou ${d.mc} MC.", fontSize = 14.sp, color = Color(0xFF92400E), textAlign = TextAlign.Center)
                         }
                     } else if (d.participando) {
                         BotaoDesafio(
-                            texto = "Sim, cumpri o desafio",
+                            texto = if (ocupado) "Enviando…" else "Sim, cumpri o desafio",
                             suave = false,
-                            onClick = onConcluir
+                            onClick = onConcluir,
+                            habilitado = !ocupado,
                         )
                     }
                 }
@@ -193,10 +196,11 @@ fun DesafioDetalheScreen(
         }
 
         item {
-            if (d.participando) {
-                BotaoDesafio("Abandonar desafio", suave = true, onClick = onAbandonar)
-            } else {
-                BotaoDesafio("Participar do desafio", suave = false, onClick = onParticipar)
+            when {
+                d.participando -> BotaoDesafio("Abandonar desafio", suave = true, onClick = onAbandonar, habilitado = !ocupado)
+                d.concluido -> Unit
+                d.encerrado -> BotaoDesafio("Desafio encerrado", suave = true, onClick = {}, habilitado = false)
+                else -> BotaoDesafio("Participar do desafio", suave = false, onClick = onParticipar, habilitado = !ocupado)
             }
         }
     }
@@ -288,7 +292,7 @@ private fun Medidor(rotulo: String, valor: String, progresso: Float) {
 }
 
 @Composable
-private fun BotaoDesafio(texto: String, suave: Boolean, onClick: () -> Unit) {
+private fun BotaoDesafio(texto: String, suave: Boolean, onClick: () -> Unit, habilitado: Boolean = true) {
     val bgColor = if (suave) Color.White else Color(0xFF16A34A)
     val borderColor = if (suave) Color(0xFFDDE7E0) else Color.Transparent
     val textColor = if (suave) Color(0xFFB91C1C) else Color.White
@@ -300,7 +304,8 @@ private fun BotaoDesafio(texto: String, suave: Boolean, onClick: () -> Unit) {
             .clip(RoundedCornerShape(12.dp))
             .background(bgColor)
             .border(1.dp, borderColor, RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick),
+            .alpha(if (habilitado) 1f else 0.45f)
+            .clickable(enabled = habilitado, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Text(

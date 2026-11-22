@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,12 +20,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.composables.icons.lucide.Clock
 import com.composables.icons.lucide.Coins
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.Star
 import com.vibeeco.app.data.Desafio
 import com.vibeeco.app.data.Escopo
 import com.vibeeco.app.ui.components.GradientHeader
@@ -44,6 +45,9 @@ fun DesafiosScreen(
     onOpen: (Desafio) -> Unit,
     onParticipar: (Desafio) -> Unit,
     onAbandonar: (Desafio) -> Unit,
+    carregando: Boolean = false,
+    erro: String? = null,
+    onTentarNovamente: () -> Unit = {},
 ) {
     var aba by remember { mutableStateOf(Aba.TODOS) }
 
@@ -76,6 +80,29 @@ fun DesafiosScreen(
             }
         }
 
+        if (erro != null && desafios.isEmpty()) {
+            item {
+                Column(
+                    Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(vertical = 32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Text(erro, fontSize = 14.sp, color = Color(0xFFB91C1C), textAlign = TextAlign.Center)
+                    BotaoDesafio("Tentar novamente", suave = true, onClick = onTentarNovamente)
+                }
+            }
+            return@LazyColumn
+        }
+
+        if (carregando && desafios.isEmpty()) {
+            item {
+                Box(Modifier.fillMaxWidth().padding(vertical = 40.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = Color(0xFF16A34A))
+                }
+            }
+            return@LazyColumn
+        }
+
         item { Abas(aba, { daAba(it).size }, { aba = it }) }
 
         items(visiveis, key = { it.id }) { d ->
@@ -86,6 +113,18 @@ fun DesafiosScreen(
                 onAbandonar = { onAbandonar(d) },
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
+        }
+
+        if (erro != null) {
+            // erro ao atualizar com a lista já na tela: avisa sem esconder os desafios
+            item {
+                Text(
+                    erro,
+                    fontSize = 12.sp,
+                    color = Color(0xFFB91C1C),
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                )
+            }
         }
 
         if (visiveis.isEmpty()) {
@@ -188,7 +227,15 @@ private fun DesafioCard(
                 )
                 Text(d.descricao, fontSize = 14.sp, lineHeight = 20.sp, color = Color(0xFF4B5D52))
 
-                Medidor("Participação", "${d.participantes}/${d.meta}", d.participacao / 100f)
+                if (d.meta != null) {
+                    Medidor("Participação", "${d.participantes}/${d.meta}", d.participacao / 100f)
+                } else {
+                    Text(
+                        if (d.participantes == 1) "1 participante" else "${d.participantes} participantes",
+                        fontSize = 12.sp,
+                        color = TextMuted,
+                    )
+                }
 
                 if (d.participando) {
                     Medidor(
@@ -199,14 +246,9 @@ private fun DesafioCard(
 
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Lucide.Star, null, tint = Color(0xFFF59E0B), modifier = Modifier.size(14.dp))
-                        Spacer(Modifier.width(5.dp))
-                        Text("${d.xp} XP", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF92400E))
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Lucide.Coins, null, tint = Color(0xFF64748B), modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(5.dp))
-                        Text("${d.mc}", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF15803D))
+                        Text("${d.mc} MC", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF15803D))
                     }
                     Spacer(Modifier.weight(1f))
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -216,8 +258,12 @@ private fun DesafioCard(
                     }
                 }
 
-                if (d.participando) BotaoDesafio("Abandonar desafio", suave = true, onClick = onAbandonar)
-                else BotaoDesafio("Participar do desafio", suave = false, onClick = onParticipar)
+                when {
+                    d.participando -> BotaoDesafio("Abandonar desafio", suave = true, onClick = onAbandonar)
+                    d.concluido -> TagChip("Desafio concluído", Color(0xFFDCF8E6), Color(0xFF15803D))
+                    d.encerrado -> BotaoDesafio("Desafio encerrado", suave = true, onClick = {}, habilitado = false)
+                    else -> BotaoDesafio("Participar do desafio", suave = false, onClick = onParticipar)
+                }
             }
         }
     }

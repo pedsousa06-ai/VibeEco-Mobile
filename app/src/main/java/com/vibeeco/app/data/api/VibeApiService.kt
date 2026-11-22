@@ -68,8 +68,11 @@ interface VibeApiService {
     @GET("missoes/missoesConcluidas/{id}")
     suspend fun listarMissoesConcluidas(@Path("id") idUsuario: Int): ApiResponse<MissoesWrapper>
 
-    @POST("usuarioMissao")
+    @POST("usuario_missao")
     suspend fun entrarMissao(@Body request: UsuarioMissaoRequest): ApiResponse<Any>
+
+    @PUT("usuario_missao/concluir")
+    suspend fun concluirMissao(@Body request: UsuarioMissaoRequest): ApiResponse<Any>
 
     @POST("usuarioEtapa")
     suspend fun concluirEtapa(@Body request: UsuarioEtapaRequest): ApiResponse<Any>
@@ -94,6 +97,29 @@ interface VibeApiService {
         @Path("id") idUsuario: Int,
         @Body request: ConfiguracoesApiDto
     ): ConfiguracoesApiDto
+
+    /* ---------------- Perfil ---------------- */
+    @GET("perfil/{id}")
+    suspend fun buscarPerfil(@Path("id") idUsuario: Int): ApiResponse<PerfilWrapper>
+
+    @PUT("perfil/{id}")
+    suspend fun atualizarPerfil(
+        @Path("id") idUsuario: Int,
+        @Body request: PerfilEdicaoRequest
+    ): ApiResponse<PerfilEdicaoResposta>
+
+    /* ---------------- Desafios ---------------- */
+    @GET("desafios/todosUsuariosDesafiosIdUsuario/{id}")
+    suspend fun listarDesafios(@Path("id") idUsuario: Int): ApiResponse<DesafiosWrapper>
+
+    @POST("usuarioDesafio")
+    suspend fun participarDesafio(@Body request: UsuarioDesafioRequest): ApiResponse<UsuarioDesafioResposta>
+
+    @PUT("usuarioDesafio/{id}")
+    suspend fun atualizarStatusDesafio(
+        @Path("id") idUsuarioDesafio: Int,
+        @Body request: StatusDesafioRequest
+    ): ApiResponse<UsuarioDesafioResposta>
 
     /* ---------------- Conteúdos Educativos ---------------- */
     @GET("conteudoEducativo/usuario/{idUsuario}")

@@ -57,6 +57,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
@@ -112,6 +113,8 @@ import com.composables.icons.lucide.User
 import com.vibeeco.app.data.Progress
 import com.vibeeco.app.data.User
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import com.vibeeco.app.data.api.mensagemDeErro
 import kotlin.math.roundToInt
 
 /* ------------------------------------------------------------------ */
@@ -162,6 +165,9 @@ fun ProfileScreen(
 
     var form by remember(perfil) { mutableStateOf(FormPerfil.de(perfil)) }
     var salvo by remember { mutableStateOf(false) }
+    var salvando by remember { mutableStateOf(false) }
+    var erroSalvar by remember { mutableStateOf<String?>(null) }
+    val escopo = rememberCoroutineScope()
     var periodo by remember { mutableStateOf("30") }
     var aba by remember { mutableStateOf("todas") }
 
@@ -225,12 +231,24 @@ fun ProfileScreen(
                         alterado = alterado,
                         valido = valido,
                         salvo = salvo,
-                        onForm = { form = it },
+                        salvando = salvando,
+                        erro = erroSalvar,
+                        onForm = { form = it; erroSalvar = null },
                         onCancelar = { form = FormPerfil.de(perfil) },
                         onSalvar = {
-                            if (valido) {
-                                PerfilStore.atualizar(form)
-                                salvo = true
+                            if (valido && !salvando) {
+                                salvando = true
+                                erroSalvar = null
+                                escopo.launch {
+                                    try {
+                                        salvarPerfilNaApi(form)
+                                        salvo = true
+                                    } catch (e: Exception) {
+                                        erroSalvar = mensagemDeErro(e, "Não foi possível salvar o perfil.")
+                                    } finally {
+                                        salvando = false
+                                    }
+                                }
                             }
                         },
                     )
@@ -396,7 +414,7 @@ private fun CartaoIdentidade(perfil: PerfilUsuario) {
                     Icon(Lucide.GraduationCap, null, tint = PC.TextoSuave, modifier = Modifier.size(15.dp))
                     Spacer(Modifier.width(6.dp))
                     Text(
-                        "${perfil.curso} • ${perfil.instituicao}", color = PC.TextoSuave, fontSize = 13.sp,
+                        listOf(perfil.curso, perfil.instituicao).filter { it.isNotBlank() }.joinToString(" • ").ifBlank { "—" }, color = PC.TextoSuave, fontSize = 13.sp,
                         textAlign = TextAlign.Center,
                     )
                 }
@@ -406,9 +424,9 @@ private fun CartaoIdentidade(perfil: PerfilUsuario) {
                     horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Selo(Lucide.Sparkles, perfil.nivel)
-                    Selo(Lucide.MapPin, perfil.localizacao)
-                    Selo(Lucide.CalendarDays, "Desde ${perfil.desde}")
+                    if (perfil.nivel.isNotBlank()) Selo(Lucide.Sparkles, perfil.nivel)
+                    if (perfil.localizacao.isNotBlank()) Selo(Lucide.MapPin, perfil.localizacao)
+                    if (perfil.desde.isNotBlank()) Selo(Lucide.CalendarDays, "Desde ${perfil.desde}")
                 }
 
                 Spacer(Modifier.height(18.dp))
@@ -482,6 +500,8 @@ private fun CartaoEdicao(
     alterado: Boolean,
     valido: Boolean,
     salvo: Boolean,
+    salvando: Boolean,
+    erro: String?,
     onForm: (FormPerfil) -> Unit,
     onCancelar: () -> Unit,
     onSalvar: () -> Unit,
@@ -498,7 +518,7 @@ private fun CartaoEdicao(
                 "E-mail institucional", perfil.email, {},
                 habilitado = false, etiqueta = "Não editável", teclado = KeyboardType.Email,
             )
-            CampoTexto("Matrícula", perfil.matricula, {}, habilitado = false, etiqueta = "Não editável")
+            CampoTexto("Matrícula", perfil.matricula.ifBlank { "—" }, {}, habilitado = false, etiqueta = "Não editável")
             CampoTexto("Curso", form.curso, { onForm(form.copy(curso = it)) })
             CampoTexto("Localização", form.localizacao, { onForm(form.copy(localizacao = it)) })
             CampoTexto(
@@ -520,9 +540,16 @@ private fun CartaoEdicao(
                 }
             }
 
+            if (erro != null) {
+                Text(erro, color = Color(0xFFB91C1C), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+            }
+
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                BotaoGradiente("Cancelar", Modifier.weight(1f), suave = true, habilitado = alterado, onClick = onCancelar)
-                BotaoGradiente("Salvar alterações", Modifier.weight(1f), habilitado = alterado && valido, onClick = onSalvar)
+                BotaoGradiente("Cancelar", Modifier.weight(1f), suave = true, habilitado = alterado && !salvando, onClick = onCancelar)
+                BotaoGradiente(
+                    if (salvando) "Salvando..." else "Salvar alterações", Modifier.weight(1f),
+                    habilitado = alterado && valido && !salvando, onClick = onSalvar,
+                )
             }
         }
     }
@@ -665,8 +692,9 @@ private fun CartaoDesempenhoView(c: CartaoDesempenho, periodoRotulo: String, mod
 @Composable
 private fun GraficoXp(ativo: Boolean) {
     var selecionada by remember { mutableStateOf<Int?>(null) }
-    val maximo = remember { EVOLUCAO_XP.maxOf { it.xp } }
-    val ultima = EVOLUCAO_XP.lastIndex
+    val semanas = PerfilDados.evolucao
+    val maximo = (semanas.maxOfOrNull { it.xp } ?: 0).coerceAtLeast(1)
+    val ultima = semanas.lastIndex
 
     Cartao {
         Column(Modifier.padding(20.dp)) {
@@ -691,12 +719,12 @@ private fun GraficoXp(ativo: Boolean) {
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     Icon(Lucide.TrendingUp, null, tint = PC.Verde700, modifier = Modifier.size(13.dp))
-                    Text(EVOLUCAO_VARIACAO, color = PC.Verde900, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text(PerfilDados.evolucaoVariacao, color = PC.Verde900, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
             Text(
-                text = selecionada?.let { "Semana ${EVOLUCAO_XP[it].semana} · ${EVOLUCAO_XP[it].xp} XP" }
+                text = selecionada?.let { semanas.getOrNull(it) }?.let { "Semana ${it.semana} · ${it.xp} XP" }
                     ?: "Toque em uma barra para ver o XP",
                 color = if (selecionada != null) PC.Verde700 else PC.TextoSuave,
                 fontSize = 12.sp,
@@ -709,9 +737,9 @@ private fun GraficoXp(ativo: Boolean) {
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.Bottom,
             ) {
-                EVOLUCAO_XP.forEachIndexed { i, s ->
+                semanas.forEachIndexed { i, s ->
                     val fracao by animateFloatAsState(
-                        targetValue = if (ativo) s.altura(maximo) else 0f,
+                        targetValue = if (ativo && s.xp > 0) s.altura(maximo) else 0f,
                         animationSpec = tween(600, delayMillis = 20 * i, easing = FastOutSlowInEasing),
                         label = "barra$i",
                     )
@@ -746,7 +774,7 @@ private fun GraficoXp(ativo: Boolean) {
             }
 
             Row(Modifier.fillMaxWidth().padding(top = 6.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                EVOLUCAO_XP.forEach { s ->
+                semanas.forEach { s ->
                     Text(
                         s.semana, Modifier.weight(1f), color = PC.TextoSuave, fontSize = 9.sp,
                         textAlign = TextAlign.Center, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip,
@@ -759,17 +787,18 @@ private fun GraficoXp(ativo: Boolean) {
 
 @Composable
 private fun CartaoConquistas() {
-    val desbloqueadas = CONQUISTAS.count { it.desbloqueada }
+    val conquistas = PerfilDados.conquistas
+    val desbloqueadas = conquistas.count { it.desbloqueada }
     Cartao(fundo = PC.Fundo) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Column(Modifier.padding(bottom = 6.dp)) {
                 Text("Conquistas recentes", color = PC.Texto, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 Text(
-                    "$desbloqueadas de $TOTAL_EMBLEMAS emblemas desbloqueados",
+                    "$desbloqueadas de ${PerfilDados.totalConquistas} emblemas desbloqueados",
                     color = PC.TextoSuave, fontSize = 12.sp, modifier = Modifier.padding(top = 2.dp),
                 )
             }
-            CONQUISTAS.forEachIndexed { i, c ->
+            conquistas.forEachIndexed { i, c ->
                 Revelar(atraso = 40 * (i % 3)) { LinhaConquista(c) }
             }
         }
@@ -864,7 +893,7 @@ private fun LinhaConta(icone: ImageVector, titulo: String, corTexto: Color, corI
 private fun SecaoMissoes(aba: String, onAba: (String) -> Unit, onAbrirMissao: (String) -> Unit) {
     val contagens = remember {
         ABAS.associate { (valor, _) ->
-            valor to if (valor == "todas") MISSOES.size else MISSOES.count { it.status == valor }
+            valor to if (valor == "todas") PerfilDados.missoes.size else PerfilDados.missoes.count { it.status == valor }
         }
     }
     Cartao {
@@ -876,7 +905,7 @@ private fun SecaoMissoes(aba: String, onAba: (String) -> Unit, onAbrirMissao: (S
             Segmentos(ABAS, aba, onAba, contagens = contagens)
 
             Crossfade(targetState = aba, animationSpec = tween(300), label = "abaMissoes") { atual ->
-                val lista = if (atual == "todas") MISSOES else MISSOES.filter { it.status == atual }
+                val lista = if (atual == "todas") PerfilDados.missoes else PerfilDados.missoes.filter { it.status == atual }
                 Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                     if (lista.isEmpty()) {
                         EstadoVazio(Lucide.Target, "Nenhuma missão nesta aba", "Quando houver missões aqui, elas aparecem nesta lista.")

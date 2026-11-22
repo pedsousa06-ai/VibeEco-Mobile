@@ -3,6 +3,10 @@ package com.vibeeco.app.navigation
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -62,6 +66,8 @@ import com.vibeeco.app.ui.learn.LearnScreen
 import com.vibeeco.app.ui.missions.MissaoDetalheScreen
 import com.vibeeco.app.ui.missions.MissoesScreen
 import com.vibeeco.app.ui.profile.ConfiguracoesScreen
+import com.vibeeco.app.ui.profile.carregarMissoesDoPerfil
+import com.vibeeco.app.ui.profile.carregarPerfilDaApi
 import com.vibeeco.app.ui.profile.carregarConfiguracoes
 import com.vibeeco.app.ui.profile.carregarHistorico
 import com.vibeeco.app.ui.profile.carregarNotificacoes
@@ -290,10 +296,19 @@ fun VibeNavHost() {
                 )
             }
             composable(Routes.CHALLENGES) {
+                // atualiza a lista (participantes, prazo, situação) toda vez que a aba é aberta
+                LaunchedEffect(Unit) { desafiosVm.carregar() }
                 DesafiosScreen(
                     desafios = desafiosVm.desafios,
+                    carregando = desafiosVm.carregando,
+                    erro = desafiosVm.erro,
+                    onTentarNovamente = { desafiosVm.carregar() },
                     onOpen = { nav.navigate(Routes.desafio(it.id)) },
-                    onParticipar = { desafiosVm.participar(it.id); nav.navigate(Routes.desafio(it.id)) },
+                    onParticipar = { d ->
+                        desafiosVm.participar(d.id) { msg ->
+                            if (msg == null) nav.navigate(Routes.desafio(d.id)) else toast(msg)
+                        }
+                    },
                     onAbandonar = { desafioParaAbandonar = it.id },
                 )
             }
@@ -303,10 +318,22 @@ fun VibeNavHost() {
                 if (desafio != null) {
                     DesafioDetalheScreen(
                         desafio = desafio, onBack = { nav.popBackStack() },
-                        onParticipar = { desafiosVm.participar(id) },
+                        onParticipar = { desafiosVm.participar(id) { msg -> if (msg != null) toast(msg) } },
                         onAbandonar = { desafioParaAbandonar = id },
-                        onConcluir = { toast("Desafio concluído!") },
+                        onConcluir = {
+                            desafiosVm.concluir(id) { moedas, msg ->
+                                toast(msg ?: if (moedas > 0) "Desafio concluído! +$moedas MC" else "Desafio concluído!")
+                            }
+                        },
+                        ocupado = desafiosVm.ocupado,
                     )
+                } else {
+                    Box(Modifier.fillMaxSize().statusBarsPadding().padding(24.dp), contentAlignment = Alignment.Center) {
+                        Text(
+                            if (desafiosVm.carregando) "Carregando…" else "Desafio não encontrado.",
+                            color = Color(0xFF52665A),
+                        )
+                    }
                 }
             }
             composable(Routes.MISSOES) {
@@ -405,6 +432,10 @@ fun VibeNavHost() {
                 if (u != null) {
                     val nivel = "Nível ${vm.progress.points / 100 + 1}"
                     LaunchedEffect(u.name, u.email, nivel) { PerfilStore.sincronizar(u.name, u.email, nivel) }
+                    LaunchedEffect(Unit) {
+                        try { carregarPerfilDaApi() } catch (e: Exception) { toast("Não foi possível carregar o perfil.") }
+                        try { carregarMissoesDoPerfil() } catch (e: Exception) { /* missões do perfil ficam vazias */ }
+                    }
                     ProfileScreen(
                         onAbrirConfiguracoes = { nav.navigate(Routes.CONFIGURACOES) }, onAbrirHistorico = { nav.navigate(Routes.HISTORICO) },
                         onAbrirNotificacoes = { nav.navigate(Routes.NOTIFICACOES) }, onAbrirMissao = { _ -> nav.goToTab(Routes.MISSOES) },
@@ -432,7 +463,10 @@ fun VibeNavHost() {
 
     desafioParaAbandonar?.let { id ->
         ConfirmarAbandonoDialog(
-            onConfirmar = { desafiosVm.abandonar(id); desafioParaAbandonar = null },
+            onConfirmar = {
+                desafiosVm.abandonar(id) { msg -> if (msg != null) toast(msg) }
+                desafioParaAbandonar = null
+            },
             onCancelar = { desafioParaAbandonar = null },
         )
     }
