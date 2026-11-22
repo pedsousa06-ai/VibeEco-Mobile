@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -94,6 +95,7 @@ fun BotaoDesafio(
     suave: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    habilitado: Boolean = true,
 ) {
     val fundo: Brush = if (suave) SolidColor(Color(0xFFEEF2EF))
     else Brush.horizontalGradient(listOf(Color(0xFF0F6B34), Color(0xFF1FA856)))
@@ -102,7 +104,8 @@ fun BotaoDesafio(
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .background(fundo)
-            .clickable(onClick = onClick)
+            .alpha(if (habilitado) 1f else 0.45f)
+            .clickable(enabled = habilitado, onClick = onClick)
             .padding(vertical = 13.dp),
         contentAlignment = Alignment.Center,
     ) {

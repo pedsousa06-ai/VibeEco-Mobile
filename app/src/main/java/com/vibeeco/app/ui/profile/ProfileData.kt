@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.composables.icons.lucide.BookOpen
 import com.composables.icons.lucide.Flame
+import com.composables.icons.lucide.Coins
 import com.composables.icons.lucide.Gift
 import com.composables.icons.lucide.Leaf
 import com.composables.icons.lucide.Lucide
@@ -40,14 +41,14 @@ data class PerfilUsuario(
     val nome: String = "",
     val nomePublico: String = "",
     val email: String = "",
-    val matricula: String = "2024001234",
-    val curso: String = "Engenharia Ambiental",
-    val localizacao: String = "São Paulo, SP",
-    val bio: String = "Apaixonado(a) por sustentabilidade 🌱",
+    val matricula: String = "",
+    val curso: String = "",
+    val localizacao: String = "",
+    val bio: String = "",
     val foto: String = "",
-    val instituicao: String = "VibeEco",
+    val instituicao: String = "",
     val nivel: String = "Nível 1",
-    val desde: String = "2026",
+    val desde: String = "",
 ) {
     val iniciais: String
         get() = nome.trim().split(" ").filter { it.isNotBlank() }.take(2)
@@ -71,7 +72,18 @@ object PerfilStore {
         private set
     private var sincronizado = false
 
+    /** true depois que o perfil veio da API: a partir daí o nome, o e-mail e o nível são os do servidor. */
+    var daApi by mutableStateOf(false)
+        private set
+
+    /** Substitui o perfil pelos dados reais vindos da API (GET /perfil/{id}). */
+    fun aplicarApi(p: PerfilUsuario) {
+        perfil = p
+        daApi = true
+    }
+
     fun sincronizar(nome: String?, email: String?, nivel: String) {
+        if (daApi) return
         if (sincronizado) {
             perfil = perfil.copy(nivel = nivel)
             return
@@ -113,9 +125,9 @@ class Configuracoes {
 val configuracoes = Configuracoes()
 
 /* ------------------------------------------------------------------ */
-/*  DESEMPENHO                                                        */
+/*  DESEMPENHO, EVOLUÇÃO E CONQUISTAS (dados reais da API)             */
 /* ------------------------------------------------------------------ */
-val PERIODOS = listOf("7" to "7 dias", "30" to "30 dias", "90" to "90 dias")
+val PERIODOS = listOf("7" to "7 dias", "30" to "30 dias", "todo" to "Todo período")
 
 data class CartaoDesempenho(
     val id: String,
@@ -125,34 +137,9 @@ data class CartaoDesempenho(
     val nota: String,
 )
 
-fun obterDesempenho(periodo: String): List<CartaoDesempenho> = when (periodo) {
-    "7" -> listOf(
-        CartaoDesempenho("xp", Lucide.Zap, "480", "XP ganho", "+12% vs. semana anterior"),
-        CartaoDesempenho("missoes", Lucide.Target, "3", "Missões concluídas", "1 em andamento"),
-        CartaoDesempenho("desafios", Lucide.Flame, "1", "Desafios", "Sequência de 4 dias"),
-        CartaoDesempenho("co2", Lucide.Leaf, "1,2 kg", "CO₂ evitado", "Equivale a 6 km de carro"),
-    )
-    "90" -> listOf(
-        CartaoDesempenho("xp", Lucide.Zap, "5.400", "XP ganho", "+22% vs. trimestre anterior"),
-        CartaoDesempenho("missoes", Lucide.Target, "29", "Missões concluídas", "3 em andamento"),
-        CartaoDesempenho("desafios", Lucide.Flame, "8", "Desafios", "Maior sequência: 21 dias"),
-        CartaoDesempenho("co2", Lucide.Leaf, "16,3 kg", "CO₂ evitado", "Equivale a 81 km de carro"),
-    )
-    else -> listOf(
-        CartaoDesempenho("xp", Lucide.Zap, "1.950", "XP ganho", "+18% vs. mês anterior"),
-        CartaoDesempenho("missoes", Lucide.Target, "11", "Missões concluídas", "2 em andamento"),
-        CartaoDesempenho("desafios", Lucide.Flame, "3", "Desafios", "Maior sequência: 12 dias"),
-        CartaoDesempenho("co2", Lucide.Leaf, "5,8 kg", "CO₂ evitado", "Equivale a 29 km de carro"),
-    )
-}
-
 data class SemanaXp(val semana: String, val xp: Int) {
     fun altura(maximo: Int): Float = (xp.toFloat() / maximo).coerceIn(0.04f, 1f)
 }
-
-val EVOLUCAO_VARIACAO = "+18%"
-val EVOLUCAO_XP = listOf(120, 180, 150, 260, 210, 300, 280, 340, 320, 400, 380, 450)
-    .mapIndexed { i, xp -> SemanaXp("S${i + 1}", xp) }
 
 data class Conquista(
     val id: String,
@@ -163,16 +150,40 @@ data class Conquista(
     val desbloqueada: Boolean,
 )
 
-const val TOTAL_EMBLEMAS = 12
+data class GanhosPeriodo(val xp: Int = 0, val mc: Int = 0, val missoes: Int = 0)
 
-val CONQUISTAS = listOf(
-    Conquista("c1", "Eco Iniciante", "Complete sua 1ª missão", Lucide.Leaf, Color(0xFF16A34A), true),
-    Conquista("c2", "Leitor Verde", "Leia 5 conteúdos", Lucide.BookOpen, Color(0xFF3B6FE0), true),
-    Conquista("c3", "Sequência de fogo", "7 dias seguidos", Lucide.Flame, Color(0xFFE8590C), true),
-    Conquista("c4", "Top 10", "Entre no top 10 da semana", Lucide.Trophy, Color(0xFFD97706), false),
-    Conquista("c5", "Mestre das missões", "Conclua 20 missões", Lucide.Target, Color(0xFFE8590C), false),
-    Conquista("c6", "Colecionador", "Resgate 3 recompensas", Lucide.Gift, Color(0xFF16A34A), false),
-)
+/** Tudo que a tela de perfil mostra além dos dados pessoais. É preenchido por carregarPerfilDaApi(). */
+object PerfilDados {
+    var xpTotal by mutableStateOf(0)
+    var posicao by mutableStateOf<Int?>(null)
+    var totalParticipantes by mutableStateOf(0)
+    var ganhos by mutableStateOf<Map<String, GanhosPeriodo>>(emptyMap())
+    var evolucao by mutableStateOf<List<SemanaXp>>(emptyList())
+    var evolucaoVariacao by mutableStateOf("—")
+    var conquistas by mutableStateOf<List<Conquista>>(emptyList())
+    var totalConquistas by mutableStateOf(0)
+    var missoes by mutableStateOf<List<Missao>>(emptyList())
+}
+
+private fun milhar(n: Int): String = "%,d".format(java.util.Locale("pt", "BR"), n)
+
+private val NOTA_PERIODO = mapOf("7" to "nos últimos 7 dias", "30" to "nos últimos 30 dias", "todo" to "desde o início")
+
+fun obterDesempenho(periodo: String): List<CartaoDesempenho> {
+    val g = PerfilDados.ganhos[periodo] ?: GanhosPeriodo()
+    val nota = NOTA_PERIODO[periodo] ?: ""
+    val total = PerfilDados.totalParticipantes
+    return listOf(
+        CartaoDesempenho("xp", Lucide.Zap, milhar(PerfilDados.xpTotal), "XP acumulado", "+${milhar(g.xp)} $nota"),
+        CartaoDesempenho(
+            "ranking", Lucide.Trophy,
+            PerfilDados.posicao?.let { "#$it" } ?: "—", "Posição no ranking",
+            if (total > 0) "Entre ${milhar(total)} participantes" else "Ranking indisponível",
+        ),
+        CartaoDesempenho("missoes", Lucide.Target, "${g.missoes}", "Missões concluídas", nota),
+        CartaoDesempenho("mc", Lucide.Coins, milhar(g.mc), "Moedas Verdes ganhas", nota),
+    )
+}
 
 /* ------------------------------------------------------------------ */
 /*  MISSÕES                                                           */
@@ -202,13 +213,6 @@ fun rotuloPrazo(dias: Int): String = when {
     else -> "Faltam $dias dias"
 }
 
-val MISSOES = listOf(
-    Missao("m1", "Reciclagem em Casa", "Resíduos", "Fácil", "Separe o lixo reciclável por uma semana.", 100, 120, 15),
-    Missao("m2", "Consumo Consciente de Água", "Água", "Médio", "Reduza o tempo de banho e registre sua economia.", 60, 200, 25, 5),
-    Missao("m3", "Semana sem Plástico", "Consumo", "Difícil", "Evite plásticos descartáveis por 7 dias.", 25, 350, 40, 9),
-    Missao("m4", "Horta no Apartamento", "Alimentação", "Médio", "Monte uma mini horta com temperos.", 0, 180, 20, 14),
-    Missao("m5", "Transporte Limpo", "Mobilidade", "Fácil", "Use bike ou transporte público 3 vezes.", 0, 90, 10),
-)
 
 /* ------------------------------------------------------------------ */
 /*  HISTÓRICO                                                         */
