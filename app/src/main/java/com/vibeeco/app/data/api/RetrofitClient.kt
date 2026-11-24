@@ -2,6 +2,7 @@ package com.vibeeco.app.data.api
 
 import com.google.gson.GsonBuilder
 import com.vibeeco.app.data.AppConfig
+import com.vibeeco.app.data.Session
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -16,6 +17,21 @@ object RetrofitClient {
 
     private val okHttpClient: OkHttpClient by lazy {
         OkHttpClient.Builder()
+            .addInterceptor { chain ->
+                // envia o JWT em todas as chamadas e detecta token recusado pela API
+                val original = chain.request()
+                val token = Session.token
+                val requisicao = if (token != null && original.header("Authorization") == null)
+                    original.newBuilder().header("Authorization", "Bearer $token").build()
+                else original
+                val resposta = chain.proceed(requisicao)
+                if (token != null && resposta.code == 401 &&
+                    resposta.peekBody(2048).string().contains("TOKEN_INVALIDO")
+                ) {
+                    Session.expirada = true
+                }
+                resposta
+            }
             .addInterceptor(loggingInterceptor)
             .connectTimeout(AppConfig.NETWORK_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .readTimeout(AppConfig.NETWORK_TIMEOUT_SECONDS, TimeUnit.SECONDS)

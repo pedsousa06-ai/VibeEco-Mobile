@@ -74,6 +74,7 @@ import com.vibeeco.app.ui.profile.carregarNotificacoes
 import com.vibeeco.app.ui.profile.salvarConfiguracoesAoMudar
 import com.vibeeco.app.ui.profile.HistoricoScreen
 import com.vibeeco.app.ui.profile.NotificacoesScreen
+import com.vibeeco.app.ui.profile.PerfilDados
 import com.vibeeco.app.ui.profile.PerfilStore
 import com.vibeeco.app.ui.profile.ProfileScreen
 import com.vibeeco.app.ui.profile.TipoAtividade
@@ -182,6 +183,16 @@ fun VibeNavHost() {
 
     fun toast(msg: String) { Toast.makeText(context, msg, Toast.LENGTH_SHORT).show() }
 
+    // a API recusou o token (vencido/inválido): volta para o login
+    if (Session.expirada) {
+        LaunchedEffect(Unit) {
+            vm.logout()
+            Session.expirada = false
+            toast("Sua sessão expirou. Entre novamente.")
+            nav.goToLogin()
+        }
+    }
+
     val onToggleChallenge: (Challenge) -> Unit = { c ->
         if (vm.toggleChallenge(c)) { toast("+${c.points} pontos!") }
     }
@@ -232,7 +243,6 @@ fun VibeNavHost() {
             composable(Routes.LOGIN) {
                 LoginScreen(
                     onLogin = { id, password, remember ->
-                        delay(600)
                         when (val result = vm.login(id, password, remember)) {
                             LoginResult.Success -> { nav.navigate(Routes.HOME) { popUpTo(Routes.LOGIN) { inclusive = true } }; null }
                             LoginResult.FirstAccess -> { nav.navigate(Routes.FIRST_ACCESS); null }
@@ -245,7 +255,7 @@ fun VibeNavHost() {
             }
             composable(Routes.FORGOT) {
                 ForgotPasswordScreen(
-                    onSendLink = { email -> delay(900); if (vm.startRecovery(email)) null else "E-mail não encontrado." },
+                    onSendLink = { email -> vm.startRecovery(email) },
                     onContinueToCode = { email -> nav.navigate(Routes.verify(email)) },
                     onBackToLogin = { nav.popBackStack(Routes.LOGIN, false) },
                 )
@@ -254,8 +264,8 @@ fun VibeNavHost() {
                 VerifyCodeScreen(
                     email = backStackEntry.arguments?.getString("email").orEmpty(),
                     demoCode = vm.pendingCode,
-                    onVerify = { _, code -> delay(600); vm.verifyCode(code) },
-                    onResend = { vm.resendCode() },
+                    onVerify = { _, code -> vm.verifyCode(code) },
+                    onResend = { _ -> vm.resendCode() },
                     onVerified = { nav.navigate(Routes.RESET) { popUpTo(Routes.FORGOT) { inclusive = true } } },
                     onBack = { nav.popBackStack() },
                 )
@@ -263,15 +273,15 @@ fun VibeNavHost() {
             composable(Routes.RESET) {
                 NewPasswordScreen(
                     mode = PasswordMode.Reset,
-                    onSave = { _, new -> delay(700); if (vm.resetPassword(new)) null else "Sessão expirada." },
+                    onSave = { _, new -> vm.resetPassword(new) },
                     onSaved = { toast("Senha redefinida!"); nav.goToLogin() },
                 )
             }
             composable(Routes.FIRST_ACCESS) {
                 FirstAccessScreen(
                     initialEmail = vm.user?.email.orEmpty(),
-                    onVerifyUser = { id -> delay(400); vm.verifyFirstAccessUser(id) },
-                    onComplete = { id, current, new -> delay(600); vm.completeFirstAccess(id, current, new) },
+                    onVerifyUser = { id -> vm.verifyFirstAccessUser(id) },
+                    onComplete = { id, current, new -> vm.completeFirstAccess(id, current, new) },
                     onSuccess = { toast("Senha criada!"); nav.navigate(Routes.HOME) { popUpTo(nav.graph.findStartDestination().id) { inclusive = true } } },
                     onBackToLogin = { nav.popBackStack(Routes.LOGIN, false) },
                 )
@@ -279,7 +289,7 @@ fun VibeNavHost() {
             composable(Routes.CHANGE_PASSWORD) {
                 NewPasswordScreen(
                     mode = PasswordMode.Change,
-                    onSave = { current, new -> delay(700); vm.changePassword(current, new) },
+                    onSave = { current, new -> vm.changePassword(current, new) },
                     onSaved = { toast("Senha alterada!"); nav.popBackStack() },
                     onBack = { nav.popBackStack() },
                 )
@@ -386,8 +396,10 @@ fun VibeNavHost() {
             composable(Routes.RECOMPENSAS) {
                 val resgates = remember { mutableStateListOf<Resgate>() }
                 val gasto = resgates.sumOf { it.preco }
-                val saldo = (vm.progress.points - gasto).coerceAtLeast(0)
-                val nivel = vm.progress.points / 100 + 1
+                LaunchedEffect(Unit) { if (!PerfilStore.daApi) try { carregarPerfilDaApi() } catch (e: Exception) { } }
+                val xp = if (PerfilStore.daApi) PerfilDados.xpTotal else vm.progress.points
+                val saldo = (xp - gasto).coerceAtLeast(0)
+                val nivel = xp / 100 + 1
                 RecompensasScreen(
                     saldo = saldo, totalResgatado = gasto, nivelUsuario = nivel, recompensas = catalogoRecompensas, resgates = resgates,
                     onVoltar = { if (!nav.popBackStack(Routes.RANKING, false)) { nav.goToTab(Routes.RANKING) } },
@@ -421,7 +433,9 @@ fun VibeNavHost() {
                 }
             }
             composable(Routes.COMMUNITY) {
-                FeedScreen(usuarioNome = vm.user?.name ?: "Visitante", usuarioNivel = "Nível ${vm.progress.points / 100 + 1}", onAbrirPost = { id -> nav.navigate(Routes.post(id)) })
+                LaunchedEffect(Unit) { if (!PerfilStore.daApi) try { carregarPerfilDaApi() } catch (e: Exception) { } }
+                val xpFeed = if (PerfilStore.daApi) PerfilDados.xpTotal else vm.progress.points
+                FeedScreen(usuarioNome = vm.user?.name ?: "Visitante", usuarioNivel = if (PerfilStore.daApi) PerfilStore.perfil.nivel else "Nível ${xpFeed / 100 + 1}", onAbrirPost = { id -> nav.navigate(Routes.post(id)) })
             }
             composable(Routes.POST_DETALHE, arguments = listOf(navArgument("id") { type = NavType.StringType })) { backStackEntry ->
                 val id = backStackEntry.arguments?.getString("id").orEmpty()

@@ -8,6 +8,22 @@ import retrofit2.http.*
 
 interface VibeApiService {
 
+    // ---------- autenticação ----------
+    @POST("auth/login")
+    suspend fun login(@Body request: LoginRequest): ApiResponse<LoginResposta>
+
+    @POST("auth/recuperarAcesso")
+    suspend fun recuperarAcesso(@Body request: EmailRequest): ApiResponse<RecuperacaoResposta>
+
+    @POST("auth/validarCodigo")
+    suspend fun validarCodigo(@Body request: ValidarCodigoRequest): ApiResponse<TokenResposta>
+
+    @POST("auth/redefinirSenha")
+    suspend fun redefinirSenha(@Body request: RedefinirSenhaRequest): ApiResponse<Any>
+
+    @POST("auth/primeiroAcesso")
+    suspend fun primeiroAcesso(@Body request: PrimeiroAcessoRequest): ApiResponse<Any>
+
     @GET("telaInicio/{id}")
     suspend fun buscarTelaInicial(@Path("id") idUsuario: Int): ApiResponse<TelaInicioWrapper>
 

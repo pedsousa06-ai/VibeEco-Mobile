@@ -46,6 +46,32 @@ class Store(context: Context) {
             e.apply()
         }
 
+    // ---------- sessão da API (JWT) ----------
+    var authToken: String?
+        get() = sp.getString("auth_token", null)
+        set(v) { val e = sp.edit(); if (v == null) e.remove("auth_token") else e.putString("auth_token", v); e.apply() }
+
+    var authUserId: Int
+        get() = sp.getInt("auth_user_id", 0)
+        set(v) { sp.edit().putInt("auth_user_id", v).apply() }
+
+    var authName: String
+        get() = sp.getString("auth_name", "") ?: ""
+        set(v) { sp.edit().putString("auth_name", v).apply() }
+
+    var authEmail: String
+        get() = sp.getString("auth_email", "") ?: ""
+        set(v) { sp.edit().putString("auth_email", v).apply() }
+
+    var authMatricula: String
+        get() = sp.getString("auth_matricula", "") ?: ""
+        set(v) { sp.edit().putString("auth_matricula", v).apply() }
+
+    fun limparAuth() {
+        sp.edit().remove("auth_token").remove("auth_user_id").remove("auth_name")
+            .remove("auth_email").remove("auth_matricula").apply()
+    }
+
     // ---------- contas ----------
     fun accounts(): List<Account> {
         val arr = JSONArray(sp.getString("accounts", "[]"))
