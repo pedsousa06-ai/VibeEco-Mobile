@@ -5,6 +5,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
+import com.vibeeco.app.data.api.RetrofitClient
+import com.vibeeco.app.data.api.garantirSucesso
+import com.vibeeco.app.data.api.mensagemDeErro
+import com.vibeeco.app.data.api.model.EmailRequest
+import com.vibeeco.app.data.api.model.LoginRequest
+import com.vibeeco.app.data.api.model.PrimeiroAcessoRequest
+import com.vibeeco.app.data.api.model.RedefinirSenhaRequest
+import com.vibeeco.app.data.api.model.ValidarCodigoRequest
+import com.vibeeco.app.data.api.valorOuErro
 import java.time.LocalDate
 
 sealed interface LoginResult {
@@ -27,12 +36,21 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         private set
 
     private var pendingEmail: String? = null
-    private var codeVerified = false
+    private var resetToken: String? = null
+
+    private val api get() = RetrofitClient.vibeApi
 
     val onboardingSeen: Boolean get() = store.onboardingSeen
 
     init {
-        store.sessionEmail?.let { email -> store.findAccount(email)?.let { load(it) } }
+        // restaura a sessão guardada (token JWT ainda dentro da validade)
+        val token = store.authToken
+        if (Session.tokenVigente(token) && store.authUserId > 0) {
+            Session.iniciar(store.authUserId, token!!)
+            carregarUsuario(store.authName, store.authEmail, store.authMatricula)
+        } else {
+            store.limparAuth()
+        }
     }
 
     // ---------- sessão ----------
@@ -46,18 +64,16 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         return n
     }
 
-    // ✅ TOTALMENTE LIMPO E CORRIGIDO
-    private fun load(acc: Account) {
+    private fun carregarUsuario(nome: String, email: String, matricula: String) {
         user = User(
-            name = acc.name,
-            email = acc.email,
-            matricula = acc.matricula,
-            mustChangePassword = acc.mustChange,
-            registration = acc.matricula // Usando matricula para preencher registration também
+            name = nome,
+            email = email,
+            matricula = matricula,
+            mustChangePassword = false,
+            registration = matricula,
         )
-        progress = normalize(store.loadProgress(acc.email))
+        progress = normalize(store.loadProgress(email))
     }
-
 
     private fun update(p: Progress) {
         progress = p
@@ -66,89 +82,124 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     fun finishOnboarding() { store.onboardingSeen = true }
 
-    fun login(identifier: String, password: String, remember: Boolean): LoginResult {
-        val acc: Account
-        if (AppConfig.SIMULATED_LOGIN) {
-            // Login simulado: usa a conta digitada, se existir; senão, a conta de demonstração.
-            acc = store.findAccount(identifier)
-                ?: store.findAccount(AppConfig.DEMO_EMAIL)
-                        ?: return LoginResult.Error("Conta de demonstração não encontrada.")
-        } else {
-            acc = store.findAccount(identifier) ?: return LoginResult.Error("Usuário não encontrado.")
-            if (acc.password != password) return LoginResult.Error("Senha incorreta.")
+    /**
+     * Login de verdade: POST /auth/login (e-mail ou matrícula + senha).
+     * "remember" = true guarda o token no aparelho para entrar direto na próxima vez.
+     */
+    suspend fun login(identifier: String, password: String, remember: Boolean): LoginResult {
+        if (identifier.isBlank() || password.isBlank()) return LoginResult.Error("Informe e-mail ou matrícula e a senha.")
+        return try {
+            val r = api.login(LoginRequest(identifier.trim(), password)).valorOuErro("Não foi possível entrar.")
+            val nome = r.usuario.nome.orEmpty()
+            val email = r.usuario.email.orEmpty()
+            val matricula = r.usuario.matricula.orEmpty()
+
+            Session.iniciar(r.usuario.id, r.token)
+            carregarUsuario(nome, email, matricula)
+
+            if (remember) {
+                store.authToken = r.token
+                store.authUserId = r.usuario.id
+                store.authName = nome
+                store.authEmail = email
+                store.authMatricula = matricula
+            } else {
+                store.limparAuth()
+            }
+            LoginResult.Success
+        } catch (e: Exception) {
+            LoginResult.Error(mensagemDeErro(e, "Não foi possível entrar. Tente novamente."))
         }
-        load(acc)
-        store.sessionEmail = if (remember && !acc.mustChange) acc.email else null
-        return if (acc.mustChange) LoginResult.FirstAccess else LoginResult.Success
     }
 
     fun logout() {
         user = null
         progress = Progress()
+        Session.limpar()
+        store.limparAuth()
         store.sessionEmail = null
     }
 
-    // ---------- recuperação de senha ----------
-    private fun newCode() = (100000..999999).random().toString()
-
-    /** Gera o código (simulando o envio por e-mail). Retorna false se o e-mail não existe. */
-    fun startRecovery(email: String): Boolean {
-        val acc = store.findAccount(email) ?: return false
-        pendingEmail = acc.email
-        pendingCode = newCode()
-        codeVerified = false
-        return true
+    // ---------- recuperação de senha (API) ----------
+    /** Pede o código por e-mail. Retorna null se deu certo ou a mensagem de erro. */
+    suspend fun startRecovery(email: String): String? {
+        return try {
+            val r = api.recuperarAcesso(EmailRequest(email.trim())).response
+            pendingEmail = email.trim()
+            pendingCode = r?.codigoDev // só vem em desenvolvimento (EXPOR_CODIGO_DEV=true na API)
+            resetToken = null
+            null
+        } catch (e: Exception) {
+            mensagemDeErro(e, "Não foi possível enviar o código. Tente novamente.")
+        }
     }
 
-    fun resendCode() { pendingCode = newCode(); codeVerified = false }
-
-    fun verifyCode(code: String): Boolean {
-        val ok = code == pendingCode
-        if (ok) codeVerified = true
-        return ok
+    suspend fun resendCode() {
+        val email = pendingEmail ?: return
+        try {
+            pendingCode = api.recuperarAcesso(EmailRequest(email)).response?.codigoDev
+            resetToken = null
+        } catch (e: Exception) {
+            // o aviso "reenviado" da tela continua; um novo pedido falho não muda o código atual
+        }
     }
 
-    fun resetPassword(newPassword: String): Boolean {
+    suspend fun verifyCode(code: String): Boolean {
         val email = pendingEmail ?: return false
-        if (!codeVerified) return false
-        store.updatePassword(email, newPassword, mustChange = false)
-        pendingEmail = null; pendingCode = null; codeVerified = false
-        return true
+        return try {
+            resetToken = api.validarCodigo(ValidarCodigoRequest(email, code.trim())).valorOuErro("Código inválido.").token
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 
-    /** Retorna null em caso de sucesso ou a mensagem de erro. */
-    fun changePassword(current: String?, newPassword: String): String? {
+    /** Retorna null se a senha foi redefinida ou a mensagem de erro. */
+    suspend fun resetPassword(newPassword: String): String? {
+        val token = resetToken ?: return "Sessão expirada. Refaça a recuperação de senha."
+        return try {
+            api.redefinirSenha(RedefinirSenhaRequest(token, newPassword)).garantirSucesso("Não foi possível alterar a senha.")
+            pendingEmail = null; pendingCode = null; resetToken = null
+            null
+        } catch (e: Exception) {
+            mensagemDeErro(e, "Não foi possível alterar a senha. Tente novamente.")
+        }
+    }
+
+    /** Troca de senha com o usuário logado. Retorna null em caso de sucesso ou a mensagem de erro. */
+    suspend fun changePassword(current: String?, newPassword: String): String? {
         val u = user ?: return "Sessão expirada. Entre novamente."
-        val acc = store.findAccount(u.email) ?: return "Conta não encontrada."
-        if (current != null && current != acc.password) return "Senha atual incorreta."
-        if (newPassword == acc.password) return "A nova senha deve ser diferente da atual."
-        store.updatePassword(acc.email, newPassword, mustChange = false)
-        user = u.copy(mustChangePassword = false)
-        store.sessionEmail = u.email
-        return null
+        if (current.isNullOrBlank()) return "Informe a senha atual."
+        if (newPassword == current) return "A nova senha deve ser diferente da atual."
+        return try {
+            api.primeiroAcesso(PrimeiroAcessoRequest(u.email, current, newPassword))
+                .garantirSucesso("Não foi possível alterar a senha.")
+            null
+        } catch (e: Exception) {
+            mensagemDeErro(e, "Não foi possível alterar a senha. Tente novamente.")
+        }
     }
 
-    /** Valida se o usuário existe para o primeiro acesso. Retorna null se OK ou mensagem de erro. */
-    fun verifyFirstAccessUser(identifier: String): Pair<Boolean, String?> {
-        val acc = store.findAccount(identifier.trim())
-            ?: return false to "E-mail ou matrícula não encontrado na instituição."
+    /** A API não revela se um usuário existe; a validação acontece ao criar a senha. */
+    suspend fun verifyFirstAccessUser(identifier: String): Pair<Boolean, String?> {
+        if (identifier.isBlank()) return false to "Informe seu e-mail ou matrícula."
         return true to null
     }
 
-    /** Executa o primeiro acesso: salva a nova senha e já autentica o usuário. */
-    fun completeFirstAccess(identifier: String, currentPassword: String?, newPassword: String): String? {
-        val acc = store.findAccount(identifier.trim())
-            ?: return "Conta não encontrada na instituição."
-        if (currentPassword != null && currentPassword.isNotBlank() && currentPassword != acc.password) {
-            return "Senha provisória incorreta."
+    /** Primeiro acesso: troca a senha provisória e já autentica o usuário. Retorna null se OK ou o erro. */
+    suspend fun completeFirstAccess(identifier: String, currentPassword: String?, newPassword: String): String? {
+        if (currentPassword.isNullOrBlank()) return "Informe a senha provisória."
+        if (newPassword == currentPassword) return "A nova senha deve ser diferente da provisória."
+        return try {
+            api.primeiroAcesso(PrimeiroAcessoRequest(identifier.trim(), currentPassword, newPassword))
+                .garantirSucesso("Não foi possível criar a senha.")
+            when (val r = login(identifier, newPassword, remember = true)) {
+                is LoginResult.Error -> r.message
+                else -> null
+            }
+        } catch (e: Exception) {
+            mensagemDeErro(e, "Não foi possível criar a senha. Tente novamente.")
         }
-        if (newPassword == acc.password) {
-            return "A nova senha deve ser diferente da provisória."
-        }
-        store.updatePassword(acc.email, newPassword, mustChange = false)
-        load(acc.copy(password = newPassword, mustChange = false))
-        store.sessionEmail = acc.email
-        return null
     }
 
     // ---------- desafios ----------

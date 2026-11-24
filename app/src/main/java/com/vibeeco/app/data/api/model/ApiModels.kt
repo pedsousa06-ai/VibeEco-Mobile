@@ -522,3 +522,43 @@ data class PerfilEdicaoResposta(
     @SerializedName("localizacao") val localizacao: String? = null,
     @SerializedName("bio") val bio: String? = null
 )
+
+
+// ---------- Autenticação (/auth/...) ----------
+data class LoginRequest(val login: String, val senha: String)
+
+data class UsuarioAuthDto(
+    @SerializedName("id") val id: Int = 0,
+    @SerializedName("nome") val nome: String? = null,
+    @SerializedName("email") val email: String? = null,
+    @SerializedName("matricula") val matricula: String? = null,
+)
+
+data class LoginResposta(
+    @SerializedName("token") val token: String = "",
+    @SerializedName("expira_em") val expiraEm: Long? = null,
+    @SerializedName("usuario") val usuario: UsuarioAuthDto = UsuarioAuthDto(),
+)
+
+data class EmailRequest(@SerializedName("email") val email: String)
+
+/** codigo_dev só vem quando a API roda com EXPOR_CODIGO_DEV=true (desenvolvimento). */
+data class RecuperacaoResposta(@SerializedName("codigo_dev") val codigoDev: String? = null)
+
+data class ValidarCodigoRequest(
+    @SerializedName("email") val email: String,
+    @SerializedName("codigo") val codigo: String,
+)
+
+data class TokenResposta(@SerializedName("token") val token: String = "")
+
+data class RedefinirSenhaRequest(
+    @SerializedName("token") val token: String,
+    @SerializedName("novaSenha") val novaSenha: String,
+)
+
+data class PrimeiroAcessoRequest(
+    @SerializedName("login") val login: String,
+    @SerializedName("senhaAtual") val senhaAtual: String,
+    @SerializedName("novaSenha") val novaSenha: String,
+)
