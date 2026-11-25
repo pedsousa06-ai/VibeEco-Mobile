@@ -375,9 +375,11 @@ fun VibeNavHost() {
                         },
                         onAvancar = { etapa ->
                             val idEtapa = etapa.idEtapa ?: 0
-                            missoesVm.concluirEtapa(id, idEtapa) { sucesso, erro ->
+                            missoesVm.concluirEtapa(id, idEtapa) { missaoConcluida, erro ->
                                 if (erro != null) {
                                     toast(erro)
+                                } else if (missaoConcluida) {
+                                    toast("Missão concluída! XP e moedas creditados.")
                                 } else {
                                     toast("Etapa concluída com sucesso!")
                                 }

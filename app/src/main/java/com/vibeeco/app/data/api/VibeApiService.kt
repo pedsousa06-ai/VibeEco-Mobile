@@ -84,14 +84,16 @@ interface VibeApiService {
     @GET("missoes/missoesConcluidas/{id}")
     suspend fun listarMissoesConcluidas(@Path("id") idUsuario: Int): ApiResponse<MissoesWrapper>
 
-    @POST("usuario_missao")
+    /** Participar de uma missão (a rota antiga era usuario_missao). */
+    @POST("usuarioMissao")
     suspend fun entrarMissao(@Body request: UsuarioMissaoRequest): ApiResponse<Any>
 
-    @PUT("usuario_missao/concluir")
-    suspend fun concluirMissao(@Body request: UsuarioMissaoRequest): ApiResponse<Any>
-
+    /**
+     * Conclui uma etapa. Na última etapa o back-end conclui a missão sozinho
+     * e paga XP/moedas (não existe mais PUT usuario_missao/concluir).
+     */
     @POST("usuarioEtapa")
-    suspend fun concluirEtapa(@Body request: UsuarioEtapaRequest): ApiResponse<Any>
+    suspend fun concluirEtapa(@Body request: UsuarioEtapaRequest): ApiResponse<UsuarioEtapaResposta>
 
     @GET("notificacoes/{id}")
     suspend fun listarNotificacoes(@Path("id") idUsuario: Int): List<NotificacaoApiDto>

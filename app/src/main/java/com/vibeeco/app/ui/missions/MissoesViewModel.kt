@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vibeeco.app.data.api.RetrofitClient
 import com.vibeeco.app.data.api.mensagemDeErro
+import com.vibeeco.app.data.api.valorOuErro
 import com.vibeeco.app.data.api.model.MissaoApiDto
 import com.vibeeco.app.data.api.model.UsuarioEtapaRequest
 import com.vibeeco.app.data.api.model.UsuarioMissaoRequest
@@ -85,9 +86,10 @@ class MissoesViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val req = UsuarioEtapaRequest(idUsuario = Session.userId, idEtapa = idEtapa)
-                api.concluirEtapa(req)
+                val resposta = api.concluirEtapa(req).valorOuErro("Erro ao concluir etapa.")
                 carregar() // Recarrega para ver o novo progresso
-                onResultado(true, null)
+                // 1º parâmetro: true quando esta etapa fechou a missão inteira
+                onResultado(resposta.status.equals("CONCLUIDA", ignoreCase = true), null)
             } catch (e: Exception) {
                 onResultado(false, mensagemDeErro(e, "Erro ao concluir etapa."))
             }
