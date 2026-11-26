@@ -337,11 +337,13 @@ data class UsuarioMissaoWrapper(
 )
 
 data class EtapaMissaoApiDto(
-    @SerializedName("id_etapa") val idEtapa: Int? = null,
+    // a API devolve id/titulo/xp/ordem (tbl_missao_etapa); aceitamos também os nomes antigos
+    @SerializedName("id", alternate = ["id_etapa"]) val idEtapa: Int? = null,
     @SerializedName("id_missao") val idMissao: Int? = null,
-    @SerializedName("nome_etapa") val nomeEtapa: String? = null,
-    @SerializedName("qtde_xp") val qtdeXp: Int? = null,
-    @SerializedName("numero_ordem") val numeroOrdem: Int? = null
+    @SerializedName("titulo", alternate = ["nome_etapa"]) val nomeEtapa: String? = null,
+    @SerializedName("xp", alternate = ["qtde_xp"]) val qtdeXp: Int? = null,
+    @SerializedName("ordem", alternate = ["numero_ordem"]) val numeroOrdem: Int? = null,
+    @SerializedName("concluida") val concluida: Boolean? = null
 )
 
 data class UsuarioEtapaWrapper(

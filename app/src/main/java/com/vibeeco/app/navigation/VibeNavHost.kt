@@ -375,6 +375,7 @@ fun VibeNavHost() {
                         },
                         onAvancar = { etapa ->
                             val idEtapa = etapa.idEtapa ?: 0
+                            if (idEtapa <= 0) { toast("Etapa inválida. Atualize a lista de missões e tente de novo."); return@MissaoDetalheScreen true }
                             missoesVm.concluirEtapa(id, idEtapa) { missaoConcluida, erro ->
                                 if (erro != null) {
                                     toast(erro)
