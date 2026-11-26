@@ -8,6 +8,10 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
+import com.vibeeco.app.data.Session
+import com.vibeeco.app.data.api.RetrofitClient
+import com.vibeeco.app.data.api.iniciaisDe as iniciaisDoNome
+import com.vibeeco.app.data.api.paraInt
 
 /* ------------------------------------------------------------------ */
 /*  MODELOS                                                            */
@@ -66,6 +70,14 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
     var erroPublicar by mutableStateOf("")
         private set
 
+    /** Top 5 do ranking (vem da API; vazio enquanto carrega ou se falhar). */
+    var ranking by mutableStateOf<List<RankingSemanaItem>>(emptyList())
+        private set
+
+    /** Desafios em andamento do usuário (vem da API). */
+    var desafios by mutableStateOf<List<DesafioAtivo>>(emptyList())
+        private set
+
     // TODO: preencher com as categorias da API quando existir uma rota que as liste
     val categorias: List<Categoria> = emptyList()
 
@@ -73,8 +85,39 @@ class FeedViewModel(application: Application) : AndroidViewModel(application) {
         carregar(mostrarCarregando = true)
     }
 
+    private fun carregarLateral() {
+        viewModelScope.launch {
+            try {
+                val medalhas = listOf("🥇", "🥈", "🥉")
+                ranking = RetrofitClient.vibeApi.listarRanking().response?.ranking.orEmpty()
+                    .sortedByDescending { (it.xpUsuario ?: it.totalXp).paraInt() }
+                    .take(5)
+                    .mapIndexed { i, u ->
+                        val nome = u.nomeUsuario ?: u.nome ?: "Usuário"
+                        RankingSemanaItem(
+                            id = (u.idUsuario ?: u.id).paraInt(), nome = nome, iniciais = iniciaisDoNome(nome),
+                            xp = (u.xpUsuario ?: u.totalXp).paraInt(), medalha = medalhas.getOrElse(i) { "#${i + 1}" },
+                        )
+                    }
+            } catch (e: Exception) { /* a lateral é opcional: o feed segue sem ela */ }
+            try {
+                desafios = RetrofitClient.vibeApi.listarDesafios(Session.userId).response?.usuarioDesafio.orEmpty()
+                    .filter { it.statusDesafio.orEmpty().uppercase().contains("ANDAMENTO") }
+                    .take(3)
+                    .map { d ->
+                        val dias = d.prazoDias.paraInt()
+                        DesafioAtivo(
+                            d.idDesafio.paraInt(), d.nomeDesafio ?: "Desafio",
+                            "${d.qtdeParticipantes.paraInt()} participantes" + if (dias > 0) " · $dias dias" else "",
+                        )
+                    }
+            } catch (e: Exception) { }
+        }
+    }
+
     fun carregar(mostrarCarregando: Boolean = true) {
         if (mostrarCarregando) estado = FeedState.Carregando
+        carregarLateral()
         viewModelScope.launch {
             estado = try {
                 FeedState.Sucesso(repo.listarPostsRecentes())

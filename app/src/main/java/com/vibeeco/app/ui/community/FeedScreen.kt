@@ -111,20 +111,6 @@ private object FC {
 private const val LIMITE_TEXTO = 500
 private const val LIMITE_FOTO_BYTES = 5L * 1024 * 1024
 
-private val RANKING_SEMANA = listOf(
-    RankingSemanaItem(1, "Carlos Mendes", "CM", 4200, "🥇"),
-    RankingSemanaItem(2, "Fernanda Lima", "FL", 3850, "🥈"),
-    RankingSemanaItem(3, "Rafael Costa", "RC", 3600, "🥉"),
-    RankingSemanaItem(4, "Ana Beatriz", "AB", 3100, "#4"),
-    RankingSemanaItem(5, "Lucas Nunes", "LN", 2750, "#5"),
-)
-
-private val DESAFIOS_ATIVOS = listOf(
-    DesafioAtivo(1, "Semana sem Carro", "234 participantes · 4 dias"),
-    DesafioAtivo(2, "Desafio da Água", "412 participantes · 1 dia"),
-    DesafioAtivo(3, "Adote uma Área Verde", "156 participantes · 8 dias"),
-)
-
 /* ------------------------------------------------------------------ */
 /*  TELA                                                               */
 /* ------------------------------------------------------------------ */
@@ -147,8 +133,8 @@ fun FeedScreen(
     FeedContent(
         estado = viewModel.estado,
         usuarioIniciais = iniciais,
-        ranking = RANKING_SEMANA,
-        desafios = DESAFIOS_ATIVOS,
+        ranking = viewModel.ranking,
+        desafios = viewModel.desafios,
         onAbrirModal = {
             viewModel.limparErroPublicar()
             modalAberto = true
@@ -1165,8 +1151,8 @@ private fun FeedPreview() {
             )
         ),
         usuarioIniciais = "VC",
-        ranking = RANKING_SEMANA,
-        desafios = DESAFIOS_ATIVOS,
+        ranking = emptyList(),
+        desafios = emptyList(),
         onAbrirModal = {},
         onTentarNovamente = {},
         onAbrirPost = {},

@@ -241,12 +241,6 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     // ---------- ranking e perfil ----------
-    fun ranking(): List<RankEntry> {
-        val me = user ?: return Content.rivals
-        return (Content.rivals + RankEntry(me.name, "Você", progress.points, isMe = true))
-            .sortedByDescending { it.points }
-    }
-
     fun updateNotifications(enabled: Boolean) {
         notifications = enabled
         store.notifications = enabled

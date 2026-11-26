@@ -28,7 +28,6 @@ data class Progress(
 class Store(context: Context) {
     private val sp = context.getSharedPreferences("vibeeco_prefs", Context.MODE_PRIVATE)
 
-    init { seedIfNeeded() }
 
     var onboardingSeen: Boolean
         get() = sp.getBoolean("onboarding_seen", false)
@@ -137,21 +136,4 @@ class Store(context: Context) {
     }
 
     // Contas de demonstração (primeira execução)
-    private fun seedIfNeeded() {
-        if (sp.contains("accounts")) return
-        saveAccounts(
-            listOf(
-                Account("Ana Beatriz Souza", "ana.beatriz@ufmg.br", "2023001234", "Vibe@1234", false),
-                Account("Novo Aluno", "novo.aluno@ufmg.br", "2024005678", "Temp@1234", true),
-            )
-        )
-        saveProgress(
-            "ana.beatriz@ufmg.br",
-            Progress(
-                points = 230, co2Grams = 18400, actions = 14, streak = 3,
-                lastDate = LocalDate.now().minusDays(1).toString(),
-                readArticles = setOf("a1", "a2"),
-            )
-        )
-    }
 }
