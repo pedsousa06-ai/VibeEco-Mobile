@@ -66,6 +66,12 @@ interface VibeApiService {
     @GET("ranking")
     suspend fun listarRanking(): ApiResponse<RankingWrapper>
 
+    @GET("ranking/instituicao/{id}")
+    suspend fun listarRankingInstituicao(@Path("id") idUsuario: Int): ApiResponse<RankingWrapper>
+
+    @GET("ranking/grupo/{id}")
+    suspend fun listarRankingGrupo(@Path("id") idUsuario: Int): ApiResponse<RankingWrapper>
+
     @PUT("ranking/{id}")
     suspend fun atualizarVisibilidadeRanking(
         @Path("id") idUsuario: Int,
