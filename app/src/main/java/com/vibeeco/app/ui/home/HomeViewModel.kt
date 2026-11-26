@@ -74,10 +74,12 @@ class HomeViewModel : ViewModel() {
 
                 // Converter missões (Usando o MissaoApiDto com os atalhos)
                 val missoes = dados.missoes.orEmpty().mapNotNull { missao ->
-                    val id = missao.idMissao ?: missao.id ?: return@mapNotNull null
+                    val id = missao.idMissao ?: return@mapNotNull null
                     val progresso = missao.progresso ?: 0
 
+                    // a lista da Home traz só missões em andamento (status_missao); sem progresso ainda é andamento
                     val status = when {
+                        missao.statusMissao.equals("EM_ANDAMENTO", true) && progresso < 100 -> StatusMissao.Andamento
                         progresso >= 100 -> StatusMissao.Concluida
                         progresso > 0 -> StatusMissao.Andamento
                         else -> StatusMissao.Disponivel

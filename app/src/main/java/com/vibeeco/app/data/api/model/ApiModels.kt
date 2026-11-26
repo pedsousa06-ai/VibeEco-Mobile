@@ -85,8 +85,9 @@ data class MissaoInicioDto(
     @SerializedName("id_missao") val idMissao: Int? = null,
     @SerializedName("nome_missao") val nome: String? = null,
     @SerializedName("qtde_coins") val qtdeCoins: Int? = null,
-    @SerializedName("qtde_xp") val qtdeXp: Int? = null,
-    @SerializedName("progresso") val progresso: Int? = null,
+    @SerializedName("qtde_xp", alternate = ["xp_missao"]) val qtdeXp: Int? = null,
+    @SerializedName("progresso", alternate = ["progresso_missao"]) val progresso: Int? = null,
+    @SerializedName("status_missao") val statusMissao: String? = null,
     @SerializedName("prazo_dias") val prazoDias: Int? = null,
     @SerializedName("nome_dificuldade") val dificuldade: String? = null
 )
@@ -99,7 +100,9 @@ data class ConteudoInicioDto(
     @SerializedName("xp_conteudo_educativo") val qtdeXp: Int? = null,
     @SerializedName("status") val status: Int? = null,
     @SerializedName("data_acesso") val dataAcesso: String? = null,
-    @SerializedName("tempo_acesso_min") val duracaoLeitura: Int? = null
+    @SerializedName("duracao_leitura", alternate = ["tempo_acesso_min"]) val duracaoLeitura: Int? = null,
+    @SerializedName("categoria") val categoria: String? = null,
+    @SerializedName("img") val img: String? = null
 )
 
 data class OfensivaInicioDto(
