@@ -48,9 +48,10 @@ class MissoesViewModel : ViewModel() {
 
                 cartoes = lista.map { dto ->
                     val progresso = dto.progressoMissao ?: 0
+                    val st = dto.statusMissao.orEmpty().uppercase()
                     val status = when {
-                        dto.statusMissao?.equals("Concluida", ignoreCase = true) == true || progresso >= 100 -> StatusMissao.Concluida
-                        dto.statusMissao?.equals("Andamento", ignoreCase = true) == true || progresso > 0 -> StatusMissao.Andamento
+                        st.contains("CONCLU") || progresso >= 100 -> StatusMissao.Concluida
+                        st.contains("ANDAMENTO") || progresso > 0 -> StatusMissao.Andamento
                         else -> StatusMissao.Disponivel
                     }
                     MissaoUi(dto, progresso, status)

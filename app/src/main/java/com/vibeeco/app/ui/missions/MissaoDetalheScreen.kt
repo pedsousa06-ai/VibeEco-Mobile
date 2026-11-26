@@ -8,9 +8,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,6 +25,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.roundToInt
+import kotlinx.coroutines.delay
 import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.Clock
@@ -48,9 +53,23 @@ fun MissaoDetalheScreen(
     val dificuldadeStr = m.nomeDificuldade ?: "Fácil"
     val dif = dificuldadeUi(dificuldadeStr)
 
-    var modalAberto by remember { mutableStateOf(false) }
+    val etapas = m.etapas.orEmpty()
+    val participando = ui.status != StatusMissao.Disponivel
+    val concluidaTotal = ui.status == StatusMissao.Concluida
+    // quantas etapas já foram feitas (o progresso da API é feito/total*100, arredondado)
+    val feitas = (etapas.size * (ui.progresso / 100f)).roundToInt().coerceIn(0, etapas.size)
+    val proximaEtapa = if (participando && !concluidaTotal) etapas.getOrNull(feitas) else null
 
-    val proximaEtapa = m.etapas?.firstOrNull()
+    // evita toques repetidos enquanto a etapa está sendo enviada
+    var enviando by remember { mutableStateOf(false) }
+    LaunchedEffect(ui.progresso) { enviando = false }
+    LaunchedEffect(enviando) { if (enviando) { delay(3000); enviando = false } }
+    // como no front web: confirmação antes de participar e antes de marcar a etapa
+    var confirmandoParticipar by remember { mutableStateOf(false) }
+    var etapaEmConfirmacao by remember { mutableStateOf<EtapaMissaoApiDto?>(null) }
+    val concluirEtapa: (EtapaMissaoApiDto) -> Unit = { etapa ->
+        if (!enviando) etapaEmConfirmacao = etapa
+    }
 
     Column(
         Modifier
@@ -102,30 +121,42 @@ fun MissaoDetalheScreen(
             Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text("Etapas da Missão", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = TextMain)
 
-                m.etapas?.forEachIndexed { index, etapa ->
-                    val concluida = index < (m.etapas.size * (ui.progresso / 100f)).toInt()
-                    val andamento = index == (m.etapas.size * (ui.progresso / 100f)).toInt()
+                etapas.forEachIndexed { index, etapa ->
+                    val concluida = index < feitas || concluidaTotal
+                    val andamento = participando && !concluidaTotal && index == feitas
 
                     EtapaItem(
                         titulo = etapa.nomeEtapa ?: "Etapa ${index + 1}",
                         xp = etapa.qtdeXp ?: 0,
                         concluida = concluida,
                         andamento = andamento
-                    ) {
-                        if (andamento) modalAberto = true
-                    }
+                    ) { if (andamento) concluirEtapa(etapa) }
                 }
 
                 Spacer(Modifier.height(4.dp))
 
-                Box(
-                    Modifier.fillMaxWidth().height(50.dp).clip(RoundedCornerShape(10.dp)).background(Color(0xFF16A34A))
-                        .clickable {
-                            if (proximaEtapa != null) modalAberto = true
-                        },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text("Continuar Missão", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                if (!participando) {
+                    Box(
+                        Modifier.fillMaxWidth().height(50.dp).clip(RoundedCornerShape(10.dp)).background(Color(0xFF16A34A))
+                            .clickable { confirmandoParticipar = true },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text("Participar da Missão", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    }
+                } else if (proximaEtapa != null) {
+                    Box(
+                        Modifier.fillMaxWidth().height(50.dp).clip(RoundedCornerShape(10.dp))
+                            .background(if (enviando) Color(0xFF86C99A) else Color(0xFF16A34A))
+                            .clickable(enabled = !enviando) { concluirEtapa(proximaEtapa) },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            if (enviando) "Salvando conclusão..." else "Continuar Missão",
+                            color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold,
+                        )
+                    }
+                } else if (concluidaTotal) {
+                    Text("Missão concluída! Veja outras missões para continuar ganhando XP.", color = Color(0xFF15803D), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
         }
@@ -157,13 +188,29 @@ fun MissaoDetalheScreen(
         Spacer(Modifier.height(24.dp))
     }
 
-    if (modalAberto && proximaEtapa != null) {
-        QuizModal(
-            onFechar = { modalAberto = false },
-            onEnviar = {
-                modalAberto = false
-                onAvancar(proximaEtapa)
-            }
+    if (confirmandoParticipar) {
+        AlertDialog(
+            onDismissRequest = { confirmandoParticipar = false },
+            title = { Text("Participar desta missão") },
+            text = { Text("Você tem certeza que deseja participar da missão “${m.nomeMissao ?: ""}”?") },
+            confirmButton = {
+                TextButton(onClick = { confirmandoParticipar = false; onParticipar() }) { Text("Sim, participar") }
+            },
+            dismissButton = { TextButton(onClick = { confirmandoParticipar = false }) { Text("Cancelar") } },
+        )
+    }
+
+    etapaEmConfirmacao?.let { etapa ->
+        AlertDialog(
+            onDismissRequest = { etapaEmConfirmacao = null },
+            title = { Text(etapa.nomeEtapa ?: "Etapa") },
+            text = {
+                Text("+${etapa.qtdeXp ?: 0} XP ao concluir.\n\nRealize esta etapa e, quando terminar, marque como concluída para receber o seu XP.")
+            },
+            confirmButton = {
+                TextButton(onClick = { etapaEmConfirmacao = null; enviando = true; onAvancar(etapa) }) { Text("Marcar como concluída") }
+            },
+            dismissButton = { TextButton(onClick = { etapaEmConfirmacao = null }) { Text("Agora não") } },
         )
     }
 }

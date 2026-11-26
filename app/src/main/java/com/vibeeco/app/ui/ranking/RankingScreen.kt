@@ -145,9 +145,10 @@ fun RankingScreen(
             )
         }
 
-        val eu = todosItens.firstOrNull { it.nome == "Ana Silva" }
-            ?: todosItens.lastOrNull()
-            ?: RankingItem("0", 0, "Você", "VC", "Escola", 1, 0, voce = true)
+        // "eu" é o usuário logado (nome do perfil carregado da API), não um nome fixo
+        val meuNome = com.vibeeco.app.ui.profile.PerfilStore.perfil.nome
+        val eu = todosItens.firstOrNull { it.nome.equals(meuNome, ignoreCase = true) }
+            ?: RankingItem("0", 0, meuNome.ifBlank { "Você" }, "VC", "VibeEco", 1, 0, voce = true)
 
         val listaComVoce = todosItens.map {
             if (it.id == eu.id) it.copy(voce = true) else it
@@ -156,7 +157,11 @@ fun RankingScreen(
         RankingData(
             lista = listaComVoce,
             eu = eu.copy(voce = true),
-            percentual = 15
+            // posição do usuário em relação ao total (ex.: está entre os 15% melhores)
+            percentual = if (listaComVoce.isEmpty()) 100 else {
+                val pos = (listaComVoce.indexOfFirst { it.voce } + 1).coerceAtLeast(1)
+                kotlin.math.ceil(pos * 100.0 / listaComVoce.size).toInt().coerceIn(1, 100)
+            }
         )
     }
 
