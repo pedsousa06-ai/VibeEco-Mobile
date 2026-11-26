@@ -69,6 +69,8 @@ data class AchievementBadge(
 )
 
 data class RankEntry(
+    val id: Int = 0,
+    val nivel: Int = 0,
     val name: String,
     val course: String,
     val points: Int,
@@ -329,13 +331,13 @@ object Content {
     )
 
     val rivals = listOf(
-        RankEntry("Lucas Menezes", "Engenharia Ambiental", 410),
-        RankEntry("Mariana Costa", "Biologia", 365),
-        RankEntry("Pedro Alves", "Geografia", 330),
-        RankEntry("Juliana Rocha", "Arquitetura", 295),
-        RankEntry("Rafael Lima", "Engenharia Civil", 240),
-        RankEntry("Camila Torres", "Química", 205),
-        RankEntry("Gabriel Nunes", "Administração", 170),
-        RankEntry("Beatriz Souza", "Letras", 120),
+        RankEntry(name = "Lucas Menezes", course = "Engenharia Ambiental", points = 410),
+        RankEntry(name = "Mariana Costa", course = "Biologia", points = 365),
+        RankEntry(name = "Pedro Alves", course = "Geografia", points = 330),
+        RankEntry(name = "Juliana Rocha", course = "Arquitetura", points = 295),
+        RankEntry(name = "Rafael Lima", course = "Engenharia Civil", points = 240),
+        RankEntry(name = "Camila Torres", course = "Química", points = 205),
+        RankEntry(name = "Gabriel Nunes", course = "Administração", points = 170),
+        RankEntry(name = "Beatriz Souza", course = "Letras", points = 120),
     )
 }

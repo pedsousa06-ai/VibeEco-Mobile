@@ -122,6 +122,8 @@ fun RankingScreen(
 
     val listaApi = viewModel.entradas
 
+    LaunchedEffect(escopo) { viewModel.carregar(escopo) }
+
     val ranking = remember(listaApi, escopo) {
         if (listaApi.isEmpty()) {
             return@remember RankingData(
@@ -133,21 +135,22 @@ fun RankingScreen(
 
         val todosItens = listaApi.mapIndexed { index, entry ->
             RankingItem(
-                id = index.toString(),
+                id = entry.id.toString(),
                 posicao = index + 1,
                 nome = entry.name,
                 iniciais = entry.name.split(" ").take(2).joinToString("") { it.first().toString().uppercase() }.ifEmpty { "VC" },
                 instituicao = entry.course.split("·").firstOrNull()?.trim() ?: "VibeEco",
-                nivel = entry.points / 100 + 1,    // ✅ Calculado a partir do XP
+                nivel = if (entry.nivel > 0) entry.nivel else entry.points / 100 + 1,
                 xp = entry.points,
                 conquistas = 0,                    // ✅ Fixo (API não retorna)
                 voce = false
             )
         }
 
-        // "eu" é o usuário logado (nome do perfil carregado da API), não um nome fixo
+        // "eu" é o usuário logado, identificado pelo id da sessão (nome pode repetir ou estar vazio)
         val meuNome = com.vibeeco.app.ui.profile.PerfilStore.perfil.nome
-        val eu = todosItens.firstOrNull { it.nome.equals(meuNome, ignoreCase = true) }
+        val meuId = com.vibeeco.app.data.Session.userId.toString()
+        val eu = todosItens.firstOrNull { it.id == meuId }
             ?: RankingItem("0", 0, meuNome.ifBlank { "Você" }, "VC", "VibeEco", 1, 0, voce = true)
 
         val listaComVoce = todosItens.map {
@@ -401,7 +404,7 @@ private fun CardVoce(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("#${eu.posicao}", color = RankColors.VoceTexto, fontSize = 26.sp, fontWeight = FontWeight.ExtraBold)
+            Text(if (eu.posicao > 0) "#${eu.posicao}" else "—", color = RankColors.VoceTexto, fontSize = 26.sp, fontWeight = FontWeight.ExtraBold)
             Avatar(iniciais = eu.iniciais, tamanho = 42.dp)
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -426,7 +429,7 @@ private fun CardVoce(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Icon(Lucide.TrendingUp, null, tint = RankColors.VoceTexto, modifier = Modifier.size(16.dp))
-                Text("Top $percentual% $sufixo", color = RankColors.VoceTexto, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                Text(if (eu.posicao > 0) "Top $percentual% $sufixo" else "Fora do ranking $sufixo", color = RankColors.VoceTexto, fontSize = 14.sp, fontWeight = FontWeight.Medium)
             }
             Button(
                 onClick = onAbrirRecompensas,
